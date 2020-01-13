@@ -1,0 +1,33 @@
+body {
+    font-weight: 400;
+    font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif!important;
+    color: #222;
+}
+
+.orange {
+    color: orange;
+}
+
+code {
+    max-height: 180px;
+}
+
+img {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+}
+
+.section-header {
+    font-size: 1.5em;
+    margin: 0 0 0.3em;
+}
+.unknown {
+    color: mediumpurple;
+}
+.good {
+    color: mediumseagreen;
+}
+.bad {
+    color: lightgray;
+}
