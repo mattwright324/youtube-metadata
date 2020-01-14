@@ -18,6 +18,20 @@ img {
     height: auto;
 }
 
+.part-section {
+    margin-bottom: 1.5%;
+}
+.mb-15 {
+    margin-bottom: 1.5%;
+}
+.tag {
+    background-color: lightskyblue;
+    padding: 2px 5px;
+    border-radius: 5px;
+    margin-right: 4px;
+    margin-bottom: 3px;
+    display: inline-block;
+}
 .section-header {
     font-size: 1.5em;
     margin: 0 0 0.3em;
