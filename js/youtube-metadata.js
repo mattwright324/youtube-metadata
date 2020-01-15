@@ -48,17 +48,48 @@
         return parsed;
     }
 
-    /**
-     * Can't access part(s): fileDetails, processingDetails, suggestions
-     * Useless part(s): player, id
-     * Every other part below:
-     */
+    function getDuration(a, b) {
+        if (a.isBefore(b)) {
+            return moment.duration(b.diff(a));
+        } else {
+            return moment.duration(a.diff(b));
+        }
+    }
+
+    function formatDuration(duration, includeMs) {
+        const years = duration.years();
+        const days = duration.days();
+        const hours = duration.hours();
+        const minutes = duration.minutes();
+        const seconds = duration.seconds();
+        const millis = duration.milliseconds();
+        const format = [
+            (years > 0 ? years + "y" : ""),
+            (days > 0 ? days + "d" : ""),
+            (hours > 0 ? hours + "h" : ""),
+            (minutes > 0 ? minutes + "m" : ""),
+            (seconds > 0 ? seconds + "s" : ""),
+            includeMs ? (millis > 0 ? millis + "ms" : "") : ""
+        ].join(" ");
+
+        if (format.trim() == "") {
+            return "0s";
+        }
+
+        return format;
+    }
+
     const partMap = {
+        /**
+         * Can't access part(s): fileDetails, processingDetails, suggestions
+         * Useless part(s): player, id
+         * Every other part below:
+         */
         video: {
             snippet: {
                 title: "Snippet",
                 postProcess: function (partJson) {
-                    const partDiv = $("#snippet");
+                    const partDiv = $("#video-section #snippet");
 
                     partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15'>");
 
@@ -96,19 +127,60 @@
                                 "<span class='tag'>" + partJson.tags.join(" </span><span class='tag'>") + "</span>" +
                             "</p>";
                         partDiv.append(tagsHtml);
+                    } else {
+                        partDiv.append("<p class='mb-15'>There were no tags.</p>")
                     }
                 }
             },
             statistics: {
                 title: "Statistics",
                 postProcess: function (partJson) {
-                    const partDiv = $("#statistics");
+                    const partDiv = $("#video-section #statistics");
+
+                    if (partJson.hasOwnProperty("likeCount")) {
+                        function gcd(p, q) {
+                            if (q === 0) {
+                                return p;
+                            }
+                            return gcd(q, p % q);
+                        }
+
+                        const gcdValue = gcd(partJson.likeCount, partJson.dislikeCount);
+                        const gcdLikes = gcdValue === 0 ? 0 : partJson.likeCount / gcdValue;
+                        const gcdDislikes = gcdValue === 0 ? 0 : partJson.dislikeCount / gcdValue;
+
+                        let normalizedLikes = 0, normalizedDislikes = 0;
+                        if (gcdValue !== 0) {
+                            if (gcdLikes > gcdDislikes) {
+                                normalizedLikes = gcdLikes / gcdDislikes;
+                                normalizedDislikes = 1;
+                            } else {
+                                normalizedLikes = 1;
+                                normalizedDislikes = gcdDislikes / gcdLikes;
+                            }
+                        }
+
+                        const html =
+                            "<p class='mb-15'>" +
+                                "<strong>Normalized like ratio:</strong> " +
+                                "<span style='color:green'>" + Math.trunc(normalizedLikes) + " like(s)</span> per " +
+                                "<span style='color:red'>" + Math.trunc(normalizedDislikes) + " dislike(s)</span>" +
+                            "</p>";
+                        partDiv.append(html);
+                    } else {
+                        partDiv.append("<p class='mb-15'>This video has <strong>likes disabled.</strong></p>")
+                    }
+
+                    if (!partJson.hasOwnProperty("viewCount")) {
+                        partDiv.append("<p class='mb-15'>This video has <strong>views disabled.</strong></p>")
+                    }
+
                 }
             },
             recordingDetails: {
                 title: "Geolocation",
                 postProcess: function (partJson) {
-                    const partDiv = $("#recordingDetails");
+                    const partDiv = $("#video-section #recordingDetails");
 
                     const location = partJson.location;
                     if (location && location.latitude && location.longitude) {
@@ -117,7 +189,7 @@
 
                         const html =
                             "<a href='https://maps.google.com/maps?q=loc:"+latlng+"' target='_blank'>" +
-                                "<img src='"+ staticMap +"'>" +
+                                "<img class='mb-15' src='"+ staticMap +"' alt='Google Maps Static Map'>" +
                                 "<p>Click to open in Google Maps</p>" +
                             "</a>";
 
@@ -128,31 +200,145 @@
             status: {
                 title: "Status",
                 postProcess: function (partJson) {
-                    const partDiv = $("#status");
+                    const partDiv = $("#video-section #status");
                 }
             },
             liveStreamingDetails: {
                 title: "Livestream Details",
                 postProcess: function (partJson) {
-                    const partDiv = $("#liveStreamingDetails");
+                    const partDiv = $("#video-section #liveStreamingDetails");
+
+                    const now = moment(new Date());
+                    if (partJson.hasOwnProperty("scheduledStartTime") && !partJson.hasOwnProperty("actualStartTime")) {
+                        // Stream hasn't started
+                        const start = moment(partJson.scheduledStartTime);
+                        const format = formatDuration(getDuration(start, now));
+
+                        if (start.isAfter(now)) {
+                            partDiv.append("<p class='mb-15'>The stream hasn't started yet. It will start in <span class='orange'>" + format + "</span></p>");
+                        } else {
+                            partDiv.append("<p class='mb-15'>The stream is over. It was supposed to start <span class='orange'>" + format + "</span> ago</p>");
+                        }
+                    }
+                    if (partJson.hasOwnProperty("actualStartTime") && partJson.hasOwnProperty("scheduledStartTime")) {
+                        // Stream started. Time between schedule date and actual start?
+                        const start = moment(partJson.actualStartTime);
+                        const scheduled = moment(partJson.scheduledStartTime);
+                        const format = formatDuration(getDuration(start, scheduled));
+                        if (start.isAfter(scheduled)) {
+                            partDiv.append("<p class='mb-15'>The stream was <span class='orange'>" + format + "</span> late to start</p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>The stream was <span class='orange'>" + format + "</span> early to start</p>");
+                        }
+                    }
+                    if (partJson.hasOwnProperty("actualStartTime") && !partJson.hasOwnProperty("actualEndTime")) {
+                        // Stream started but still going. Time between start and now?
+                        const start = moment(partJson.actualStartTime);
+                        const format = formatDuration(getDuration(start, now));
+
+                        partDiv.append("<p class='mb-15'>The stream is still going. It has been running for <span class='orange'>" + format + "</span></p>");
+                    }
+                    if (partJson.hasOwnProperty("actualStartTime") && partJson.hasOwnProperty("actualEndTime")) {
+                        // Stream done. Time between start and end?
+                        const start = moment(partJson.actualStartTime);
+                        const end = moment(partJson.actualEndTime);
+                        const format = formatDuration(getDuration(start, end));
+
+                        partDiv.append("<p class='mb-15'>The stream is over. It's length was <span class='orange'>" + format + "</span></p>");
+                    }
                 }
             },
             localizations: {
                 title: "Localizations",
                 postProcess: function (partJson) {
-                    const partDiv = $("#localizations");
+                    const partDiv = $("#video-section #localizations");
                 }
             },
             contentDetails: {
                 title: "Content Details",
                 postProcess: function (partJson) {
-                    const partDiv = $("#contentDetails");
+                    const partDiv = $("#video-section #contentDetails");
+
+                    const duration = moment.duration(partJson.duration);
+                    const format = formatDuration(duration);
+
+                    if (format === "0s") {
+                        partDiv.append("<p class='mb-15'>Livestream? A video shouldn't be 0 seconds.</p>");
+                    } else {
+                        partDiv.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
+                    }
                 }
             },
             topicDetails: {
                 title: "Topic Details",
                 postProcess: function (partJson) {
-                    const partDiv = $("#topicDetails");
+                    const partDiv = $("#video-section #topicDetails");
+
+                    const categories = partJson.topicCategories;
+                    if (categories) {
+                        for(let i = 0; i < categories.length; i++) {
+                            const url = categories[i];
+                            const text = url.substr(url.lastIndexOf('/')+1).replace(/_/g, " ");
+
+                            partDiv.append("<p class='mb-15'><a href='" + url + "'>" + text + "</a></p>")
+                        }
+                    }
+                }
+            }
+        },
+
+        /**
+         * Can't access part(s): auditDetails
+         * Useless part(s): id
+         * Every other part below:
+         */
+        channel: {
+            snippet: {
+                title: "Snippet",
+                postProcess: function (partJson) {
+
+                }
+            },
+            brandingSettings: {
+                title: "Branding Settings",
+                postProcess: function (partJson) {
+
+                }
+            },
+            contentDetails: {
+                title: "Content Details",
+                postProcess: function (partJson) {
+
+                }
+            },
+            contentOwnerDetails: {
+                title: "Content Owner Details",
+                postProcess: function (partJson) {
+
+                }
+            },
+            invideoPromotion: {
+                title: "In-Video Promotion",
+                postProcess: function (partJson) {
+
+                }
+            },
+            localizations: {
+                title: "Localizations",
+                postProcess: function (partJson) {
+
+                }
+            },
+            status: {
+                title: "Status",
+                postProcess: function (partJson) {
+
+                }
+            },
+            topicDetails: {
+                title: "Topic Details",
+                postProcess: function (partJson) {
+
                 }
             }
         }
@@ -174,7 +360,7 @@
                     const item = res.items[0];
 
                     for (let part in partMap.video) {
-                        const section = $("#" + part);
+                        const section = $("#video-section #" + part);
                         const sectionHeader = $(section.find(".section-header"));
 
                         if (item.hasOwnProperty(part)) {
@@ -195,38 +381,11 @@
                             section.append("<p class='mb-15 bad'>The video does not have " + part + ".</p>");
                         }
                     }
-                    /*$("#videoSnippet").text(JSON.stringify(item.snippet, null, 4));
-                    hljs.highlightBlock(document.getElementById("videoSnippet"));
-                    const published = new Date(item.snippet.publishedAt);
-                    $("#videoSnippet").parent().after("<ul><li>"+item.snippet.title+"</li><li>Published by <a href='https://www.youtube.com/channel/"+item.snippet.channelId+"'>"+item.snippet.channelTitle+"</a></li><li>Published on "+published.toUTCString()+" ("+moment(published).fromNow()+")</li></ul>");
-                    $("#videoSnippet").parent().after("<img src='"+item.snippet.thumbnails.medium.url+"'>");
-
-                    $("#videoStats").text(JSON.stringify(item.statistics, null, 4));
-                    hljs.highlightBlock(document.getElementById("videoStats"));
-
-                    $("#videoStatus").text(JSON.stringify(item.status, null, 4));
-                    hljs.highlightBlock(document.getElementById("videoStatus"));
-
-                    $("#videoTopic").text(JSON.stringify(item.topicDetails, null, 4));
-                    hljs.highlightBlock(document.getElementById("videoTopic"));
-
-                    $("#videoRecordingDetails").text(JSON.stringify(item.recordingDetails, null, 4));
-                    hljs.highlightBlock(document.getElementById("videoRecordingDetails"));
-
-                    if (item.recordingDetails &&
-                        item.recordingDetails.location &&
-                        item.recordingDetails.location.latitude &&
-                        item.recordingDetails.location.longitude) {
-                        const location = item.recordingDetails.location;
-                        const latlng = location.latitude + "," + location.longitude;
-                        const staticMap = "https://maps.googleapis.com/maps/api/staticmap?center=" + latlng + "&zoom=13&size=1000x300&key=AIzaSyCGWanOEMEgdHqsxNDaa_ZXTZ6hoYQrnAI&markers=color:red|" + latlng;
-                        $("#videoRecordingDetails").parent().after("<a href='https://maps.google.com/maps?q=loc:"+latlng+"' target='_blank'><img src='"+ staticMap +"'><p>Click to open in Google Maps</p></a>")
-                    }
 
                     submit({
                         type: 'channel_id',
                         value: item.snippet.channelId
-                    });*/
+                    });
                 } else {
                     console.log('bad video_id');
                 }
@@ -243,14 +402,28 @@
                 if (res.items.length) {
                     const item = res.items[0];
 
-                    //$("#channelResult").text(JSON.stringify(item, null, 4));
-                    //hljs.highlightBlock(document.getElementById("channelResult"));
+                    for (let part in partMap.channel) {
+                        const section = $("#channel-section #" + part);
+                        const sectionHeader = $(section.find(".section-header"));
 
-                    $("#channelSnippet").text(JSON.stringify(item.snippet, null, 4));
-                    hljs.highlightBlock(document.getElementById("channelSnippet"));
-                    const published = new Date(item.snippet.publishedAt);
-                    $("#channelSnippet").parent().after("<ul><li>Channel created on "+published.toUTCString()+" ("+moment(published).fromNow()+")</li></ul>");
-                    $("#channelSnippet").parent().after("<img src='"+item.snippet.thumbnails.medium.url+"' style='width: 80px!important;'>");
+                        if (item.hasOwnProperty(part)) {
+                            sectionHeader.removeClass("unknown").addClass("good");
+                            sectionHeader.find("i").removeClass("question").addClass("check");
+
+                            section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+
+                            const json = section.find("code");
+                            json.text(JSON.stringify(item[part], null, 4));
+                            hljs.highlightBlock(json[0]);
+
+                            partMap.channel[part].postProcess(item[part]);
+                        } else {
+                            sectionHeader.removeClass("unknown").addClass("bad");
+                            sectionHeader.find("i").removeClass("question").addClass("minus");
+
+                            section.append("<p class='mb-15 bad'>The video does not have " + part + ".</p>");
+                        }
+                    }
                 } else {
                     console.log('bad channel_id');
                 }
@@ -296,6 +469,7 @@
             controls.btnSubmit = $("#submit");
 
             elements.videoSection = $("#video-section");
+            elements.channelSection = $("#channel-section");
 
             internal.buildPage(true);
         },
@@ -309,6 +483,15 @@
                         "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
                     "</div>";
                 elements.videoSection.append(html);
+            }
+
+            for (let part in partMap.channel) {
+                const partData = partMap.channel[part];
+                const html =
+                    "<div id='" + part + "' class='part-section'>" +
+                        "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "</div>";
+                elements.channelSection.append(html);
             }
 
             if (doSetup) {
