@@ -620,6 +620,9 @@
         init: function () {
             controls.inputValue = $("#value");
             controls.btnSubmit = $("#submit");
+            controls.shareLink = $("#shareLink");
+
+            new ClipboardJS(".clipboard");
 
             elements.videoSection = $("#video-section");
             elements.channelSection = $("#channel-section");
@@ -629,6 +632,7 @@
         },
         buildPage: function(doSetup) {
             $(".part-section").remove();
+            $("#thumbnails").empty();
 
             for (let part in partMap.video) {
                 const partData = partMap.video[part];
@@ -668,12 +672,38 @@
                 }
             });
             controls.btnSubmit.on('click', function () {
-                const parsed = determineInput(controls.inputValue.val());
+                const value = controls.inputValue.val();
+
+                const baseUrl = location.origin + location.pathname;
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(value) + "&submit=true");
+                controls.shareLink.attr("disabled", false);
+
+                const parsed = determineInput(value);
 
                 $("#video,#playlist,#channel").show();
                 internal.buildPage(false);
                 submit(parsed);
             });
+
+            function parseQuery(queryString) {
+                var query = {};
+                var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+                for (var i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i].split('=');
+                    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+                }
+                return query;
+            }
+            const query = parseQuery(window.location.search);
+            console.log(query);
+            if (query.hasOwnProperty("url")) {
+                controls.inputValue.val(decodeURIComponent(query.url));
+            }
+            if (query.hasOwnProperty("submit") && Boolean(query.submit) === true) {
+                setTimeout(function () {
+                    controls.btnSubmit.click();
+                }, 500);
+            }
         }
     };
     $(document).ready(internal.init);

@@ -17,6 +17,7 @@ layout: null
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
             integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
     <script src="./js/moment.min.js" type="text/javascript"></script>
     <script src="./semantic/semantic.min.js" type="text/javascript"></script>
     <script src="./js/youtube-api-v3.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
@@ -53,6 +54,13 @@ layout: null
         <li>https://www.youtube.com/user/<span class="orange">username</span></li>
         <li>https://www.youtube.com/channel/<span class="orange">channel_id</span></li>
     </ul>
+    <p>Share this:</p>
+    <div class="ui action input">
+        <input type="text" id="shareLink" disabled>
+        <button class="ui teal right icon button clipboard" title="Copy" data-clipboard-target="#shareLink">
+            <i class="copy icon"></i>
+        </button>
+    </div>
 </div>
 <div class="ui container" style="margin-top:1.5%">
     <div id="video" class="ui section">
