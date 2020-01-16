@@ -21,7 +21,9 @@ img {
 .profile {
     max-width: 80px;
 }
-
+.section {
+    margin-bottom: 15px;
+}
 .part-section {
     margin-bottom: 1.5%;
 }

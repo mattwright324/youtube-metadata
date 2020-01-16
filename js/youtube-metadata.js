@@ -511,15 +511,15 @@
         }
     }
 
-    function parseVideo(res) {
+    async function parseVideo(res) {
         parseType(partMap.video, "video-section", res);
     }
 
-    function parsePlaylist(res) {
+    async function parsePlaylist(res) {
         parseType(partMap.playlist, "playlist-section", res);
     }
 
-    function parseChannel(res) {
+    async function parseChannel(res) {
         parseType(partMap.channel, "channel-section", res);
     }
 
@@ -542,6 +542,23 @@
                 console.log(res);
 
                 parseVideo(res);
+
+                const id = parsedInput.value;
+                const thumbsDiv = $("#thumbnails");
+
+                thumbsDiv.empty();
+                for (let i = 0; i < 4; i++) {
+                    const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + i + ".jpg";
+                    const html =
+                        "<div class='mb-15 column'>" +
+                            "<a href='https://www.google.com/searchbyimage?image_url=" + thumbUrl + "' target='_blank'>" +
+                                "<img src='"+ thumbUrl +"' alt='Thumb " + i + "' style='max-width: 200px;'>" +
+                                "<p>Click to reverse image search</p>" +
+                            "</a>" +
+                        "</div>";
+
+                    thumbsDiv.append(html);
+                }
             }).fail(function (err) {
                 console.log(err);
             });
