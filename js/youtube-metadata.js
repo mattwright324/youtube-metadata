@@ -30,7 +30,8 @@
 
     function determineInput(value) {
         const parsed = {
-            type: 'unknown'
+            type: 'unknown',
+            mayHideOthers: true
         };
         for (let type in patterns) {
             for (let i = 0; i < patterns[type].length; i++) {
@@ -89,17 +90,15 @@
             snippet: {
                 title: "Snippet",
                 postProcess: function (partJson) {
+                    submit({
+                        type: 'channel_id',
+                        value: partJson.channelId,
+                        mayHideOthers: false
+                    });
+
                     const partDiv = $("#video-section #snippet");
 
                     partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15'>");
-
-                    /*const html =
-                        "<div style='font-size: 1.1em;'>" +
-                            "<p>" + partJson.title + "</p>" +
-                            "<a href='https://www.youtube.com/channel/" + partJson.channelId + "'>" + partJson.channelTitle + "</a>" +
-                        "</div>";
-
-                    partDiv.append(html);*/
 
                     const titleHtml =
                         "<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>";
@@ -172,7 +171,11 @@
                     }
 
                     if (!partJson.hasOwnProperty("viewCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <strong>views disabled.</strong></p>")
+                        partDiv.append("<p class='mb-15'>This video has <strong>view counts disabled.</strong></p>")
+                    }
+
+                    if (!partJson.hasOwnProperty("commentCount")) {
+                        partDiv.append("<p class='mb-15'>This video has <strong>comments disabled.</strong></p>")
                     }
 
                 }
@@ -201,6 +204,28 @@
                 title: "Status",
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #status");
+
+                    if (partJson.hasOwnProperty("embeddable")) {
+                        if (partJson.embeddable) {
+                            partDiv.append("<p class='mb-15'>This video may be embedded on other websites</p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>This video may not be embedded on other websites</p>")
+                        }
+                    }
+                    if (partJson.hasOwnProperty("madeForKids")) {
+                        if (partJson.madeForKids) {
+                            partDiv.append("<p class='mb-15'>This video is designated as <span class='orange'>child-directed</span></p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>This video is not child-directed</p>")
+                        }
+                    }
+                    if (partJson.hasOwnProperty("selfDeclaredMadeForKids")) {
+                        if (partJson.selfDeclaredMadeForKids) {
+                            partDiv.append("<p class='mb-15'>The video owner designated this video as <span class='orange'>child-directed</span></p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>The video owner designated this video as not child-directed.</p>")
+                        }
+                    }
                 }
             },
             liveStreamingDetails: {
@@ -296,167 +321,278 @@
             snippet: {
                 title: "Snippet",
                 postProcess: function (partJson) {
+                    const partDiv = $("#channel-section #snippet");
 
+                    partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15 profile'>");
+                    partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
+
+                    const published = new Date(partJson.publishedAt);
+                    const dateHtml =
+                        "<p class='mb-15'><strong>Channel created on </strong> " +
+                            "<span class='orange'>" + published.toUTCString() + "</span>" +
+                            " (" + moment(published).fromNow() + ")" +
+                        "</p>";
+                    partDiv.append(dateHtml);
+
+                    if (partJson.hasOwnProperty("country")) {
+                        partDiv.append("<p class='mb-15'>The channel is associated with country code <span class='orange'>" + partJson.country + "</span></p>");
+                    } else {
+                        partDiv.append("<p class='mb-15'>The channel doesn't have an associated country.</p>");
+                    }
                 }
             },
             brandingSettings: {
                 title: "Branding Settings",
                 postProcess: function (partJson) {
+                    const partDiv = $("#channel-section #brandingSettings");
 
+                    if (partJson.hasOwnProperty("trackingAnalyticsAccountId")) {
+                        partDiv.append("<p class='mb-15'>This channel is tracking and measuring traffic with Google Analytics</p>")
+                    }
+
+                    if (partJson.moderateComments) {
+                        partDiv.append("<p class='mb-15'>Comments on the channel page require approval by the channel owner.</p>")
+                    }
                 }
             },
             contentDetails: {
                 title: "Content Details",
                 postProcess: function (partJson) {
+                    const partDiv = $("#channel-section #contentDetails");
 
+                    const related = partJson.relatedPlaylists;
+                    if (related) {
+                        if (related.hasOwnProperty("uploads")) {
+                            partDiv.append("<p class='mb-15'><a href='https://www.youtube.com/playlist?list=" + related.uploads + "'>Uploads playlist</a></p>")
+                        }
+                        if (related.hasOwnProperty("favorites")) {
+                            partDiv.append("<p class='mb-15'><a href='https://www.youtube.com/playlist?list=" + related.favorites + "'>Favorites playlist</a></p>")
+                        }
+                        if (related.hasOwnProperty("likes")) {
+                            partDiv.append("<p class='mb-15'><a href='https://www.youtube.com/playlist?list=" + related.likes + "'>Likes playlist</a></p>")
+                        }
+                    }
                 }
             },
             contentOwnerDetails: {
                 title: "Content Owner Details",
                 postProcess: function (partJson) {
-
+                    const partDiv = $("#channel-section #contentOwnerDetails");
                 }
             },
             invideoPromotion: {
                 title: "In-Video Promotion",
                 postProcess: function (partJson) {
-
+                    const partDiv = $("#channel-section #invideoPromotion");
                 }
             },
             localizations: {
                 title: "Localizations",
                 postProcess: function (partJson) {
-
+                    const partDiv = $("#channel-section #localizations");
                 }
             },
             status: {
                 title: "Status",
                 postProcess: function (partJson) {
+                    const partDiv = $("#channel-section #status");
 
+                    const longUploads = partJson.longUploadsStatus;
+                    if (longUploads === "allowed") {
+                        partDiv.append("<p class='mb-15'>This channel may upload videos <span class='orange'>longer than 15 minutes</span></p>")
+                    } else if (longUploads === "disallowed") {
+                        partDiv.append("<p class='mb-15'>This channel may <strong>not</strong> upload videos <span class='orange'>longer than 15 minutes</span></p>")
+                    } else if (longUploads === "eligible") {
+                        partDiv.append("<p class='mb-15'>This channel is eligible to upload videos <span class='orange'>longer than 15 minutes</span> but they have not enabled it yet.</p>")
+                    } else {
+                        partDiv.append("<p class='mb-15'>It's unspecified whether this channel may upload videos longer than 15 minutes.</p>")
+                    }
+
+                    if (partJson.hasOwnProperty("madeForKids")) {
+                        if (partJson.madeForKids) {
+                            partDiv.append("<p class='mb-15'>This channel is designated as <span class='orange'>child-directed</span></p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>This channel is not child-directed</p>")
+                        }
+                    }
+                    if (partJson.hasOwnProperty("selfDeclaredMadeForKids")) {
+                        if (partJson.selfDeclaredMadeForKids) {
+                            partDiv.append("<p class='mb-15'>The channel owner designated this channel as <span class='orange'>child-directed</span></p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>The channel owner designated this channel as not child-directed.</p>")
+                        }
+                    }
                 }
             },
             topicDetails: {
                 title: "Topic Details",
                 postProcess: function (partJson) {
+                    const partDiv = $("#channel-section #topicDetails");
 
+                    const categories = partJson.topicCategories;
+                    if (categories) {
+                        for(let i = 0; i < categories.length; i++) {
+                            const url = categories[i];
+                            const text = url.substr(url.lastIndexOf('/')+1).replace(/_/g, " ");
+
+                            partDiv.append("<p class='mb-15'><a href='" + url + "'>" + text + "</a></p>")
+                        }
+                    }
+                }
+            }
+        },
+
+        /**
+         * Useless part(s): id, player
+         * Every other part below:
+         */
+        playlist: {
+            snippet: {
+                title: "Snippet",
+                postProcess: function (partJson) {
+                    submit({
+                        type: 'channel_id',
+                        value: partJson.channelId,
+                        mayHideOthers: false
+                    });
+
+                    const partDiv = $("#playlist-section #snippet");
+                }
+            },
+            status: {
+                title: "Status",
+                postProcess: function (partJson) {
+                    const partDiv = $("#playlist-section #status");
+                }
+            },
+            localizations: {
+                title: "Localizations",
+                postProcess: function (partJson) {
+                    const partDiv = $("#playlist-section #localizations");
+                }
+            },
+            contentDetails: {
+                title: "Content Details",
+                postProcess: function (partJson) {
+                    const partDiv = $("#playlist-section #contentDetails");
                 }
             }
         }
     };
 
+    function parseType(partMapType, sectionId, res) {
+        if (res.items.length) {
+            const item = res.items[0];
+
+            for (let part in partMapType) {
+                const section = $("#" + sectionId + " #" + part);
+                const sectionHeader = $(section.find(".section-header"));
+
+                if (item.hasOwnProperty(part)) {
+                    sectionHeader.removeClass("unknown").addClass("good");
+                    sectionHeader.find("i").removeClass("question").addClass("check");
+
+                    section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+
+                    const json = section.find("code");
+                    json.text(JSON.stringify(item[part], null, 4));
+                    hljs.highlightBlock(json[0]);
+
+                    partMapType[part].postProcess(item[part]);
+                } else {
+                    sectionHeader.removeClass("unknown").addClass("bad");
+                    sectionHeader.find("i").removeClass("question").addClass("minus");
+
+                    section.append("<p class='mb-15 bad'>The video does not have " + part + ".</p>");
+                }
+            }
+        } else {
+            console.log('bad value');
+        }
+    }
+
+    function parseVideo(res) {
+        parseType(partMap.video, "video-section", res);
+    }
+
+    function parsePlaylist(res) {
+        parseType(partMap.playlist, "playlist-section", res);
+    }
+
+    function parseChannel(res) {
+        parseType(partMap.channel, "channel-section", res);
+    }
+
     async function submit(parsedInput) {
-        // console.log(parsedInput);
+        console.log(parsedInput);
+
         if (parsedInput.type === 'unknown') {
             console.log("didn't recognize your input");
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
+
+            if (parsedInput.mayHideOthers) {
+                $("#playlist").hide();
+            }
 
             youtube.ajax('videos', {
                 part: Object.keys(partMap.video).join(','),
                 id: parsedInput.value
             }).done(function (res) {
                 console.log(res);
-                if (res.items.length) {
-                    const item = res.items[0];
 
-                    for (let part in partMap.video) {
-                        const section = $("#video-section #" + part);
-                        const sectionHeader = $(section.find(".section-header"));
-
-                        if (item.hasOwnProperty(part)) {
-                            sectionHeader.removeClass("unknown").addClass("good");
-                            sectionHeader.find("i").removeClass("question").addClass("check");
-
-                            section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
-
-                            const json = section.find("code");
-                            json.text(JSON.stringify(item[part], null, 4));
-                            hljs.highlightBlock(json[0]);
-
-                            partMap.video[part].postProcess(item[part]);
-                        } else {
-                            sectionHeader.removeClass("unknown").addClass("bad");
-                            sectionHeader.find("i").removeClass("question").addClass("minus");
-
-                            section.append("<p class='mb-15 bad'>The video does not have " + part + ".</p>");
-                        }
-                    }
-
-                    submit({
-                        type: 'channel_id',
-                        value: item.snippet.channelId
-                    });
-                } else {
-                    console.log('bad video_id');
-                }
+                parseVideo(res);
             }).fail(function (err) {
                 console.log(err);
             });
         } else if (parsedInput.type === 'channel_id') {
             console.log('grabbing channel id');
+
+            if (parsedInput.mayHideOthers) {
+                $("#video,#playlist").hide();
+            }
+
             youtube.ajax('channels', {
-                part: 'brandingSettings,contentDetails,contentOwnerDetails,id,invideoPromotion,localizations,snippet,statistics,status,topicDetails',
+                part: Object.keys(partMap.channel).join(','),
                 id: parsedInput.value
             }).done(function (res) {
                 console.log(res);
-                if (res.items.length) {
-                    const item = res.items[0];
 
-                    for (let part in partMap.channel) {
-                        const section = $("#channel-section #" + part);
-                        const sectionHeader = $(section.find(".section-header"));
-
-                        if (item.hasOwnProperty(part)) {
-                            sectionHeader.removeClass("unknown").addClass("good");
-                            sectionHeader.find("i").removeClass("question").addClass("check");
-
-                            section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
-
-                            const json = section.find("code");
-                            json.text(JSON.stringify(item[part], null, 4));
-                            hljs.highlightBlock(json[0]);
-
-                            partMap.channel[part].postProcess(item[part]);
-                        } else {
-                            sectionHeader.removeClass("unknown").addClass("bad");
-                            sectionHeader.find("i").removeClass("question").addClass("minus");
-
-                            section.append("<p class='mb-15 bad'>The video does not have " + part + ".</p>");
-                        }
-                    }
-                } else {
-                    console.log('bad channel_id');
-                }
+                parseChannel(res);
             }).fail(function (err) {
                 console.error(err);
             });
         } else if (parsedInput.type === 'channel_user') {
             console.log('grabbing channel user');
+
+            if (parsedInput.mayHideOthers) {
+                $("#video,#playlist").hide();
+            }
+
             youtube.ajax('channels', {
-                part: 'brandingSettings,contentDetails,contentOwnerDetails,id,invideoPromotion,localizations,snippet,statistics,status,topicDetails',
+                part: Object.keys(partMap.channel).join(','),
                 forUsername: parsedInput.value
             }).done(function (res) {
                 console.log(res);
-                if (res.items.length) {
-                    const item = res.items[0];
-                } else {
-                    console.log('bad channel_user');
-                }
+
+                parseChannel(res);
             }).fail(function (err) {
                 console.error(err);
             });
         } else if (parsedInput.type === 'playlist_id') {
             console.log('grabbing playlist');
+
+            if (parsedInput.mayHideOthers) {
+                $("#video").hide();
+            }
+
             youtube.ajax('playlists', {
-                part: 'contentDetails,id,localizations,player,snippet,status',
+                part: Object.keys(partMap.playlist).join(','),
                 id: parsedInput.value
             }).done(function (res) {
                 console.log(res);
-                if (res.items.length) {
-                    const item = res.items[0];
-                } else {
-                    console.log('bad playlist_id');
-                }
+
+                parsePlaylist(res);
             }).fail(function (err) {
                 console.error(err);
             });
@@ -470,6 +606,7 @@
 
             elements.videoSection = $("#video-section");
             elements.channelSection = $("#channel-section");
+            elements.playlistSection = $("#playlist-section");
 
             internal.buildPage(true);
         },
@@ -494,6 +631,15 @@
                 elements.channelSection.append(html);
             }
 
+            for (let part in partMap.playlist) {
+                const partData = partMap.playlist[part];
+                const html =
+                    "<div id='" + part + "' class='part-section'>" +
+                    "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "</div>";
+                elements.playlistSection.append(html);
+            }
+
             if (doSetup) {
                 internal.setupControls();
             }
@@ -507,6 +653,7 @@
             controls.btnSubmit.on('click', function () {
                 const parsed = determineInput(controls.inputValue.val());
 
+                $("#video,#playlist,#channel").show();
                 internal.buildPage(false);
                 submit(parsed);
             });

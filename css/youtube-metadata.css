@@ -18,6 +18,10 @@ img {
     height: auto;
 }
 
+.profile {
+    max-width: 80px;
+}
+
 .part-section {
     margin-bottom: 1.5%;
 }
