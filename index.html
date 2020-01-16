@@ -22,6 +22,15 @@ layout: null
     <script src="./js/youtube-api-v3.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/youtube-metadata.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
 
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100434147-9"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-100434147-9');
+    </script>
 </head>
 <body>
 <div class="ui container" style="margin-top:3%">
