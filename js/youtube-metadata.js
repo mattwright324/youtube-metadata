@@ -137,18 +137,24 @@
                     const partDiv = $("#video-section #statistics");
 
                     if (partJson.hasOwnProperty("likeCount")) {
-                        function gcd(p, q) {
-                            if (q === 0) {
-                                return p;
+                        const likes = partJson.likeCount;
+                        const dislikes = partJson.dislikeCount;
+
+                        let normalizedLikes = likes, normalizedDislikes = dislikes;
+                        let gcdValue = 0, gcdLikes = 0, gcdDislikes = 0;
+
+                        if (likes > 0 && dislikes > 0) {
+                            function gcd(p, q) {
+                                if (q === 0) {
+                                    return p;
+                                }
+                                return gcd(q, p % q);
                             }
-                            return gcd(q, p % q);
+                            gcdValue = gcd(partJson.likeCount, partJson.dislikeCount);
+                            gcdLikes = gcdValue === 0 ? 0 : partJson.likeCount / gcdValue;
+                            gcdDislikes = gcdValue === 0 ? 0 : partJson.dislikeCount / gcdValue;
                         }
-
-                        const gcdValue = gcd(partJson.likeCount, partJson.dislikeCount);
-                        const gcdLikes = gcdValue === 0 ? 0 : partJson.likeCount / gcdValue;
-                        const gcdDislikes = gcdValue === 0 ? 0 : partJson.dislikeCount / gcdValue;
-
-                        let normalizedLikes = 0, normalizedDislikes = 0;
+                        
                         if (gcdValue !== 0) {
                             if (gcdLikes > gcdDislikes) {
                                 normalizedLikes = gcdLikes / gcdDislikes;
