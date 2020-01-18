@@ -154,7 +154,7 @@
                             gcdLikes = gcdValue === 0 ? 0 : partJson.likeCount / gcdValue;
                             gcdDislikes = gcdValue === 0 ? 0 : partJson.dislikeCount / gcdValue;
                         }
-                        
+
                         if (gcdValue !== 0) {
                             if (gcdLikes > gcdDislikes) {
                                 normalizedLikes = gcdLikes / gcdDislikes;
@@ -463,6 +463,25 @@
                     });
 
                     const partDiv = $("#playlist-section #snippet");
+
+                    partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15'>");
+                    partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
+
+                    const authorHtml =
+                        "<p class='mb-15'><strong>Published by</strong> " +
+                            "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
+                                partJson.channelTitle +
+                            "</a>" +
+                        "</p>";
+                    partDiv.append(authorHtml);
+
+                    const published = new Date(partJson.publishedAt);
+                    const dateHtml =
+                        "<p class='mb-15'><strong>Playlist created on </strong> " +
+                            "<span class='orange'>" + published.toUTCString() + "</span>" +
+                            " (" + moment(published).fromNow() + ")" +
+                        "</p>";
+                    partDiv.append(dateHtml);
                 }
             },
             status: {
@@ -490,7 +509,7 @@
         if (res.items.length) {
             const item = res.items[0];
 
-            for (let part in partMapType) {
+            for (let part in partMap[partMapType]) {
                 const section = $("#" + sectionId + " #" + part);
                 const sectionHeader = $(section.find(".section-header"));
 
@@ -504,12 +523,12 @@
                     json.text(JSON.stringify(item[part], null, 4));
                     hljs.highlightBlock(json[0]);
 
-                    partMapType[part].postProcess(item[part]);
+                    partMap[partMapType][part].postProcess(item[part]);
                 } else {
                     sectionHeader.removeClass("unknown").addClass("bad");
                     sectionHeader.find("i").removeClass("question").addClass("minus");
 
-                    section.append("<p class='mb-15 bad'>The video does not have " + part + ".</p>");
+                    section.append("<p class='mb-15 bad'>The " + partMapType + " does not have " + part + ".</p>");
                 }
             }
         } else {
@@ -518,15 +537,15 @@
     }
 
     async function parseVideo(res) {
-        parseType(partMap.video, "video-section", res);
+        parseType("video", "video-section", res);
     }
 
     async function parsePlaylist(res) {
-        parseType(partMap.playlist, "playlist-section", res);
+        parseType("playlist", "playlist-section", res);
     }
 
     async function parseChannel(res) {
-        parseType(partMap.channel, "channel-section", res);
+        parseType("channel", "channel-section", res);
     }
 
     async function submit(parsedInput) {
@@ -705,7 +724,7 @@
             if (query.hasOwnProperty("url")) {
                 controls.inputValue.val(decodeURIComponent(query.url));
             }
-            if (query.hasOwnProperty("submit") && Boolean(query.submit) === true) {
+            if (query.hasOwnProperty("submit") && String(query.submit).toLowerCase() === String(true)) {
                 setTimeout(function () {
                     controls.btnSubmit.click();
                 }, 500);
