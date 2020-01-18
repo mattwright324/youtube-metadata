@@ -14,17 +14,17 @@
 
     const patterns = {
         video_id: [
-            /http[s]?:\/\/www.youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
+            /http[s]?:\/\/(?:www|m).youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
             /http[s]?:\/\/youtu.be\/([\w_-]+)(?:\?.*)?/i
         ],
         playlist_id: [
-            /http[s]?:\/\/www.youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
+            /http[s]?:\/\/(?:www|m).youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
         ],
         channel_user: [
-            /http[s]?:\/\/www.youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
+            /http[s]?:\/\/(?:www|m).youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
         ],
         channel_id: [
-            /http[s]?:\/\/www.youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
+            /http[s]?:\/\/(?:www|m).youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
         ]
     };
 
