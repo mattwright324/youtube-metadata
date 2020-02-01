@@ -31,7 +31,8 @@
     function determineInput(value) {
         const parsed = {
             type: 'unknown',
-            mayHideOthers: true
+            mayHideOthers: true,
+            original: value
         };
         for (let type in patterns) {
             for (let i = 0; i < patterns[type].length; i++) {
@@ -574,8 +575,18 @@
         }
     };
 
-    function parseType(partMapType, sectionId, res) {
-        if (res.items.length) {
+    function errorState(message, funcAppend) {
+        $("#video,#playlist,#channel").hide();
+        $("#unknown").show();
+
+        $("#reason").html(message);
+
+        $("#reason-append").empty();
+        funcAppend($("#reason-append"));
+    }
+
+    function parseType(partMapType, sectionId, res, parsedInput) {
+        if (res.items.length > 0) {
             const item = res.items[0];
 
             for (let part in partMap[partMapType]) {
@@ -601,27 +612,45 @@
                 }
             }
         } else {
-            console.log('bad value');
+            errorState("Your link looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
+                const options = [];
+
+                options.push("<li><a target='_blank' href='https://www.google.com/search?q=\"" + parsedInput.value + "\"'>Google Search - youtube \"" + parsedInput.value + "\"</a></li>");
+                options.push("<li><a target='_blank' href='https://web.archive.org/web/*/" + parsedInput.original + "'>Archive.org - " + parsedInput.original + "</a></li>");
+
+                if (partMapType === "video") {
+                    options.push("<li><a target='_blank' href='https://youtuberecover.com/watch?v=" + parsedInput.value + "'>YouTubeRecover.com - " + parsedInput.value + "</a></li>");
+                }
+
+                if (parsedInput.type === "channel_user") {
+                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + parsedInput.value + "'>SocialBlade.com - " + parsedInput.value + "</a></li>");
+                }
+
+                append.append("<p class='mb-15'>" +
+                    "You may find more details by trying..." +
+                    "<ul>" + options.join("") + "</ul>" +
+                "</p>");
+            });
         }
     }
 
-    async function parseVideo(res) {
-        parseType("video", "video-section", res);
+    async function parseVideo(res, input) {
+        parseType("video", "video-section", res, input);
     }
 
-    async function parsePlaylist(res) {
-        parseType("playlist", "playlist-section", res);
+    async function parsePlaylist(res, input) {
+        parseType("playlist", "playlist-section", res, input);
     }
 
-    async function parseChannel(res) {
-        parseType("channel", "channel-section", res);
+    async function parseChannel(res, input) {
+        parseType("channel", "channel-section", res, input);
     }
 
     async function submit(parsedInput) {
         console.log(parsedInput);
 
         if (parsedInput.type === 'unknown') {
-            console.log("didn't recognize your input");
+            errorState("Your link did not follow an accepted format.");
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 
@@ -635,7 +664,7 @@
             }).done(function (res) {
                 console.log(res);
 
-                parseVideo(res);
+                parseVideo(res, parsedInput);
 
                 const id = parsedInput.value;
                 const thumbsDiv = $("#thumbnails");
@@ -655,6 +684,8 @@
                 }
             }).fail(function (err) {
                 console.log(err);
+
+                errorState("There was a problem querying for the video.");
             });
         } else if (parsedInput.type === 'channel_id') {
             console.log('grabbing channel id');
@@ -669,9 +700,11 @@
             }).done(function (res) {
                 console.log(res);
 
-                parseChannel(res);
+                parseChannel(res, parsedInput);
             }).fail(function (err) {
                 console.error(err);
+
+                errorState("There was a problem querying for the channel.");
             });
         } else if (parsedInput.type === 'channel_user') {
             console.log('grabbing channel user');
@@ -686,7 +719,7 @@
             }).done(function (res) {
                 console.log(res);
 
-                parseChannel(res);
+                parseChannel(res, parsedInput);
             }).fail(function (err) {
                 console.error(err);
             });
@@ -703,9 +736,11 @@
             }).done(function (res) {
                 console.log(res);
 
-                parsePlaylist(res);
+                parsePlaylist(res, parsedInput);
             }).fail(function (err) {
                 console.error(err);
+
+                errorState("There was a problem querying for the playlist.");
             });
         }
     }
@@ -775,6 +810,7 @@
                 const parsed = determineInput(value);
 
                 $("#video,#playlist,#channel").show();
+                $("#unknown").hide();
                 internal.buildPage(false);
                 submit(parsed);
             });
