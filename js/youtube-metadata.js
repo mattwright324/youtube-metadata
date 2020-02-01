@@ -102,7 +102,7 @@
         }
 
         partDiv.append("<p class='mb-15'><strong>Localizations for...</strong>" +
-                "<ul>" + translations.join() + "</ul>" +
+                "<ul>" + translations.join("") + "</ul>" +
             "</p>")
     }
 
