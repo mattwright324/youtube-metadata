@@ -30,6 +30,9 @@ img {
 .mb-15 {
     margin-bottom: 1.5%;
 }
+.mt-15 {
+    margin-top: 1.5%;
+}
 .tag {
     background-color: lightskyblue;
     padding: 2px 5px;

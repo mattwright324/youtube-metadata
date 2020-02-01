@@ -80,6 +80,32 @@
         return format;
     }
 
+    function formatBCP47(translation) {
+        const findings = [];
+
+        if (translation.country) {
+            findings.push(translation.country.name);
+        }
+
+        if (translation.language) {
+            findings.push(translation.language.name);
+        }
+
+        return findings.join(" / ");
+    }
+
+    function processLocalizations(partDiv, partJson) {
+        const translations = [];
+
+        for (let code in partJson) {
+            translations.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + formatBCP47(bcp47.lookup(code)) + "</span></li>")
+        }
+
+        partDiv.append("<p class='mb-15'><strong>Localizations for...</strong>" +
+                "<ul>" + translations.join() + "</ul>" +
+            "</p>")
+    }
+
     const partMap = {
         /**
          * Can't access part(s): fileDetails, processingDetails, suggestions
@@ -89,7 +115,7 @@
         video: {
             snippet: {
                 title: "Snippet",
-                postProcess: function (partJson) {
+                postProcess: function (partJson, fullJson) {
                     submit({
                         type: 'channel_id',
                         value: partJson.channelId,
@@ -98,7 +124,7 @@
 
                     const partDiv = $("#video-section #snippet");
 
-                    partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15'>");
+                    partDiv.append("<a target='_blank' href='https://youtu.be/" + fullJson.id + "'><img src='" + partJson.thumbnails.medium.url + "' class='mb-15'></a>");
 
                     const titleHtml =
                         "<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>";
@@ -128,6 +154,20 @@
                         partDiv.append(tagsHtml);
                     } else {
                         partDiv.append("<p class='mb-15'>There were no tags.</p>")
+                    }
+
+                    if (partJson.defaultLanguage) {
+                        const code = partJson.defaultLanguage.toUpperCase();
+                        const translated = bcp47.lookup(code);
+
+                        partDiv.append("<p class='mb-15'><strong>Default language is</strong> <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
+                    }
+
+                    if (partJson.defaultAudioLanguage) {
+                        const code = partJson.defaultAudioLanguage.toUpperCase();
+                        const translated = bcp47.lookup(code);
+
+                        partDiv.append("<p class='mb-15'><strong>Audio language is</strong> <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
                 }
             },
@@ -188,7 +228,7 @@
             },
             recordingDetails: {
                 title: "Geolocation",
-                postProcess: function (partJson) {
+                postProcess: function (partJson, fullJson) {
                     const partDiv = $("#video-section #recordingDetails");
 
                     const location = partJson.location;
@@ -203,6 +243,26 @@
                             "</a>";
 
                         partDiv.append(html);
+                    }
+
+                    if (partJson.recordingDate && fullJson.snippet) {
+                        const recordDate = new Date(partJson.recordingDate);
+                        const recordMoment = moment(recordDate);
+
+                        const dateHtml =
+                            "<p class='mt-15 mb-15'><strong>Recorded on</strong> " +
+                            "<span class='orange'>" + recordDate.toUTCString() + "</span>" +
+                            " (" + recordMoment.fromNow() + ")" +
+                            "</p>";
+                        partDiv.append(dateHtml);
+
+                        const published = moment(fullJson.snippet.publishedAt);
+                        const format = formatDuration(getDuration(recordMoment, published));
+                        if (published.isAfter(recordMoment)) {
+                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> before the publish date</p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> after the publish date. This shouldn't be possible?</p>");
+                        }
                     }
                 }
             },
@@ -283,6 +343,8 @@
                 title: "Localizations",
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #localizations");
+
+                    processLocalizations(partDiv, partJson);
                 }
             },
             contentDetails: {
@@ -326,10 +388,10 @@
         channel: {
             snippet: {
                 title: "Snippet",
-                postProcess: function (partJson) {
+                postProcess: function (partJson, fullJson) {
                     const partDiv = $("#channel-section #snippet");
 
-                    partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15 profile'>");
+                    partDiv.append("<a target='_blank' href='https://www.youtube.com/channel/" + fullJson.id + "'><img src='" + partJson.thumbnails.medium.url + "' class='mb-15 profile'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const published = new Date(partJson.publishedAt);
@@ -341,7 +403,10 @@
                     partDiv.append(dateHtml);
 
                     if (partJson.hasOwnProperty("country")) {
-                        partDiv.append("<p class='mb-15'>The channel is associated with country code <span class='orange'>" + partJson.country + "</span></p>");
+                        const countryCode = partJson.country;
+                        const country = bcp47.lookup(countryCode).country;
+                        const translated = country ? " which is <span class='orange'>" + country.name + "</span>" : "";
+                        partDiv.append("<p class='mb-15'>The channel is associated with country code <span class='orange'>" + countryCode + "</span>" + translated + "</p>");
                     } else {
                         partDiv.append("<p class='mb-15'>The channel doesn't have an associated country.</p>");
                     }
@@ -396,6 +461,8 @@
                 title: "Localizations",
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #localizations");
+
+                    processLocalizations(partDiv, partJson);
                 }
             },
             status: {
@@ -455,7 +522,7 @@
         playlist: {
             snippet: {
                 title: "Snippet",
-                postProcess: function (partJson) {
+                postProcess: function (partJson, fullJson) {
                     submit({
                         type: 'channel_id',
                         value: partJson.channelId,
@@ -464,7 +531,7 @@
 
                     const partDiv = $("#playlist-section #snippet");
 
-                    partDiv.append("<img src='" + partJson.thumbnails.medium.url + "' class='mb-15'>");
+                    partDiv.append("<a target='_blank' href='https://www.youtube.com/playlist?list=" + fullJson.id + "'><img src='" + partJson.thumbnails.medium.url + "' class='mb-15'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const authorHtml =
@@ -494,6 +561,8 @@
                 title: "Localizations",
                 postProcess: function (partJson) {
                     const partDiv = $("#playlist-section #localizations");
+
+                    processLocalizations(partDiv, partJson);
                 }
             },
             contentDetails: {
@@ -523,7 +592,7 @@
                     json.text(JSON.stringify(item[part], null, 4));
                     hljs.highlightBlock(json[0]);
 
-                    partMap[partMapType][part].postProcess(item[part]);
+                    partMap[partMapType][part].postProcess(item[part], item);
                 } else {
                     sectionHeader.removeClass("unknown").addClass("bad");
                     sectionHeader.find("i").removeClass("question").addClass("minus");
@@ -595,7 +664,7 @@
             }
 
             youtube.ajax('channels', {
-                part: Object.keys(partMap.channel).join(','),
+                part: "id," + Object.keys(partMap.channel).join(','),
                 id: parsedInput.value
             }).done(function (res) {
                 console.log(res);
