@@ -12,7 +12,6 @@ What's unique about this tool? How can you use it?
 2. Use it for investigative purposes, OSINT.
     - Tells you what it found **and** what it didn't find.
     - Exact date and times for video publish and playlist/channel creation
-    - Exact date and times
     - Auto-translations for BCP-47 country and language codes
     - Livestream date and times; actual runtime and how late/early it started
     - Geolocation with direct link to Google Maps
@@ -20,6 +19,7 @@ What's unique about this tool? How can you use it?
     - Reverse image search for a video's default 4 thumbnails
     - Whether the video is aimed at children or not
     - Channel long uploads status
+    - Tags present on a video
 3. Gives helpful suggestions if a link doesn't work
     - Google search for the id
     - Archive.org for the link
