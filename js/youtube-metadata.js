@@ -615,7 +615,7 @@
             errorState("Your link looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
                 const options = [];
 
-                options.push("<li><a target='_blank' href='https://www.google.com/search?q=\"" + parsedInput.value + "\"'>Google Search - youtube \"" + parsedInput.value + "\"</a></li>");
+                options.push("<li><a target='_blank' href='https://www.google.com/search?q=\"" + parsedInput.value + "\"'>Google Search - \"" + parsedInput.value + "\"</a></li>");
                 options.push("<li><a target='_blank' href='https://web.archive.org/web/*/" + parsedInput.original + "'>Archive.org - " + parsedInput.original + "</a></li>");
 
                 if (partMapType === "video") {
@@ -722,6 +722,8 @@
                 parseChannel(res, parsedInput);
             }).fail(function (err) {
                 console.error(err);
+
+                errorState("There was a problem querying for the channel.");
             });
         } else if (parsedInput.type === 'playlist_id') {
             console.log('grabbing playlist');
