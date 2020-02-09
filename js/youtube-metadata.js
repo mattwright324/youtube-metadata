@@ -259,7 +259,9 @@
 
                         const published = moment(fullJson.snippet.publishedAt);
                         const format = formatDuration(getDuration(recordMoment, published), false, true);
-                        if (published.isAfter(recordMoment)) {
+                        if (format === "0s") {
+                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>same day</span> as the publish date.</p>")
+                        } else if (published.isAfter(recordMoment)) {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> before the publish date.</p>")
                         } else {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> after the publish date. This shouldn't be possible?</p>");
