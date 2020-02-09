@@ -376,7 +376,7 @@
                             const url = categories[i];
                             const text = url.substr(url.lastIndexOf('/')+1).replace(/_/g, " ");
 
-                            partDiv.append("<p class='mb-15'><a href='" + url + "'>" + text + "</a></p>")
+                            partDiv.append("<p class='mb-15'><a target='_blank' href='" + url + "'>" + text + "</a></p>")
                         }
                     }
                 }
@@ -484,13 +484,13 @@
                     const related = partJson.relatedPlaylists;
                     if (related) {
                         if (related.hasOwnProperty("uploads")) {
-                            partDiv.append("<p class='mb-15'><a href='https://www.youtube.com/playlist?list=" + related.uploads + "'>Uploads playlist</a></p>")
+                            partDiv.append("<p class='mb-15'><a target='_blank' href='https://www.youtube.com/playlist?list=" + related.uploads + "'>Uploads playlist</a></p>")
                         }
                         if (related.hasOwnProperty("favorites")) {
-                            partDiv.append("<p class='mb-15'><a href='https://www.youtube.com/playlist?list=" + related.favorites + "'>Favorites playlist</a></p>")
+                            partDiv.append("<p class='mb-15'><a target='_blank' href='https://www.youtube.com/playlist?list=" + related.favorites + "'>Favorites playlist</a></p>")
                         }
                         if (related.hasOwnProperty("likes")) {
-                            partDiv.append("<p class='mb-15'><a href='https://www.youtube.com/playlist?list=" + related.likes + "'>Likes playlist</a></p>")
+                            partDiv.append("<p class='mb-15'><a target='_blank' href='https://www.youtube.com/playlist?list=" + related.likes + "'>Likes playlist</a></p>")
                         }
                     }
                 }
@@ -558,7 +558,7 @@
                             const url = categories[i];
                             const text = url.substr(url.lastIndexOf('/')+1).replace(/_/g, " ");
 
-                            partDiv.append("<p class='mb-15'><a href='" + url + "'>" + text + "</a></p>")
+                            partDiv.append("<p class='mb-15'><a target='_blank' href='" + url + "'>" + text + "</a></p>")
                         }
                     }
                 }
