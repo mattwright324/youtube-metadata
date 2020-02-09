@@ -84,12 +84,12 @@
     function formatBCP47(translation) {
         const findings = [];
 
-        if (translation.country) {
-            findings.push(translation.country.name);
-        }
-
         if (translation.language) {
             findings.push(translation.language.name);
+        }
+
+        if (translation.country) {
+            findings.push(translation.country.name);
         }
 
         return findings.join(" / ");
