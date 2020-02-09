@@ -443,7 +443,7 @@
                             "<p class='mb-15'><strong>Channel Keyword(s): </strong>" +
                                 "<span class='tag'>" +
                                     (quotes ? quotes.join(" </span><span class='tag'>").replace(/"/g,"") : "") +
-                                    keywords.trim().split(" ").join(" </span><span class='tag'>") +
+                                    keywords.trim().replace(/ +/g, " ").split(" ").join(" </span><span class='tag'>") +
                                 "</span>" +
                             "</p>";
                         partDiv.append(keywordsHtml);
