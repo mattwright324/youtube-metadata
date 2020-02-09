@@ -2,6 +2,8 @@ body {
     font-weight: 400;
     font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif!important;
     color: #222;
+    background-image: url("https://mattw.io/img/noise.png");
+    background-repeat: repeat;
 }
 
 .orange {
@@ -18,8 +20,18 @@ img {
     height: auto;
 }
 
+.header-img {
+    width: 45px!important;
+    height: 45px!important;
+}
+
+h1 {
+    font-weight: 100!important;
+}
+
 .profile {
-    max-width: 80px;
+    width: 80px;
+    height: 80px;
 }
 .section {
     margin-bottom: 15px;

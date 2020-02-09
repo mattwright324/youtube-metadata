@@ -58,7 +58,7 @@
         }
     }
 
-    function formatDuration(duration, includeMs) {
+    function formatDuration(duration, includeMs, ignoreTime) {
         const years = duration.years();
         const days = duration.days();
         const hours = duration.hours();
@@ -68,9 +68,9 @@
         const format = [
             (years > 0 ? years + "y" : ""),
             (days > 0 ? days + "d" : ""),
-            (hours > 0 ? hours + "h" : ""),
-            (minutes > 0 ? minutes + "m" : ""),
-            (seconds > 0 ? seconds + "s" : ""),
+            (!ignoreTime && hours > 0 ? hours + "h" : ""),
+            (!ignoreTime && minutes > 0 ? minutes + "m" : ""),
+            (!ignoreTime && seconds > 0 ? seconds + "s" : ""),
             includeMs ? (millis > 0 ? millis + "ms" : "") : ""
         ].join(" ");
 
@@ -252,15 +252,15 @@
 
                         const dateHtml =
                             "<p class='mt-15 mb-15'><strong>Recorded on</strong> " +
-                            "<span class='orange'>" + recordDate.toUTCString() + "</span>" +
-                            " (" + recordMoment.fromNow() + ")" +
+                                "<span class='orange'>" + recordDate.toUTCString() + "</span>" +
+                                " (" + recordMoment.fromNow() + "). YouTube appears to strip the time, it is always zero'd out." +
                             "</p>";
                         partDiv.append(dateHtml);
 
                         const published = moment(fullJson.snippet.publishedAt);
-                        const format = formatDuration(getDuration(recordMoment, published));
+                        const format = formatDuration(getDuration(recordMoment, published), false, true);
                         if (published.isAfter(recordMoment)) {
-                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> before the publish date</p>")
+                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> before the publish date.</p>")
                         } else {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> after the publish date. This shouldn't be possible?</p>");
                         }
@@ -418,12 +418,37 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #brandingSettings");
 
-                    if (partJson.hasOwnProperty("trackingAnalyticsAccountId")) {
-                        partDiv.append("<p class='mb-15'>This channel is tracking and measuring traffic with Google Analytics</p>")
+                    if (partJson.channel.hasOwnProperty("trackingAnalyticsAccountId")) {
+                        partDiv.append("<p class='mb-15'>This channel is tracking and measuring traffic with Google Analytics <span class='orange'>" + partJson.channel.trackingAnalyticsAccountId + "</span></p>")
                     }
 
-                    if (partJson.moderateComments) {
-                        partDiv.append("<p class='mb-15'>Comments on the channel page require approval by the channel owner.</p>")
+                    if (partJson.channel.hasOwnProperty("moderateComments")) {
+                        if (partJson.channel.moderateComments) {
+                            partDiv.append("<p class='mb-15'>Comments on the channel page are <span class='orange'>moderated</span> and require approval by the owner.</p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>Comments on the channel page are not moderated.</p>")
+                        }
+                    }
+
+                    if (partJson.channel.keywords) {
+                        let keywords = partJson.channel.keywords;
+                        const quotes = keywords.match(/"[\w ]+"/gi);
+                        if (quotes) {
+                            for (let i = 0; i < quotes.length; i++) {
+                                keywords = keywords.replace(quotes[i], "");
+                            }
+                        }
+
+                        const keywordsHtml =
+                            "<p class='mb-15'><strong>Channel Keyword(s): </strong>" +
+                                "<span class='tag'>" +
+                                    (quotes ? quotes.join(" </span><span class='tag'>").replace(/"/g,"") : "") +
+                                    keywords.trim().split(" ").join(" </span><span class='tag'>") +
+                                "</span>" +
+                            "</p>";
+                        partDiv.append(keywordsHtml);
+                    } else {
+                        partDiv.append("<p class='mb-15'>There were no keywords.</p>")
                     }
                 }
             },
@@ -758,6 +783,41 @@
             elements.videoSection = $("#video-section");
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
+
+            // 150 top-viewed geolocated videos in europe
+            const examples = [
+                "S6rZtIipew8","yG07WSu7Q9w","jy5UDtRmbEA","dkmjCAjAQug","PvxIjey1waE",
+                "4N--MJIfyB0","zPX7o9qzC8U","inRKcDcNccI","iquQBqD2Gs4","3WySwhj2SwE",
+                "FoJQAyrUHhA","R5bg7mdnGAU","u41ujNodvnM","jh1WiKtZHwE","Emv0KcrZRlI",
+                "VkTO16HjVEc","bQzIQa5YKvw","-mA8JzVeC1g","rYA11kuJOP0","t9OdC-YTsoA",
+                "aqpmbTJHiis","3xl_ECxlOnU","JD9j-Xka6sA","i9x7wPTKY_Q","Cn_bXKxkluY",
+                "OC_CpnwZPYM","H4v7wddN-Wg","rQW6yD0JeKE","M77iURs9pGU","8gQkeNzf7_c",
+                "-7lqGbIE3aM","wzc_VNh42HM","_CnA-_0eKUQ","pazXnYq4-SU","Xfi59Nzj1VE",
+                "dIsGkpQGq5o","ptfmAY6M6aA","GhBXx-2PadM","bTLgMqjG-TQ","-R00v5pcSNk",
+                "EY7EIZl4raY","5v5NV-nJrrE","LOTbOmvaOJo","JvEMQalsHWs","W40-ABmPXME",
+                "wQdxqyEMD1c","B4UYaumLy90","3AkFpbOjMSo","-ZL1IzZYzl0","Lp9XoiFbZcI",
+                "pY6S2TzytVY","9gKlEL3Uem4","y_0ybTKt8Hc","rVao0TtDBvk","TepwaPCpR7k",
+                "RjqD7VegwRw","qtuvP8En0vU","3XOKmaElzqw","rtk2SWaB_H0","0K4SovgGWvg",
+                "AcswBOX60hI","2w6ZYnBaq8k","VxtdCeg7VPE","Xn5THTi6Zbg","7Y_FM35XR5o",
+                "iz7-t3cj0CQ","e4ohG2I0NA8","jrR5aARaqkw","x3hoYr2dZfY","i6MV_LHWUSs",
+                "rYnO2wuIiBg","x959zhL3F6s","4ijEJgmjt5w","qGulU83N6Gc","IUadU9GK4nI",
+                "c3Ywo8Tsyys","jyvYrH0KxAI","KuhA0ASQEGA","2N9I5DQJnF0","8NKDsDRiGZo",
+                "uVAHJYrLldg","Y_1x25k7QEs","fDqZ8Q-QAsM","PfYYraMgiBA","sp7Bi_udKnc",
+                "gLrzMzD_yvw","7EyisikW1t4","ySGUPSpCFmo","27ngBYn6Y-E","YUBaSdBzLaE",
+                "juSvznijg3g","yceT2CVqLyY","TfPKMurs-OY","1wLBXIIDzf0","F4KNqDpIrHg",
+                "WKa4Ml860Ag","YwTXhNYG4gw","uF9rso7AMAs","xGxY-nC3E3M","oDOi6Kn1JA8",
+                "1aw_FL24I7A","-ERdvPuEwUA","l_Ip6A9xASo","VgAYi-rKT8Q","wO1cEUsQcJ8",
+                "Pusi-FqI1UY","-PE-fWJZhCU","CkonLJ2bUQk","YQevuFBV0w4","diX8IyrGQJY",
+                "nk2QFHdlER8","OkoLw0S4ujc","jutYLDL08TQ","sE9iJPEuYHE","_Jijy3OCbdg",
+                "skLvBleOdp4","fDyKGEDsxuw","Xlo7tk-1Kio","bNZHWr83jZk","6l5NYAUOd8c",
+                "J6C8K1CKYF0","knIUBsf95uY","TvzXBRLGixQ","ZduygjtPn_c","UOgBUeYlrPM",
+                "FTLPHCu53o0","K6lkg-NzoVU","4NbSeKMCWtg","5yvoIjW6J5I","GjKULFuUxWM",
+                "DtMC1SsKhIU","BWaZgnRRrX8","ivq9ji9FUtU","CJyfvWivOto","L88dPk6QWeE",
+                "muLAzfQDS3M","AS4kaxRJYqU","mobH5YN-VKg","agP0YIsASO8","G6Irb_GIBXw",
+                "2QW7d-m2Axk","EqbSY4a17qc","w3sxnD5JBKI","fXbMh96rtM8","Dke8Umlh9R8",
+                "X4gt7jL0rP0","C8Lg35s0aYg","-Ga3CrmYKto","J6jesg5MYOs","sLzUHMv9h0U"];
+            const exampleLink = "https://youtu.be/" + examples[Math.trunc(Math.random() * examples.length)];
+            controls.inputValue.val(exampleLink);
 
             internal.buildPage(true);
         },
