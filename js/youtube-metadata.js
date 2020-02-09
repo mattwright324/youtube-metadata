@@ -431,20 +431,42 @@
                     }
 
                     if (partJson.channel.keywords) {
-                        let keywords = partJson.channel.keywords;
-                        const quotes = keywords.match(/"[\w ]+"/gi);
-                        if (quotes) {
-                            for (let i = 0; i < quotes.length; i++) {
-                                keywords = keywords.replace(quotes[i], "");
+                        const keywords = partJson.channel.keywords;
+                        const parsed = [];
+
+                        // Custom parser because regex for all languages is funky
+                        // and why doesn't browser JS regex support \p{L}   !?!?!
+                        // Also, why didn't google make this an array like video tags?
+                        let word = "";
+                        let inQuotes = false;
+                        for (let i=0; i<keywords.length; i++) {
+                            const char = keywords.charAt(i);
+
+                            if (char === '"' && inQuotes === false) {
+                                inQuotes = true;
+                            } else if (char === '"' && inQuotes === true) {
+                                inQuotes = false;
                             }
+
+                            if (char !== '"') {
+                                if (char === " " && inQuotes === false) {
+                                    parsed.push(word);
+                                    word = "";
+                                } else if (char !== " " || inQuotes === true) {
+                                    word += char;
+                                }
+                            }
+                        }
+                        if (parsed.indexOf(word) === -1) {
+                            parsed.push(word);
                         }
 
                         const keywordsHtml =
                             "<p class='mb-15'><strong>Channel Keyword(s): </strong>" +
-                                "<span class='tag'>" +
-                                    (quotes ? quotes.join(" </span><span class='tag'>").replace(/"/g,"") : "") +
-                                    keywords.trim().replace(/ +/g, " ").split(" ").join(" </span><span class='tag'>") +
-                                "</span>" +
+                                (parsed && parsed.length ?
+                                    "<span class='tag'>" +
+                                        parsed.join(" </span><span class='tag'>") +
+                                    "</span>" : "") +
                             "</p>";
                         partDiv.append(keywordsHtml);
                     } else {
