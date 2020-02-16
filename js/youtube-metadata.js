@@ -415,6 +415,13 @@
                     }
                 }
             },
+            statistics: {
+                title: "Statistics",
+                postProcess: function (partJson) {
+                    const partDiv = $("#channel-section #statistics");
+
+                }
+            },
             brandingSettings: {
                 title: "Branding Settings",
                 postProcess: function (partJson) {
