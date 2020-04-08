@@ -554,7 +554,7 @@
                     }
                 }
             },
-            topicDetails: {
+            /*topicDetails: {
                 title: "Topic Details",
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #topicDetails");
@@ -569,7 +569,7 @@
                         }
                     }
                 }
-            }
+            }*/
         },
 
         /**
@@ -638,7 +638,10 @@
         $("#reason").html(message);
 
         $("#reason-append").empty();
-        funcAppend($("#reason-append"));
+
+        if (funcAppend) {
+            funcAppend($("#reason-append"));
+        }
     }
 
     function parseType(partMapType, sectionId, res, parsedInput) {
