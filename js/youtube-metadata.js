@@ -366,6 +366,30 @@
                     } else {
                         partDiv.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
                     }
+
+                    if (partJson.hasOwnProperty('regionRestriction')) {
+                        const restriction = partJson.regionRestriction;
+
+                        // Should have only one or the other, never both
+                        if (restriction.hasOwnProperty('allowed')) {
+                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction allowed</span> for the following countries. " +
+                                "Any country not in this list may not watch the video.</p>");
+                        } else if (restriction.hasOwnProperty('blocked')) {
+                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction blocked</span> for the following countries. " +
+                                "Any country not in this list may watch the video.</p>");
+                        }
+
+                        const codes = restriction.allowed || restriction.blocked;
+                        const translations = [];
+                        for (let i = 0; i < codes.length; i++) {
+                            const code = codes[i];
+                            const result = iso3166.lookup(code);
+                            const name = (result ? result.name : 'ISO-3166 Could not translate')
+
+                            translations.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>")
+                        }
+                        partDiv.append("<ul>" + translations.join("") + "</ul>")
+                    }
                 }
             },
             topicDetails: {
