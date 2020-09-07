@@ -493,13 +493,13 @@
 
                     const related = partJson.relatedPlaylists;
                     if (related) {
-                        if (related.hasOwnProperty("uploads")) {
+                        if (related.hasOwnProperty("uploads") && related.uploads) {
                             partDiv.append("<p class='mb-15'><a target='_blank' href='https://www.youtube.com/playlist?list=" + related.uploads + "'>Uploads playlist</a></p>")
                         }
-                        if (related.hasOwnProperty("favorites")) {
+                        if (related.hasOwnProperty("favorites") && related.favorites) {
                             partDiv.append("<p class='mb-15'><a target='_blank' href='https://www.youtube.com/playlist?list=" + related.favorites + "'>Favorites playlist</a></p>")
                         }
-                        if (related.hasOwnProperty("likes")) {
+                        if (related.hasOwnProperty("likes") && related.likes) {
                             partDiv.append("<p class='mb-15'><a target='_blank' href='https://www.youtube.com/playlist?list=" + related.likes + "'>Likes playlist</a></p>")
                         }
                     }
