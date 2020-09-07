@@ -25,6 +25,9 @@
         ],
         channel_id: [
             /http[s]?:\/\/(?:www|m).youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
+        ],
+        channel_custom: [
+            /http[s]?:\/\/(?:www|m).youtube.com\/c\/([\w_-]+)(?:\?.*)?/i
         ]
     };
 
@@ -710,6 +713,13 @@
 
         if (parsedInput.type === 'unknown') {
             errorState("Your link did not follow an accepted format.");
+        } else if (parsedInput.type === 'channel_custom') {
+            errorState("Custom channel URLs are not supported.", function (append) {
+                append.append("<p class='mb-15'>" +
+                        "More detail about the issue and what you can do can be found here at " +
+                        "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
+                    "</p>");
+            });
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 
