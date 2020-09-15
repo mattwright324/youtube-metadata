@@ -535,12 +535,12 @@
                     const partDiv = $("#channel-section #contentOwnerDetails");
                 }
             },
-            invideoPromotion: {
+            /*invideoPromotion: {
                 title: "In-Video Promotion",
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #invideoPromotion");
                 }
-            },
+            },*/
             localizations: {
                 title: "Localizations",
                 postProcess: function (partJson) {
