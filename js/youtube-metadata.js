@@ -6,7 +6,7 @@
  * @requires jquery
  * @author mattwright324
  */
-metadata = (function () {
+(function () {
     'use strict';
 
     const elements = {};
@@ -64,14 +64,16 @@ metadata = (function () {
 
     function formatDuration(duration, includeMs, ignoreTime) {
         const years = duration.years();
+        const months = duration.months();
         const days = duration.days();
         const hours = duration.hours();
         const minutes = duration.minutes();
         const seconds = duration.seconds();
         const millis = duration.milliseconds();
         const format = [
-            (years > 0 ? years + "y" : ""),
-            (days > 0 ? days + "d" : ""),
+            (years > 0 ? years + " years" : ""),
+            (months > 0 ? months + " months" : ""),
+            (days > 0 ? days + " days" : ""),
             (!ignoreTime && hours > 0 ? hours + "h" : ""),
             (!ignoreTime && minutes > 0 ? minutes + "m" : ""),
             (!ignoreTime && seconds > 0 ? seconds + "s" : ""),
