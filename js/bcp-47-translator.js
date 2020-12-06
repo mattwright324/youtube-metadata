@@ -12,7 +12,7 @@ const bcp47 = (function (iso3166, iso639) {
                 return;
             }
 
-            const parts = String(code).split("-");
+            const parts = String(code).split(/[-|_]/);
             return {
                 language: iso639.lookup(parts[0]) || iso639.lookup(parts[1]),
                 country: iso3166.lookup(parts[0]) || iso3166.lookup(parts[1])
