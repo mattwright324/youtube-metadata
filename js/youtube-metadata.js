@@ -14,20 +14,21 @@
 
     const patterns = {
         video_id: [
-            /http[s]?:\/\/(?:www|m).youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
-            /http[s]?:\/\/youtu.be\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
+            /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i
         ],
         playlist_id: [
-            /http[s]?:\/\/(?:www|m).youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
         ],
         channel_user: [
-            /http[s]?:\/\/(?:www|m).youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
         ],
         channel_id: [
-            /http[s]?:\/\/(?:www|m).youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
         ],
         channel_custom: [
-            /http[s]?:\/\/(?:www|m).youtube.com\/c\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([\w_-]+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/([\w_-]+)(?:\?.*)?/i
         ]
     };
 
@@ -96,6 +97,28 @@
         }
 
         return findings.join(" / ");
+    }
+
+    function sortObject(unordered, sortArrays = false) {
+        if (!unordered || typeof unordered !== 'object') {
+            return unordered;
+        }
+
+        if (Array.isArray(unordered)) {
+            const newArr = unordered.map((item) => sortObject(item, sortArrays));
+            if (sortArrays) {
+                newArr.sort();
+            }
+            return newArr;
+        }
+
+        const ordered = {};
+        Object.keys(unordered)
+            .sort()
+            .forEach((key) => {
+                ordered[key] = sortObject(unordered[key], sortArrays);
+            });
+        return ordered;
     }
 
     function processLocalizations(partDiv, partJson) {
@@ -411,7 +434,7 @@
         },
 
         /**
-         * Can't access part(s): auditDetails
+         * Can't access part(s): auditDetails, contentOwnerDetails
          * Useless part(s): id
          * Every other part below:
          */
@@ -529,18 +552,6 @@
                     }
                 }
             },
-            contentOwnerDetails: {
-                title: "Content Owner Details",
-                postProcess: function (partJson) {
-                    const partDiv = $("#channel-section #contentOwnerDetails");
-                }
-            },
-            /*invideoPromotion: {
-                title: "In-Video Promotion",
-                postProcess: function (partJson) {
-                    const partDiv = $("#channel-section #invideoPromotion");
-                }
-            },*/
             localizations: {
                 title: "Localizations",
                 postProcess: function (partJson) {
@@ -581,7 +592,7 @@
                     }
                 }
             },
-            /*topicDetails: {
+            topicDetails: {
                 title: "Topic Details",
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #topicDetails");
@@ -596,7 +607,7 @@
                         }
                     }
                 }
-            }*/
+            }
         },
 
         /**
@@ -679,9 +690,18 @@
                 const section = $("#" + sectionId + " #" + part);
                 const sectionHeader = $(section.find(".section-header"));
 
-                if (item.hasOwnProperty(part)) {
+                if (item.hasOwnProperty(part) && !$.isEmptyObject(item[part])) {
                     sectionHeader.removeClass("unknown").addClass("good");
                     sectionHeader.find("i").removeClass("question").addClass("check");
+                } else {
+                    sectionHeader.removeClass("unknown").addClass("bad");
+                    sectionHeader.find("i").removeClass("question").addClass("minus");
+                }
+
+                if (item.hasOwnProperty(part)) {
+                    if (part === 'localizations') {
+                        item[part] = sortObject(item[part]);
+                    }
 
                     section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
 
@@ -691,9 +711,6 @@
 
                     partMap[partMapType][part].postProcess(item[part], item);
                 } else {
-                    sectionHeader.removeClass("unknown").addClass("bad");
-                    sectionHeader.find("i").removeClass("question").addClass("minus");
-
                     section.append("<p class='mb-15 bad'>The " + partMapType + " does not have " + part + ".</p>");
                 }
             }
@@ -732,18 +749,113 @@
         parseType("channel", "channel-section", res, input);
     }
 
+    /**
+     * Attempt to resolve the custom URL as there is no direct API method. Unreliable and may not always work.
+     */
+    async function resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page) {
+        console.log("Attempting to resolve custom channel URL. Search page #" + page);
+
+        youtube.ajax("search", {
+            part: 'snippet',
+            q: parsedInput.value,
+            maxResults: 50,
+            type: 'channel',
+            order: 'relevance',
+            pageToken: nextPageToken
+        }).done(function (res) {
+            console.log(res);
+
+            if (res.hasOwnProperty('nextPageToken') && !$.isEmptyObject(res.nextPageToken)) {
+                nextPageToken = res.nextPageToken;
+            } else {
+                nextPageToken = '';
+            }
+
+            const channelIds = [];
+            for (let i=0; i<res.items.length; i++) {
+                channelIds.push(res.items[i].id.channelId);
+            }
+
+            youtube.ajax('channels', {
+                part: 'snippet',
+                id: channelIds.join(","),
+                maxResults: 50
+            }).done(function (res) {
+                console.log(res);
+
+                let match;
+                if (res.items) {
+                    for (let i=0; i<res.items.length; i++) {
+                        const item = res.items[i];
+                        const snippet = item.snippet;
+                        if (snippet.hasOwnProperty('customUrl') && parsedInput.value.toLowerCase() === snippet.customUrl.toLowerCase()) {
+                            match = {
+                                value: item.id,
+                                type: 'channel_id',
+                                original: 'https://www.youtube.com/channel/' + item.id,
+                                mayHideOthers: true
+                            }
+                        }
+                    }
+                }
+
+                if (match) {
+                    callbackResubmit(match);
+                } else if (page < 5 && !$.isEmptyObject(nextPageToken)) {
+                    resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page+1)
+                } else {
+                    errorState("Could not resolve Custom Channel URL", function (append) {
+                        append.append("<p class='mb-15'>" +
+                            "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
+                            "</p>");
+                        append.append("<p class='mb-15'>" +
+                            "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
+                            "</p>");
+                        append.append("<p class='mb-15'>" +
+                            "More detail about the issue and what you can do can be found here at " +
+                            "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
+                            "</p>");
+                    })
+                }
+            }).fail(function (err) {
+                errorState("Could not resolve Custom Channel URL", function (append) {
+                    append.append("<p class='mb-15'>" +
+                        "The custom channel URL resolver had an issue querying for the search channels. " +
+                        "</p>");
+                    append.append("<p class='mb-15'>" +
+                        "More detail about the issue and what you can do can be found here at " +
+                        "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
+                        "</p>");
+                })
+            });
+        }).fail(function (err) {
+            errorState("Could not resolve Custom Channel URL", function (append) {
+                append.append("<p class='mb-15'>" +
+                    "The custom channel URL resolver had an issue on the search query. " +
+                    "</p>");
+                append.append("<p class='mb-15'>" +
+                    "More detail about the issue and what you can do can be found here at " +
+                    "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
+                    "</p>");
+            })
+        });
+    }
+
     async function submit(parsedInput) {
         console.log(parsedInput);
+
+        if (parsedInput.original) {
+            controls.inputValue.val(parsedInput.original);
+
+            const baseUrl = location.origin + location.pathname;
+            controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.original) + "&submit=true");
+            controls.shareLink.attr("disabled", false);
+        }
 
         if (parsedInput.type === 'unknown') {
             errorState("Your link did not follow an accepted format.");
         } else if (parsedInput.type === 'channel_custom') {
-            errorState("Custom channel URLs are not supported.", function (append) {
-                append.append("<p class='mb-15'>" +
-                        "More detail about the issue and what you can do can be found here at " +
-                        "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
-                    "</p>");
-            });
+            resolveCustomChannel(parsedInput, submit, '', 1);
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 

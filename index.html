@@ -4,6 +4,8 @@ layout: null
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="description"
+          content="Quickly gather all the metadata about a video, playlist, or channel from the YouTube API. Reverse image search thumbnails, geolocate in google maps, and translate ISO country and language codes.">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="./img/icon.png">
     <title>YouTube Metadata</title>
@@ -30,7 +32,11 @@ layout: null
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100434147-9"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
         gtag('js', new Date());
 
         gtag('config', 'UA-100434147-9');
@@ -58,6 +64,8 @@ layout: null
         <li>https://www.youtube.com/playlist?list=<span class="orange">playlist_id</span></li>
         <li>https://www.youtube.com/user/<span class="orange">username</span></li>
         <li>https://www.youtube.com/channel/<span class="orange">channel_id</span></li>
+        <li>https://www.youtube.com/c/<span class="orange">custom_url</span> (may not work, <a href="https://github.com/mattwright324/youtube-metadata/issues/1">see here</a>)</li>
+        <li>https://www.youtube.com/<span class="orange">custom_url</span> (may not work, <a href="https://github.com/mattwright324/youtube-metadata/issues/1">see here</a>)</li>
     </ul>
     <p>Share this result:</p>
     <div class="ui action input">
@@ -72,7 +80,8 @@ layout: null
         <h1>Video</h1>
         <p>
             The video submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/videos#properties_1" target="_blank">here</a> to see detailed property descriptions.
+            Click <a href="https://developers.google.com/youtube/v3/docs/videos#properties_1" target="_blank">here</a>
+            to see detailed property descriptions.
         </p>
         <div id="video-section"></div>
         <div class='section-header unknown'><i class='question circle icon'></i><span>Thumbnails</span></div>
@@ -85,7 +94,8 @@ layout: null
     <div id="playlist" class="ui section">
         <h1>Playlist</h1>
         <p>The playlist submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/playlists#properties_1" target="_blank">here</a> to see detailed property descriptions.
+            Click <a href="https://developers.google.com/youtube/v3/docs/playlists#properties_1"
+                     target="_blank">here</a> to see detailed property descriptions.
         </p>
         <div id="playlist-section"></div>
     </div>
@@ -93,7 +103,8 @@ layout: null
     <div id="channel" class="ui section">
         <h1>Channel</h1>
         <p>The video author, playlist creator, or channel submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties_1" target="_blank">here</a> to see detailed property descriptions.
+            Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties_1" target="_blank">here</a>
+            to see detailed property descriptions.
         </p>
         <div id="channel-section"></div>
     </div>
@@ -105,7 +116,7 @@ layout: null
     </div>
 </div>
 <div class="ui container" style="margin-top:3%;margin-bottom:3%;color:darkgray" align="center">
-    mattwright324 | 2020 | <a href="/">home</a> | <a href="https://github.com/mattwright324">github</a> | <a
+    mattwright324 | 2021 | <a href="/">home</a> | <a href="https://github.com/mattwright324">github</a> | <a
         href="https://github.com/mattwright324/youtube-metadata">youtube-metadata</a>
 </div>
 </body>
