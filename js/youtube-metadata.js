@@ -6,7 +6,7 @@
  * @requires jquery
  * @author mattwright324
  */
-(function () {
+metadata = (function () {
     'use strict';
 
     const elements = {};
@@ -964,38 +964,39 @@
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            // 150 top-viewed geolocated videos in europe
+            // Videos gathered with YouTube Geofind
+            // Top 50 each of Eastern US, Europe, and Australia for 150 total example videos
             const examples = [
-                "S6rZtIipew8","yG07WSu7Q9w","jy5UDtRmbEA","dkmjCAjAQug","PvxIjey1waE",
-                "4N--MJIfyB0","zPX7o9qzC8U","inRKcDcNccI","iquQBqD2Gs4","3WySwhj2SwE",
-                "FoJQAyrUHhA","R5bg7mdnGAU","u41ujNodvnM","jh1WiKtZHwE","Emv0KcrZRlI",
-                "VkTO16HjVEc","bQzIQa5YKvw","-mA8JzVeC1g","rYA11kuJOP0","t9OdC-YTsoA",
-                "aqpmbTJHiis","3xl_ECxlOnU","JD9j-Xka6sA","i9x7wPTKY_Q","Cn_bXKxkluY",
-                "OC_CpnwZPYM","H4v7wddN-Wg","rQW6yD0JeKE","M77iURs9pGU","8gQkeNzf7_c",
-                "-7lqGbIE3aM","wzc_VNh42HM","_CnA-_0eKUQ","pazXnYq4-SU","Xfi59Nzj1VE",
-                "dIsGkpQGq5o","ptfmAY6M6aA","GhBXx-2PadM","bTLgMqjG-TQ","-R00v5pcSNk",
-                "EY7EIZl4raY","5v5NV-nJrrE","LOTbOmvaOJo","JvEMQalsHWs","W40-ABmPXME",
-                "wQdxqyEMD1c","B4UYaumLy90","3AkFpbOjMSo","-ZL1IzZYzl0","Lp9XoiFbZcI",
-                "pY6S2TzytVY","9gKlEL3Uem4","y_0ybTKt8Hc","rVao0TtDBvk","TepwaPCpR7k",
-                "RjqD7VegwRw","qtuvP8En0vU","3XOKmaElzqw","rtk2SWaB_H0","0K4SovgGWvg",
-                "AcswBOX60hI","2w6ZYnBaq8k","VxtdCeg7VPE","Xn5THTi6Zbg","7Y_FM35XR5o",
-                "iz7-t3cj0CQ","e4ohG2I0NA8","jrR5aARaqkw","x3hoYr2dZfY","i6MV_LHWUSs",
-                "rYnO2wuIiBg","x959zhL3F6s","4ijEJgmjt5w","qGulU83N6Gc","IUadU9GK4nI",
-                "c3Ywo8Tsyys","jyvYrH0KxAI","KuhA0ASQEGA","2N9I5DQJnF0","8NKDsDRiGZo",
-                "uVAHJYrLldg","Y_1x25k7QEs","fDqZ8Q-QAsM","PfYYraMgiBA","sp7Bi_udKnc",
-                "gLrzMzD_yvw","7EyisikW1t4","ySGUPSpCFmo","27ngBYn6Y-E","YUBaSdBzLaE",
-                "juSvznijg3g","yceT2CVqLyY","TfPKMurs-OY","1wLBXIIDzf0","F4KNqDpIrHg",
-                "WKa4Ml860Ag","YwTXhNYG4gw","uF9rso7AMAs","xGxY-nC3E3M","oDOi6Kn1JA8",
-                "1aw_FL24I7A","-ERdvPuEwUA","l_Ip6A9xASo","VgAYi-rKT8Q","wO1cEUsQcJ8",
-                "Pusi-FqI1UY","-PE-fWJZhCU","CkonLJ2bUQk","YQevuFBV0w4","diX8IyrGQJY",
-                "nk2QFHdlER8","OkoLw0S4ujc","jutYLDL08TQ","sE9iJPEuYHE","_Jijy3OCbdg",
-                "skLvBleOdp4","fDyKGEDsxuw","Xlo7tk-1Kio","bNZHWr83jZk","6l5NYAUOd8c",
-                "J6C8K1CKYF0","knIUBsf95uY","TvzXBRLGixQ","ZduygjtPn_c","UOgBUeYlrPM",
-                "FTLPHCu53o0","K6lkg-NzoVU","4NbSeKMCWtg","5yvoIjW6J5I","GjKULFuUxWM",
-                "DtMC1SsKhIU","BWaZgnRRrX8","ivq9ji9FUtU","CJyfvWivOto","L88dPk6QWeE",
-                "muLAzfQDS3M","AS4kaxRJYqU","mobH5YN-VKg","agP0YIsASO8","G6Irb_GIBXw",
-                "2QW7d-m2Axk","EqbSY4a17qc","w3sxnD5JBKI","fXbMh96rtM8","Dke8Umlh9R8",
-                "X4gt7jL0rP0","C8Lg35s0aYg","-Ga3CrmYKto","J6jesg5MYOs","sLzUHMv9h0U"];
+                "_r1-M5lnSyo","-mA8JzVeC1g","-NqaupGcCpw","-Q0zZXsbbpI","09rkasaUW-I",
+                "0JhT1mR2y70","0mazj4V11aA","0puueZTNumc","0Q1g4SWLk6g","1ZZrAdNoXB8",
+                "2ivpYPMVaMU","3e0FsU1N6OQ","3S76xHvgh1w","42NIPZh01_E","4K74M0iYZkk",
+                "4slwp1xcXmk","4ZlLk-PxAbI","5FeFZnashKc","5t0otbwp87Y","6r2DW9IaB5A",
+                "6u2oTke_LLk","8Q_9h6VKm9c","9QneqUhCVtU","9ZTfR4AHq-c","a9I5iBk2_No",
+                "AcMbsBDROnQ","aM4s8jFpmNw","Ao17K0uNSZk","AVVWVcIA1mw","b_jGUNwZWkU",
+                "ba18HtbjZjQ","BB-2nj8g78Y","bGa66UvrX_4","BHfGNSRNWrI","bTwCMK-Eaqs",
+                "BYbvf1p5mXo","bzPyOjLy4Bw","c1XOgrBz6sU","c3Ywo8Tsyys","Cej2qbUa90E",
+                "CITYxc8d1s4","CoAvaYOwm6k","D2CwcTUau04","Dk-SYl5jCXU","dYsTiW8skv0",
+                "e10pVhxNOco","E2YuDmaxR1U","eJ7ZkQ5TC08","eK2WZaoX2WY","EkaMkdlX45M",
+                "eMvXZN1JQGk","ES6UTyyREzA","F1BC5bTJgZk","fCNuPcf8L00","fJpFAmLGC3Q",
+                "Fk48A5e18AA","fKSc5m5uGvg","g02PS03bKRA","GB3zR_X25UU","GhBXx-2PadM",
+                "GQUqjFQH-jg","GT74WlNDsg0","hhDHZZUaLB4","HjVPNjnRKYs","hO6-jw78Sg8",
+                "hXa3Qt3mQDg","HzhJeTVFbws","HZOuDhwzsq0","HzrN-Y3cxiE","I7seHasGy4I",
+                "j8e0fBlvEMQ","j9zvh9SC2kY","jdfjh0WVyYI","jSklAwAnsxg","jVKEcUPEF8M",
+                "k3629rNR2yA","k6QmE4RQVkI","kD_xpFo7DPM","kedJiv-RTtc","kkldeDrLHTQ",
+                "kSdy_NxFQzI","KtU1Ji7v-ys","KTv3S4KMrxs","l_vapoze3EQ","L4yzZXvg0Z4",
+                "l5nv2e3fUJA","LGGuCL2Ixbc","LrcmOraCqM4","m05Y0yqvyUc","mKt16yEhBRw",
+                "mnGjQKdJrPU","mNJz5L6wbCg","MxgMsXM2cg8","N8FvQMJzudg","n8QOhGrZkEw",
+                "nBD-4ZDWJr8","NjsY2k84uaw","nmW2Ml5ry6M","oKr-LdijAyM","OwbW4vxUL3M",
+                "p0rK4oO-g9A","p3GwLf4QJJ4","pjb4EyEjdoY","pJRozpMfYGo","Pl74ybpyNLk",
+                "PtMQbN9x8I8","q76bMs-NwRk","qjyGbkL4kKk","qVd46qhiNjg","R5Cz9DnjbzU",
+                "R5Fz9HpEEks","rAeQqG85Sl4","rVao0TtDBvk","Rw3C-6vVZXw","S9Q644-1lNE",
+                "sANlCvgOZF0","sp7Bi_udKnc","t9plnoKLGwY","TBD5HIDNJXQ","TeTGV9Ngm8Y",
+                "tGcouu-4VDk","U3u4pQ4WKOk","U91AUYttTyc","uJ5vm5Yvhxc","UJZxtO9XNno",
+                "V0H5VPRAZBM","VaeoB7DKSO0","vAoADCSpD-8","vAZN1ebMbmQ","vnMYL8sF7bQ",
+                "vR_MvDZ8qVE","vsMWVW4xtwI","vvMO4bWn2pE","WaKNmOsLaro","wrjYr7-gKQg",
+                "wzc_VNh42HM","X_J9FEQWEOg","x4imf5uv24U","x959zhL3F6s","xqCY7hh9kRs",
+                "xs0ZL2F4y4E","xUHg2jYJtUE","yA7wdvv4VmM","YEqCJmOPCik","Ym3etBc_gwQ",
+                "yP09Gm5rp9I","yv2mEhDidrE","Z-Kre-mnZzg","ZQ7XIGVCwsA","zU5WU_d7fsM"];
             const exampleLink = "https://youtu.be/" + examples[Math.trunc(Math.random() * examples.length)];
             controls.inputValue.val(exampleLink);
 
