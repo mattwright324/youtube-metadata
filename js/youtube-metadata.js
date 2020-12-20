@@ -446,7 +446,9 @@
                 postProcess: function (partJson, fullJson) {
                     const partDiv = $("#channel-section #snippet");
 
-                    partDiv.append("<a target='_blank' href='https://www.youtube.com/channel/" + fullJson.id + "'><img src='" + partJson.thumbnails.medium.url + "' class='mb-15 profile'></a>");
+                    const thumbUrl = (partJson.thumbnails ? partJson.thumbnails.medium.url : "https://placehold.it/64x64");
+
+                    partDiv.append("<a target='_blank' href='https://www.youtube.com/channel/" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15 profile'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const published = new Date(partJson.publishedAt);
