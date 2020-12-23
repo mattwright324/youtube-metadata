@@ -29,7 +29,7 @@ What's unique about this tool? How can you use it?
 ### Building
 
 Refer to [BUILD.md](https://github.com/mattwright324/youtube-metadata/blob/master/BUILD.md)
-for instructions on how to build and run `youtube-geofind` from source.
+for instructions on how to build and run `youtube-metadata` from source.
 
 ### Contributing
 

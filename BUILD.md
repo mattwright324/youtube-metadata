@@ -14,7 +14,8 @@ Install Ruby (and gems jekyll and bundler) following the steps for your operatin
     - Ruby+Devkit default settings
     - `gem install jekyll bundler`
 
-In CMD or terminal, cd to the project directory you cloned to and run `bundle install` to install necessary gems (this may take some time).
+In CMD or terminal, cd to the project directory you cloned to and run `bundle install` to install necessary gems 
+for github-pages in the project Gemfile (this may take some time).
 
 ### Running youtube-metadata
 
