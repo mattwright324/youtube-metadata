@@ -25,3 +25,13 @@ What's unique about this tool? How can you use it?
     - Archive.org for the link
     - YouTubeRecover.com for the video id
     - SocialBlade.com for the channel username
+
+### Building
+
+Refer to [BUILD.md](https://github.com/mattwright324/youtube-metadata/blob/master/BUILD.md)
+for instructions on how to build and run `youtube-geofind` from source.
+
+### Contributing
+
+Contributions are welcome, refer to [CONTRIBUTING.md](https://github.com/mattwright324/youtube-metadata/blob/master/CONTRIBUTING.md)
+for more detail.
