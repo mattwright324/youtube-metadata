@@ -569,17 +569,6 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #status");
 
-                    const longUploads = partJson.longUploadsStatus;
-                    if (longUploads === "allowed") {
-                        partDiv.append("<p class='mb-15'>This channel may upload videos <span class='orange'>longer than 15 minutes</span></p>")
-                    } else if (longUploads === "disallowed") {
-                        partDiv.append("<p class='mb-15'>This channel may <strong>not</strong> upload videos <span class='orange'>longer than 15 minutes</span></p>")
-                    } else if (longUploads === "eligible") {
-                        partDiv.append("<p class='mb-15'>This channel is eligible to upload videos <span class='orange'>longer than 15 minutes</span> but they have not enabled it yet.</p>")
-                    } else {
-                        partDiv.append("<p class='mb-15'>It's unspecified whether this channel may upload videos longer than 15 minutes.</p>")
-                    }
-
                     if (partJson.hasOwnProperty("madeForKids")) {
                         if (partJson.madeForKids) {
                             partDiv.append("<p class='mb-15'>This channel is designated as <span class='orange'>child-directed</span></p>")
