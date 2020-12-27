@@ -135,6 +135,35 @@
             "</p>")
     }
 
+    function normalize(a, b) {
+        let normalizedA = a, normalizedB = b;
+        let gcdValue = 0, gcdA = 0, gcdB = 0;
+
+        if (a > 0 && b > 0) {
+            function gcd(p, q) {
+                if (q === 0) {
+                    return p;
+                }
+                return gcd(q, p % q);
+            }
+            gcdValue = gcd(a, b);
+            gcdA = gcdValue === 0 ? 0 : a / gcdValue;
+            gcdB = gcdValue === 0 ? 0 : b / gcdValue;
+        }
+
+        if (gcdValue !== 0) {
+            if (gcdA > gcdB) {
+                normalizedA = gcdA / gcdB;
+                normalizedB = 1;
+            } else {
+                normalizedA = 1;
+                normalizedB = gcdB / gcdA;
+            }
+        }
+
+        return {a: normalizedA, b: normalizedB}
+    }
+
     const partMap = {
         /**
          * Can't access part(s): fileDetails, processingDetails, suggestions
@@ -206,39 +235,13 @@
                     const partDiv = $("#video-section #statistics");
 
                     if (partJson.hasOwnProperty("likeCount")) {
-                        const likes = partJson.likeCount;
-                        const dislikes = partJson.dislikeCount;
-
-                        let normalizedLikes = likes, normalizedDislikes = dislikes;
-                        let gcdValue = 0, gcdLikes = 0, gcdDislikes = 0;
-
-                        if (likes > 0 && dislikes > 0) {
-                            function gcd(p, q) {
-                                if (q === 0) {
-                                    return p;
-                                }
-                                return gcd(q, p % q);
-                            }
-                            gcdValue = gcd(partJson.likeCount, partJson.dislikeCount);
-                            gcdLikes = gcdValue === 0 ? 0 : partJson.likeCount / gcdValue;
-                            gcdDislikes = gcdValue === 0 ? 0 : partJson.dislikeCount / gcdValue;
-                        }
-
-                        if (gcdValue !== 0) {
-                            if (gcdLikes > gcdDislikes) {
-                                normalizedLikes = gcdLikes / gcdDislikes;
-                                normalizedDislikes = 1;
-                            } else {
-                                normalizedLikes = 1;
-                                normalizedDislikes = gcdDislikes / gcdLikes;
-                            }
-                        }
+                        const normalized = normalize(partJson.likeCount, partJson.dislikeCount);
 
                         const html =
                             "<p class='mb-15'>" +
                                 "<strong>Normalized like ratio:</strong> " +
-                                "<span style='color:green'>" + Math.trunc(normalizedLikes) + " like(s)</span> per " +
-                                "<span style='color:red'>" + Math.trunc(normalizedDislikes) + " dislike(s)</span>" +
+                                "<span style='color:green'>" + Math.trunc(normalized.a) + " like(s)</span> per " +
+                                "<span style='color:red'>" + Math.trunc(normalized.b) + " dislike(s)</span>" +
                             "</p>";
                         partDiv.append(html);
                     } else {
@@ -467,12 +470,76 @@
                     } else {
                         partDiv.append("<p class='mb-15'>The channel doesn't have an associated country.</p>");
                     }
+
+                    if (partJson.hasOwnProperty("customUrl")) {
+                        const customUrl = "https://www.youtube.com/c/" + partJson.customUrl;
+
+                        partDiv.append("<p class='mb-15'>The channel has a custom url of value '<a target='_blank' href='"+customUrl+"'>" + partJson.customUrl + "</a>'</p>");
+                    }
                 }
             },
             statistics: {
                 title: "Statistics",
-                postProcess: function (partJson) {
+                postProcess: function (partJson, fullJson) {
                     const partDiv = $("#channel-section #statistics");
+
+                    const subLevels = {
+                        graphite: {
+                            min: 1,
+                            max: 999,
+                            qualCount: "1-1k",
+                            learnMore: "https://www.youtube.com/intl/en-GB/creators/benefits/graphite/"
+                        },
+                        opal: {
+                            min: 1000,
+                            max: 9999,
+                            qualCount: "1k-10k",
+                            learnMore: "https://www.youtube.com/intl/en-GB/creators/benefits/opal/"
+                        },
+                        bronze: {
+                            min: 10000,
+                            max: 99999,
+                            qualCount: "10k-100k",
+                            learnMore: "https://www.youtube.com/intl/en-GB/creators/benefits/bronze/"
+                        },
+                        silver: {
+                            min: 100000,
+                            max: 999999,
+                            qualCount: "100k-1m",
+                            learnMore: "https://www.youtube.com/intl/en-GB/creators/benefits/silver/"
+                        },
+                        gold: {
+                            min: 1000000,
+                            max: 9999999,
+                            qualCount: "1m-10m",
+                            learnMore: "https://www.youtube.com/intl/en-GB/creators/benefits/silver/"
+                        },
+                        diamond: {
+                            min: 10000000,
+                            max: Number.MAX_SAFE_INTEGER,
+                            qualCount: "10m+",
+                            learnMore: "https://www.youtube.com/intl/en-GB/creators/benefits/silver/"
+                        }
+                    }
+
+                    const subs = partJson.subscriberCount;
+                    const learnMore = "Click <a target='_blank' href='https://www.youtube.com/intl/en-GB/creators/benefits/'>here</a> to learn more.";
+
+                    for (let levelName in subLevels) {
+                        const level = subLevels[levelName];
+                        if (subs >= level.min && subs <= level.max) {
+                            partDiv.append("<p class='mb-15'>This channel's subscriber count qualifies for benefit level <span class='orange'>" + levelName + " </span> (" + level.qualCount + "). " + learnMore + "</p>")
+                        }
+                    }
+
+                    if (partJson.hiddenSubscriberCount) {
+                        partDiv.append("<p class='mb-15'>This channel has their subscriber count <span class='orange'>hidden</span>.</p>");
+                    } else if (subs <= 0) {
+                        partDiv.append("<p class='mb-15'>This channel has no subscribers and does not qualify for any benefit level. " + learnMore + "</p>");
+                    } else {
+                        partDiv.append("Check out this channel on <a target='_blank' href='https://socialblade.com/youtube/channel/" + fullJson.id + "'>SocialBlade</a>.");
+                    }
+
 
                 }
             },
