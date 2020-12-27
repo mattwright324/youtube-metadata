@@ -178,7 +178,7 @@
                     if (partJson.tags) {
                         const tagsHtml =
                             "<p class='mb-15'><strong>Tag(s): </strong>" +
-                                "<span class='tag'>" + partJson.tags.join(" </span><span class='tag'>") + "</span>" +
+                                "<span class='tag'>" + partJson.tags.join("</span><span class='comma'>, </span><span class='tag'>") + "</span>" +
                             "</p>";
                         partDiv.append(tagsHtml);
                     } else {
@@ -528,7 +528,7 @@
                             "<p class='mb-15'><strong>Channel Keyword(s): </strong>" +
                                 (parsed && parsed.length ?
                                     "<span class='tag'>" +
-                                        parsed.join(" </span><span class='tag'>") +
+                                        parsed.join("</span><span class='comma'>, </span><span class='tag'>") +
                                     "</span>" : "") +
                             "</p>";
                         partDiv.append(keywordsHtml);
@@ -703,7 +703,9 @@
                     hljs.highlightBlock(json[0]);
 
                     partMap[partMapType][part].postProcess(item[part], item);
-                } else {
+                }
+
+                if (!item.hasOwnProperty(part) || $.isEmptyObject(item[part])) {
                     section.append("<p class='mb-15 bad'>The " + partMapType + " does not have " + part + ".</p>");
                 }
             }

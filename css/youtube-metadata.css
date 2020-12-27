@@ -53,6 +53,11 @@ h1 {
     margin-bottom: 3px;
     display: inline-block;
 }
+.comma {
+    color: transparent;
+    width: 0;
+    display: inline-block;
+}
 .section-header {
     font-size: 1.5em;
     margin: 0 0 0.3em;
