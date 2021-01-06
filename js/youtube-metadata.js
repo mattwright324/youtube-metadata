@@ -401,10 +401,12 @@
                         // Should have only one or the other, never both
                         if (restriction.hasOwnProperty('allowed')) {
                             partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction allowed</span>. " +
-                                "Only these regions are allowed to watch the video.</p>");
+                                "Only these " + restriction.allowed.length + " region(s) are allowed to watch the video.</p>");
+                            restriction.allowed.sort();
                         } else if (restriction.hasOwnProperty('blocked')) {
                             partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction blocked</span>. " +
-                                "These regions are not allowed to watch the video.</p>");
+                                "These " + restriction.blocked.length + " region(s) are not allowed to watch the video.</p>");
+                            restriction.blocked.sort();
                         }
 
                         const codes = restriction.allowed || restriction.blocked;
