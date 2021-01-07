@@ -305,6 +305,16 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #status");
 
+                    if (partJson.hasOwnProperty("privacyStatus")) {
+                        if (partJson.privacyStatus !== "public") {
+                            partDiv.append("<p class='mb-15'>This video has its privacy set to <span class='orange'>" + partJson.privacyStatus + "</span></p>")
+                        }
+                    }
+                    if (partJson.hasOwnProperty("license")) {
+                        if (partJson.license !== "youtube") {
+                            partDiv.append("<p class='mb-15'>This video has its license set to <span class='orange'>" + partJson.license + "</span></p>")
+                        }
+                    }
                     if (partJson.hasOwnProperty("embeddable")) {
                         if (partJson.embeddable) {
                             partDiv.append("<p class='mb-15'>This video may be embedded on other websites</p>")
@@ -401,10 +411,12 @@
                         // Should have only one or the other, never both
                         if (restriction.hasOwnProperty('allowed')) {
                             partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction allowed</span>. " +
-                                "Only these regions are allowed to watch the video.</p>");
+                                "Only these " + restriction.allowed.length + " region(s) are allowed to watch the video.</p>");
+                            restriction.allowed.sort();
                         } else if (restriction.hasOwnProperty('blocked')) {
                             partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction blocked</span>. " +
-                                "These regions are not allowed to watch the video.</p>");
+                                "These " + restriction.blocked.length + " region(s) are not allowed to watch the video.</p>");
+                            restriction.blocked.sort();
                         }
 
                         const codes = restriction.allowed || restriction.blocked;
