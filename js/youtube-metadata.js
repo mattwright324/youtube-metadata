@@ -305,6 +305,16 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #status");
 
+                    if (partJson.hasOwnProperty("privacyStatus")) {
+                        if (partJson.privacyStatus !== "public") {
+                            partDiv.append("<p class='mb-15'>This video has its privacy set to <span class='orange'>" + partJson.privacyStatus + "</span></p>")
+                        }
+                    }
+                    if (partJson.hasOwnProperty("license")) {
+                        if (partJson.license !== "youtube") {
+                            partDiv.append("<p class='mb-15'>This video has its license set to <span class='orange'>" + partJson.license + "</span></p>")
+                        }
+                    }
                     if (partJson.hasOwnProperty("embeddable")) {
                         if (partJson.embeddable) {
                             partDiv.append("<p class='mb-15'>This video may be embedded on other websites</p>")
