@@ -25,5 +25,5 @@ In CMD or terminal, cd to the project directory you cloned to and run `bundle ex
 Update the application with any editor you prefer (WebStorm, VSCode, Notepad++, etc.), Jekyll works such that edits to files
 made while it is running will be picked up and published only needing you to refresh the browser instance to see them.
 
-*Note: My YouTube API key provided in the application is restricted only to `https://mattw.io/*` and `http://localhost:4000/*`.
+*Note: My YouTube API key provided in the application is restricted only to `https://mattw.io/*`, `http://localhost:4000/*`, and `http://127.0.0.1:4000/*`.
 Access should work for all local development. Please do not abuse it such that it uses up the daily quota.*
