@@ -875,7 +875,7 @@
 
                 if (match) {
                     callbackResubmit(match);
-                } else if (page < 5 && !$.isEmptyObject(nextPageToken)) {
+                } else if (page < 3 && !$.isEmptyObject(nextPageToken)) {
                     resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page+1)
                 } else {
                     errorState("Could not resolve Custom Channel URL", function (append) {
