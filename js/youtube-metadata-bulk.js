@@ -459,8 +459,8 @@ const bulk = (function () {
             type: "html",
             visible: true,
             valueMod: function (value, video) {
-                return "<a target='_blank' href='../?submit=true&url=https://youtu.be/" + video.id + "'>" +
-                    "<img src='../img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
+                return "<a target='_blank' href='./?submit=true&url=https://youtu.be/" + video.id + "'>" +
+                    "<img src='./img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
                     "</a>"
             },
             csvSkip: true
