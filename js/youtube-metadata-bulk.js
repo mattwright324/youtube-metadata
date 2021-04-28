@@ -911,11 +911,11 @@ const bulk = (function () {
                 }
             }
         },{
-            text: "Videos with license=creativeCommons",
+            text: "Videos with license=creativeCommon",
             value: 0,
             check: function (video) {
                 const stat = idx(["status", "license"], video);
-                if (stat === "creativeCommons") {
+                if (stat === "creativeCommon") {
                     this.value = this.value + 1;
                 }
             }
