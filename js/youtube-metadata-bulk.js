@@ -99,6 +99,15 @@ const bulk = (function () {
         videosProcess.then(function (res) {
             console.log("done");
             console.log(videoIds);
+
+            for (let tag in tagsData) {
+                controls.tagsTable.row.add([tag, tagsData[tag]]).draw(false);
+            }
+
+            for (let i = 0; i < otherData.length; i++) {
+                const other = otherData[i];
+                controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
+            }
         }).catch(function (err) {
             console.error(err);
         });
@@ -316,7 +325,7 @@ const bulk = (function () {
         return new Promise(function (resolve, reject) {
             if (videoIds.length === 0) {
                 console.log("no videoIds")
-                resolve(true);
+                resolve();
                 return;
             }
 
@@ -325,7 +334,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= videoIds.length) {
                     console.log("finished videoIds");
-                    resolve(true);
+                    resolve();
                     return;
                 }
 
@@ -360,9 +369,22 @@ const bulk = (function () {
         });
     }
 
-    function loadVideo(video) {
+    function loadVideo(video, skipAdd) {
         const dataRow = [];
         const csvDataRow = [];
+
+        const tags = idx(["snippet", "tags"], video);
+        if (tags) {
+            for (let j = 0; j < tags.length; j++) {
+                const tag = tags[j];
+
+                tagsData[tag] = ++tagsData[tag] || 1;
+            }
+        }
+
+        for (let i = 0; i < otherData.length; i++) {
+            otherData[i].check(video);
+        }
 
         for (let j = 0; j < columns.length; j++) {
             const column = columns[j];
@@ -389,7 +411,11 @@ const bulk = (function () {
         tableRows.push(csvDataRow.join("\t"));
         rawVideoData.push(video);
 
-        controls.videosTable.row.add(dataRow).draw(false);
+        if (skipAdd) {
+            return dataRow;
+        } else {
+            controls.videosTable.row.add(dataRow).draw(false);
+        }
     }
 
     $.fn.dataTable.render.ellipsis = function (max) {
@@ -754,7 +780,7 @@ const bulk = (function () {
 
                 const latlng = value.location.latitude + "," + value.location.longitude;
 
-                return "<a href='https://maps.google.com/maps?q=loc:" + latlng + "' target='_blank'>" + value.locationDescription + "</a>";
+                return "<a href='https://maps.google.com/maps/search/" + value.locationDescription + "/@" + latlng + ",14z' target='_blank'>" + value.locationDescription + "</a>";
             }
         },
         {
@@ -828,6 +854,154 @@ const bulk = (function () {
 
     let tableRows = [csvHeaderRow.join("\t")];
     let rawVideoData = [];
+    let tagsData = {};
+    let otherData = [
+        {
+            text: "Total videos",
+            value: 0,
+            check: function (video) {
+                if (video) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Total views",
+            value: 0,
+            check: function (video) {
+                const views = idx(["statistics", "viewCount"], video);
+                this.value = this.value + (views ? Number(views) : 0);
+            }
+        },{
+            text: "Total likes",
+            value: 0,
+            check: function (video) {
+                const likes = idx(["statistics", "likeCount"], video);
+                this.value = this.value + (likes ? Number(likes) : 0);
+            }
+        },{
+            text: "Total dislikes",
+            value: 0,
+            check: function (video) {
+                const dislikes = idx(["statistics", "dislikeCount"], video);
+                this.value = this.value + (dislikes ? Number(dislikes) : 0);
+            }
+        },{
+            text: "Total comments",
+            value: 0,
+            check: function (video) {
+                const comments = idx(["statistics", "commentCount"], video);
+                this.value = this.value + (comments ? Number(comments) : 0);
+            }
+        },{
+            text: "Videos with geolocation",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["recordingDetails", "locationDescription"], video);
+                if (stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with recordingDate",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["recordingDetails", "recordingDate"], video);
+                if (stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with license=creativeCommons",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["status", "license"], video);
+                if (stat === "creativeCommons") {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with tags",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["snippet", "tags"], video);
+                if (stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with language",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["snippet", "defaultLanguage"], video);
+                if (stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with audio language",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["snippet", "defaultAudioLanguage"], video);
+                if (stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with localizations",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["localizations"], video);
+                if (stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with comments disabled",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["statistics", "commentCount"], video);
+                if (!stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with likes disabled",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["statistics", "likeCount"], video);
+                if (!stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with views disabled",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["statistics", "viewCount"], video);
+                if (!stat) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with madeForKids=true",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "madeForKids"], video);
+                if (stat === true) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with embeddable=false",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "embeddable"], video);
+                if (stat === false) {
+                    this.value = this.value + 1;
+                }
+            }
+        }
+    ]
 
     const columnOptionsHtml = [];
     for (let i = 0; i < columns.length; i++) {
@@ -838,7 +1012,7 @@ const bulk = (function () {
             "type='checkbox' " +
             "name='" + column.title + "' " +
             (column.visible ? "checked" : "") + " " +
-            "onclick='bulk.toggleColumn(" + i + ", \"column-" + column.title + "\")'" +
+            "onclick='bulk.toggleColumn(" + i + ")'" +
             ">" +
             "<label for='column-" + column.title + "'>" + column.title + "</label>" +
             "</div>")
@@ -851,17 +1025,54 @@ const bulk = (function () {
             controls.shareLink = $("#shareLink");
             controls.videosTable = $('#videosTable').DataTable({
                 columns: columns,
-                colReorder: {
-                    realtime: true
-                },
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[8, 'desc']]
+                order: [[7, 'desc']],
+                deferRender: true,
+                bDeferRender: true
             });
             controls.columnOptions = $("#column-options");
             controls.columnOptions.html(columnOptionsHtml.join(""));
+
+            controls.tagsTable = $("#tagsTable").DataTable({
+                columns: [
+                    {title: "Tag"},
+                    {
+                        title: "Count",
+                        type: "num",
+                        className: "text-right dt-nowrap"
+                    }
+                ],
+                columnDefs: [{
+                    "defaultContent": "",
+                    "targets": "_all"
+                }],
+                order: [[1, 'desc'], [0, 'asc']],
+                deferRender: true,
+                bDeferRender: true
+            });
+
+            controls.otherTable = $("#otherTable").DataTable({
+                columns: [
+                    {title: "Statistic"},
+                    {
+                        title: "Value",
+                        type: "num",
+                        className: "text-right dt-nowrap"
+                    }
+                ],
+                columnDefs: [{
+                    "defaultContent": "",
+                    "targets": "_all"
+                }],
+                order: [],
+                deferRender: true,
+                bDeferRender: true,
+                pageLength: 100
+            });
+
             controls.btnExport = $("#export");
             controls.btnImport = $("#import");
             controls.importFileChooser = $("#importFileChooser");
@@ -882,9 +1093,7 @@ const bulk = (function () {
                 }
             });
             controls.btnSubmit.on('click', function () {
-                tableRows = [csvHeaderRow.join("\t")];
-                rawVideoData = [];
-                controls.videosTable.clear();
+                internal.reset();
 
                 const value = controls.inputValue.val();
 
@@ -904,13 +1113,29 @@ const bulk = (function () {
 
             controls.btnExport.on('click', function () {
                 const zip = new JSZip();
-                zip.file("table.csv", tableRows.join("\r\n"));
-                zip.file("videos.json", JSON.stringify(rawVideoData));
                 zip.file("about.txt",
                     "Downloaded by YouTube Metadata " + new Date().toLocaleString() + "\n\n" +
                     "URL: " + window.location + "\n\n" +
                     "Input: " + controls.inputValue.val()
                 );
+
+                zip.file("videos.json", JSON.stringify(rawVideoData));
+
+                zip.file("table.csv", tableRows.join("\r\n"));
+
+                const tagCsvRows = ["Tag\tCount"];
+                for (let tag in tagsData) {
+                    tagCsvRows.push(tag + "\t"+tagsData[tag]);
+                }
+                zip.file("tags.csv", tagCsvRows.join("\r\n"));
+
+                const otherCsvRows = ["Statistic\tValue"];
+                for (let i = 0; i < otherData.length; i++) {
+                    const row = otherData[i];
+                    otherCsvRows.push(row.text + "\t" + Number(row.value).toLocaleString());
+                }
+                zip.file("other.csv", otherCsvRows.join("\r\n"));
+
                 zip.generateAsync({type: "blob"}).then(function (content) {
                     saveAs(content, "bulk_metadata.zip");
                 });
@@ -921,32 +1146,58 @@ const bulk = (function () {
 
                 let file = event.target.files[0];
 
-                controls.inputValue.val(file.name);
+                if (file) {
+                    controls.inputValue.val(file.name);
+                }
 
                 JSZip.loadAsync(file).then(function (content) {
                     // if you return a promise in a "then", you will chain the two promises
-                    console.log(content);
                     return content.file("videos.json").async("string");
                 }).then(function (text) {
+                    internal.reset();
+
                     const videos = JSON.parse(text);
-
-                    tableRows = [csvHeaderRow.join("\t")];
-                    rawVideoData = [];
-                    controls.videosTable.clear();
-
+                    const rows = [];
                     for (let i = 0; i < videos.length; i++) {
-                        loadVideo(videos[i]);
+                        rows.push(loadVideo(videos[i], true));
+                    }
+
+                    console.log(rows);
+
+                    controls.videosTable.rows.add(rows).draw(false);
+
+                    for (let tag in tagsData) {
+                        controls.tagsTable.row.add([tag, tagsData[tag]]).draw(false);
+                    }
+
+                    for (let i = 0; i < otherData.length; i++) {
+                        const other = otherData[i];
+                        controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
                     }
                 });
             });
+        },
+        reset: function () {
+            tableRows = [csvHeaderRow.join("\t")];
+            rawVideoData = [];
+            tagsData = {};
+            controls.videosTable.clear();
+
+            controls.tagsTable.clear();
+            controls.tagsTable.draw(false);
+
+            for (let i = 0; i < otherData.length; i++) {
+                otherData[i].value = 0;
+            }
+            controls.otherTable.clear();
+            controls.otherTable.draw(false);
         }
     }
 
     $(document).ready(internal.init);
 
     return {
-        toggleColumn(index, columnId) {
-            const value = $("#" + columnId).is(":checked");
+        toggleColumn(index) {
             const column = controls.videosTable.column(index);
 
             column.visible(!column.visible());

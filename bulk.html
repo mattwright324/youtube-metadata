@@ -99,6 +99,28 @@ layout: null
     </div>
 </div>
 <div class="ui container" style="margin-top:1.5%">
+    <h1>Export</h1>
+    <p>Save this result as a zip file or load from a previous export.</p>
+    <p>
+    <div id="export" class="ui button">
+        <i class="download icon"></i> Export
+    </div>
+    <div id="import" class="ui button" onclick="document.getElementById('importFileChooser').click()">
+        <i class="upload icon"></i> Import
+        <input id="importFileChooser" type="file" hidden />
+    </div>
+    </p>
+    <p>Contains file(s)
+    <ul>
+        <li>about.txt - Metadata about this result.</li>
+        <li>videos.json - Array of all raw video data.</li>
+        <li>videos.csv - Videos table data.</li>
+        <li>tags.csv - Tags table data.</li>
+        <li>other.csv - Other table data.</li>
+    </ul>
+    </p>
+</div>
+<div class="ui container" style="margin-top:1.5%">
     <h1>Videos</h1>
     <p>
         List of all videos, playlist videos, or channel public uploads.
@@ -117,24 +139,22 @@ layout: null
     <table id="videosTable" class="display" style="width:100%"></table>
 </div>
 <div class="ui container" style="margin-top:1.5%">
-    <h1>Export</h1>
-    <p>Save this result as a zip file or load from a previous export.</p>
+    <h1>Tags</h1>
     <p>
-    <div id="export" class="ui button">
-        <i class="download icon"></i> Export
-    </div>
-    <div id="import" class="ui button" onclick="document.getElementById('importFileChooser').click()">
-        <i class="upload icon"></i> Import
-        <input id="importFileChooser" type="file" hidden />
-    </div>
+        Aggregate total tag counts on found videos.
     </p>
-    <p>Contains file(s)
-    <ul>
-        <li>about.txt - Metadata about this result.</li>
-        <li>table.csv - The results table above.</li>
-        <li>videos.json - Array of all raw video data.</li>
-    </ul>
+</div>
+<div class="ui container" style="margin-top:1.5%">
+    <table id="tagsTable" class="display" style="width:100%"></table>
+</div>
+<div class="ui container" style="margin-top:1.5%">
+    <h1>Other</h1>
+    <p>
+        Other potentially useful aggregate data on found videos.
     </p>
+</div>
+<div class="ui container" style="margin-top:1.5%">
+    <table id="otherTable" class="display" style="width:100%"></table>
 </div>
 <div class="ui container" style="padding-top:3%;padding-bottom:3%;color:darkgray" align="center">
     mattwright324 | 2021 | <a href="/">home</a> | <a href="https://github.com/mattwright324">github</a> | <a
