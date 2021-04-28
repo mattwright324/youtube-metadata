@@ -1176,6 +1176,27 @@ const bulk = (function () {
                     }
                 });
             });
+
+            function parseQuery(queryString) {
+                var query = {};
+                var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+                for (var i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i].split('=');
+                    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+                }
+                return query;
+            }
+
+            const query = parseQuery(window.location.search);
+            console.log(query);
+            if (query.hasOwnProperty("url")) {
+                controls.inputValue.val(decodeURIComponent(query.url));
+            }
+            if (query.hasOwnProperty("submit") && String(query.submit).toLowerCase() === String(true)) {
+                setTimeout(function () {
+                    controls.btnSubmit.click();
+                }, 500);
+            }
         },
         reset: function () {
             tableRows = [csvHeaderRow.join("\t")];
