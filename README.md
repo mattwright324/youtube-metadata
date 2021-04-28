@@ -1,4 +1,5 @@
 # YouTube Metadata
+
 A quick way to gather all the metadata about a video, playlist, or channel from the YouTube API.
 
 - https://mattw.io/youtube-metadata/
@@ -25,6 +26,10 @@ What's unique about this tool? How can you use it?
     - Archive.org for the link
     - YouTubeRecover.com for the video id
     - SocialBlade.com for the channel username
+4. Grab video details in bulk from a list of videos, playlists, or channels
+   - Viewable in a searchable sortable table
+   - Export table and raw data in a zip
+   - Import a previous export to view in the app again
 
 ### Building
 
@@ -33,5 +38,6 @@ for instructions on how to build and run `youtube-metadata` from source.
 
 ### Contributing
 
-Contributions are welcome, refer to [CONTRIBUTING.md](https://github.com/mattwright324/youtube-metadata/blob/master/CONTRIBUTING.md)
+Contributions are welcome, refer
+to [CONTRIBUTING.md](https://github.com/mattwright324/youtube-metadata/blob/master/CONTRIBUTING.md)
 for more detail.
