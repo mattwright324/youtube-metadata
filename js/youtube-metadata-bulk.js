@@ -983,6 +983,24 @@ const bulk = (function () {
                 }
             }
         },{
+            text: "Videos considered livestreams",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["liveStreamingDetails"], video);
+                if (stat !== null) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with privacyStatus=unlisted",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["status", "privacyStatus"], video);
+                if (stat === "unlisted") {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
             text: "Videos with madeForKids=true",
             value: 0,
             check: function (video) {
