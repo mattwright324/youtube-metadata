@@ -911,15 +911,6 @@ const bulk = (function () {
                 }
             }
         },{
-            text: "Videos with license=creativeCommon",
-            value: 0,
-            check: function (video) {
-                const stat = idx(["status", "license"], video);
-                if (stat === "creativeCommon") {
-                    this.value = this.value + 1;
-                }
-            }
-        },{
             text: "Videos with tags",
             value: 0,
             check: function (video) {
@@ -956,6 +947,15 @@ const bulk = (function () {
                 }
             }
         },{
+            text: "Videos with age restriction(s)",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "contentRating"], video);
+                if (!$.isEmptyObject(stat)) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
             text: "Videos with comments disabled",
             value: 0,
             check: function (video) {
@@ -988,6 +988,15 @@ const bulk = (function () {
             check: function (video) {
                 const stat = idx(["liveStreamingDetails"], video);
                 if (stat !== null) {
+                    this.value = this.value + 1;
+                }
+            }
+        },{
+            text: "Videos with license=creativeCommon",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["status", "license"], video);
+                if (stat === "creativeCommon") {
                     this.value = this.value + 1;
                 }
             }
