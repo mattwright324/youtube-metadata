@@ -780,7 +780,7 @@ const bulk = (function () {
 
                 const latlng = value.location.latitude + "," + value.location.longitude;
 
-                return "<a href='https://maps.google.com/maps/search/" + value.locationDescription + "/@" + latlng + ",14z' target='_blank'>" + value.locationDescription + "</a>";
+                return "<a href='https://maps.google.com/maps/search/" + encodeURI(value.locationDescription).replace(/'/g, "%27") + "/@" + latlng + ",14z' target='_blank'>" + value.locationDescription + "</a>";
             }
         },
         {
