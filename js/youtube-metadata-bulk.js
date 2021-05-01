@@ -1082,7 +1082,7 @@ const bulk = (function () {
             text: "Videos with madeForKids=true",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "madeForKids"], video);
+                const stat = idx(["status", "madeForKids"], video);
                 if (stat === true) {
                     this.value = this.value + 1;
                 }
@@ -1091,7 +1091,7 @@ const bulk = (function () {
             text: "Videos with embeddable=false",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "embeddable"], video);
+                const stat = idx(["status", "embeddable"], video);
                 if (stat === false) {
                     this.value = this.value + 1;
                 }
