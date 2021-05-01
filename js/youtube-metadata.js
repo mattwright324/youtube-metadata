@@ -227,6 +227,11 @@
 
                         partDiv.append("<p class='mb-15'><strong>Audio language is</strong> <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
+
+                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
+                        "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
+                        "Inspect the metadata for the rest of this channel's videos" +
+                        "</a></p>");
                 }
             },
             statistics: {
@@ -549,10 +554,17 @@
                     } else if (subs <= 0) {
                         partDiv.append("<p class='mb-15'>This channel has no subscribers and does not qualify for any benefit level. " + learnMore + "</p>");
                     } else {
-                        partDiv.append("Check out this channel on <a target='_blank' href='https://socialblade.com/youtube/channel/" + fullJson.id + "'>SocialBlade</a>.");
+                        partDiv.append("<p class='mb-15'>Check out this channel on <a target='_blank' href='https://socialblade.com/youtube/channel/" + fullJson.id + "'>SocialBlade</a>.</p>");
                     }
 
-
+                    if (partJson.videoCount > 0) {
+                        partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
+                            "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
+                            "Inspect the metadata for all of this channel's videos" +
+                            "</a></p>");
+                    }else {
+                        partDiv.append("<p class='mb-15'>This channel has no public videos.</p>");
+                    }
                 }
             },
             brandingSettings: {
@@ -716,6 +728,11 @@
                             " (" + moment(published).fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
+
+                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/playlist%3Flist%3D" + fullJson.id + "'>" +
+                        "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
+                        "Inspect the metadata for all of this playlist's videos" +
+                        "</a></p>");
                 }
             },
             status: {

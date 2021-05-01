@@ -68,15 +68,17 @@ const bulk = (function () {
         for (let i = 0; i < parsed.length; i++) {
             const p = parsed[i];
 
-            if (p.type === 'video_id') {
+            if (p.type === 'video_id' && videoIds.indexOf(p.value) === -1) {
                 videoIds.push(p.value);
-            } else if (p.type === "playlist_id") {
+
+                controls.progress.indeterminate(videoIds.length);
+            } else if (p.type === "playlist_id" && playlistIds.indexOf(p.value) === -1) {
                 playlistIds.push(p.value);
-            } else if (p.type === "channel_id") {
+            } else if (p.type === "channel_id" && channelIds.indexOf(p.value) === -1) {
                 channelIds.push(p.value);
-            } else if (p.type === "channel_custom") {
+            } else if (p.type === "channel_custom" && channelCustoms.indexOf(p.value) === -1) {
                 channelCustoms.push(p.value);
-            } else if (p.type === "channel_user") {
+            } else if (p.type === "channel_user" && channelUsers.indexOf(p.value) === -1) {
                 channelUsers.push(p.value);
             }
         }
@@ -100,14 +102,25 @@ const bulk = (function () {
             console.log("done");
             console.log(videoIds);
 
-            for (let tag in tagsData) {
-                controls.tagsTable.row.add([tag, tagsData[tag]]).draw(false);
-            }
+            setTimeout(function () {
+                const tagRows = [];
+                for (let tag in tagsData) {
+                    tagRows.push([tag, tagsData[tag]]);
+                }
+                function loadTags(index, slice) {
+                    controls.tagsTable.rows.add(tagRows.slice(index, index + slice)).draw(false);
 
-            for (let i = 0; i < otherData.length; i++) {
-                const other = otherData[i];
-                controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
-            }
+                    setTimeout(function () {
+                        loadTags(index + slice, index);
+                    }, 200);
+                }
+                loadTags(0, 1000);
+
+                for (let i = 0; i < otherData.length; i++) {
+                    const other = otherData[i];
+                    controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
+                }
+            }, 200);
         }).catch(function (err) {
             console.error(err);
         });
@@ -303,6 +316,8 @@ const bulk = (function () {
                             }
                         }
 
+                        controls.progress.indeterminate(videoIds.length);
+
                         if (res.hasOwnProperty("nextPageToken")) {
                             paginate(res.nextPageToken);
                         } else {
@@ -322,6 +337,8 @@ const bulk = (function () {
     }
 
     function handleVideoIds(videoIds) {
+        let processed = 0;
+
         return new Promise(function (resolve, reject) {
             if (videoIds.length === 0) {
                 console.log("no videoIds")
@@ -357,6 +374,9 @@ const bulk = (function () {
                     for (let i = 0; i < res.items.length; i++) {
                         loadVideo(res.items[i]);
                     }
+
+                    processed = processed + ids.length;
+                    controls.progress.processing(processed, videoIds.length);
 
                     get(index + slice, slice);
                 }).fail(function (err) {
@@ -864,35 +884,35 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Total views",
             value: 0,
             check: function (video) {
                 const views = idx(["statistics", "viewCount"], video);
                 this.value = this.value + (views ? Number(views) : 0);
             }
-        },{
+        }, {
             text: "Total likes",
             value: 0,
             check: function (video) {
                 const likes = idx(["statistics", "likeCount"], video);
                 this.value = this.value + (likes ? Number(likes) : 0);
             }
-        },{
+        }, {
             text: "Total dislikes",
             value: 0,
             check: function (video) {
                 const dislikes = idx(["statistics", "dislikeCount"], video);
                 this.value = this.value + (dislikes ? Number(dislikes) : 0);
             }
-        },{
+        }, {
             text: "Total comments",
             value: 0,
             check: function (video) {
                 const comments = idx(["statistics", "commentCount"], video);
                 this.value = this.value + (comments ? Number(comments) : 0);
             }
-        },{
+        }, {
             text: "Videos with geolocation",
             value: 0,
             check: function (video) {
@@ -901,7 +921,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with recordingDate",
             value: 0,
             check: function (video) {
@@ -910,7 +930,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with tags",
             value: 0,
             check: function (video) {
@@ -919,7 +939,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with language",
             value: 0,
             check: function (video) {
@@ -928,7 +948,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with audio language",
             value: 0,
             check: function (video) {
@@ -937,7 +957,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with localizations",
             value: 0,
             check: function (video) {
@@ -946,7 +966,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with age restriction(s)",
             value: 0,
             check: function (video) {
@@ -955,7 +975,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with comments disabled",
             value: 0,
             check: function (video) {
@@ -964,7 +984,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with likes disabled",
             value: 0,
             check: function (video) {
@@ -973,7 +993,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with views disabled",
             value: 0,
             check: function (video) {
@@ -982,7 +1002,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos considered livestreams",
             value: 0,
             check: function (video) {
@@ -991,7 +1011,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with license=creativeCommon",
             value: 0,
             check: function (video) {
@@ -1000,7 +1020,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with privacyStatus=unlisted",
             value: 0,
             check: function (video) {
@@ -1009,7 +1029,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with madeForKids=true",
             value: 0,
             check: function (video) {
@@ -1018,7 +1038,7 @@ const bulk = (function () {
                     this.value = this.value + 1;
                 }
             }
-        },{
+        }, {
             text: "Videos with embeddable=false",
             value: 0,
             check: function (video) {
@@ -1062,6 +1082,39 @@ const bulk = (function () {
             });
             controls.columnOptions = $("#column-options");
             controls.columnOptions.html(columnOptionsHtml.join(""));
+            controls.progress = $("#videoProgress").progress();
+
+            controls.progress.reset = function () {
+            }
+            controls.progress.indeterminate = function (total) {
+                console.log("indeterminate(" + total + ") = " + (value / total))
+                this.addClass('indeterminate');
+                this.progress({
+                    label: 'percent',
+                    total: total,
+                    value: total,
+                    autoSuccess: false,
+                    text: {
+                        active: 'Grabbing unique video ids',
+                        percent: '0 / {total}'
+                    }
+                });
+            }
+            controls.progress.processing = function (value, total) {
+                console.log("processing(" + value + " / " + total + ") = " + (value / total))
+                this.removeClass('indeterminate');
+                this.progress({
+                    label: 'ratio',
+                    total: total,
+                    value: value,
+                    autoSuccess: true,
+                    text: {
+                        active: 'Processing video ids',
+                        success: 'Done',
+                        ratio: value + ' / ' + total
+                    }
+                })
+            }
 
             controls.tagsTable = $("#tagsTable").DataTable({
                 columns: [
@@ -1135,6 +1188,12 @@ const bulk = (function () {
                     parsed.push(determineInput(split[i]));
                 }
 
+                if (parsed.length === 0) {
+                    return;
+                }
+
+                controls.progress.indeterminate(0);
+
                 handleParsedNew(parsed);
             });
 
@@ -1152,7 +1211,7 @@ const bulk = (function () {
 
                 const tagCsvRows = ["Tag\tCount"];
                 for (let tag in tagsData) {
-                    tagCsvRows.push(tag + "\t"+tagsData[tag]);
+                    tagCsvRows.push(tag + "\t" + tagsData[tag]);
                 }
                 zip.file("tags.csv", tagCsvRows.join("\r\n"));
 
@@ -1193,9 +1252,20 @@ const bulk = (function () {
 
                     controls.videosTable.rows.add(rows).draw(false);
 
+                    console.log(tagsData);
+
+                    const tagRows = [];
                     for (let tag in tagsData) {
-                        controls.tagsTable.row.add([tag, tagsData[tag]]).draw(false);
+                        tagRows.push([tag, tagsData[tag]]);
                     }
+                    function loadTags(index, slice) {
+                        controls.tagsTable.rows.add(tagRows.slice(index, index + slice)).draw(false);
+
+                        setTimeout(function () {
+                            loadTags(index + slice, index);
+                        }, 200);
+                    }
+                    loadTags(0, 1000);
 
                     for (let i = 0; i < otherData.length; i++) {
                         const other = otherData[i];
