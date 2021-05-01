@@ -102,25 +102,7 @@ const bulk = (function () {
             console.log("done");
             console.log(videoIds);
 
-            setTimeout(function () {
-                const tagRows = [];
-                for (let tag in tagsData) {
-                    tagRows.push([tag, tagsData[tag]]);
-                }
-                function loadTags(index, slice) {
-                    controls.tagsTable.rows.add(tagRows.slice(index, index + slice)).draw(false);
-
-                    setTimeout(function () {
-                        loadTags(index + slice, index);
-                    }, 200);
-                }
-                loadTags(0, 1000);
-
-                for (let i = 0; i < otherData.length; i++) {
-                    const other = otherData[i];
-                    controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
-                }
-            }, 200);
+            setTimeout(loadAggregateTables, 200);
         }).catch(function (err) {
             console.error(err);
         });
@@ -402,6 +384,25 @@ const bulk = (function () {
             }
         }
 
+        const geotag = idx(["recordingDetails"], video);
+        if (geotag.location) {
+            const latLng = geotag.location.latitude + "," + geotag.location.longitude;
+            const name = geotag.locationDescription;
+            if (geotagsData.hasOwnProperty(latLng)) {
+                const data = geotagsData[latLng];
+                data.count = data.count + 1;
+
+                if (data.names.indexOf(name) === -1) {
+                    data.names.push(name);
+                }
+            } else {
+                geotagsData[latLng] = {
+                    names: [name],
+                    count: 1
+                }
+            }
+        }
+
         for (let i = 0; i < otherData.length; i++) {
             otherData[i].check(video);
         }
@@ -436,6 +437,53 @@ const bulk = (function () {
         } else {
             controls.videosTable.row.add(dataRow).draw(false);
         }
+    }
+
+    function loadAggregateTables(callback) {
+        const tagRows = [];
+        for (let tag in tagsData) {
+            tagRows.push([tag, tagsData[tag]]);
+        }
+        function loadTags(index, slice) {
+            const toAdd = tagRows.slice(index, index + slice);
+            if (toAdd.length === 0) {
+                return;
+            }
+            controls.tagsTable.rows.add(toAdd).draw(false);
+
+            setTimeout(function () {
+                loadTags(index + slice, slice);
+            }, 200);
+        }
+        loadTags(0, 1000);
+
+        const geotagRows = [];
+        for (let geotag in geotagsData) {
+            geotagRows.push([
+                "<a href='https://maps.google.com/maps?q=loc:" + geotag + "' target='_blank'>" + geotag + "</a>",
+                "<a href='https://maps.google.com/maps/search/" + encodeURI(geotagsData[geotag].names[0]).replace(/'/g, "%27") + "/@" + geotag + ",14z' target='_blank'>" + geotagsData[geotag].names.join(", ") + "</a>",
+                geotagsData[geotag].count
+            ]);
+        }
+        function loadGeoTags(index, slice) {
+            const toAdd = geotagRows.slice(index, index + slice);
+            if (toAdd.length === 0) {
+                return;
+            }
+            controls.geotagsTable.rows.add(toAdd).draw(false);
+
+            setTimeout(function () {
+                loadGeoTags(index + slice, slice);
+            }, 200);
+        }
+        loadGeoTags(0, 1000);
+
+        for (let i = 0; i < otherData.length; i++) {
+            const other = otherData[i];
+            controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
+        }
+
+        callback();
     }
 
     $.fn.dataTable.render.ellipsis = function (max) {
@@ -875,6 +923,7 @@ const bulk = (function () {
     let tableRows = [csvHeaderRow.join("\t")];
     let rawVideoData = [];
     let tagsData = {};
+    let geotagsData = {};
     let otherData = [
         {
             text: "Total videos",
@@ -1133,6 +1182,24 @@ const bulk = (function () {
                 deferRender: true,
                 bDeferRender: true
             });
+            controls.geotagsTable = $("#geotagsTable").DataTable({
+                columns: [
+                    {title: "Coords"},
+                    {title: "Name(s)"},
+                    {
+                        title: "Count",
+                        type: "num",
+                        className: "text-right dt-nowrap"
+                    }
+                ],
+                columnDefs: [{
+                    "defaultContent": "",
+                    "targets": "_all"
+                }],
+                order: [[2, 'desc'], [0, 'asc']],
+                deferRender: true,
+                bDeferRender: true
+            });
 
             controls.otherTable = $("#otherTable").DataTable({
                 columns: [
@@ -1198,23 +1265,38 @@ const bulk = (function () {
             });
 
             controls.btnExport.on('click', function () {
+                controls.btnExport.addClass("loading").addClass("disabled");
+
                 const zip = new JSZip();
+                console.log("Creating about.txt...")
                 zip.file("about.txt",
                     "Downloaded by YouTube Metadata " + new Date().toLocaleString() + "\n\n" +
                     "URL: " + window.location + "\n\n" +
                     "Input: " + controls.inputValue.val()
                 );
 
+                console.log("Creating videos.json...")
                 zip.file("videos.json", JSON.stringify(rawVideoData));
 
+                console.log("Creating table.csv...")
                 zip.file("table.csv", tableRows.join("\r\n"));
 
+                console.log("Creating tags.csv...")
                 const tagCsvRows = ["Tag\tCount"];
                 for (let tag in tagsData) {
                     tagCsvRows.push(tag + "\t" + tagsData[tag]);
                 }
                 zip.file("tags.csv", tagCsvRows.join("\r\n"));
 
+                console.log("Creating geotags.csv...")
+                const geotagCsvRows = ["Coords\tName(s)\tCount"];
+                for (let geotag in geotagsData) {
+                    const tag = geotagsData[geotag];
+                    tagCsvRows.push(geotag + "\t" + tag.names.join(", ") + "\t" + tag.count);
+                }
+                zip.file("geotags.csv", geotagCsvRows.join("\r\n"));
+
+                console.log("Creating other.csv...")
                 const otherCsvRows = ["Statistic\tValue"];
                 for (let i = 0; i < otherData.length; i++) {
                     const row = otherData[i];
@@ -1222,8 +1304,11 @@ const bulk = (function () {
                 }
                 zip.file("other.csv", otherCsvRows.join("\r\n"));
 
+                console.log("Saving as bulk_metadata.zip")
                 zip.generateAsync({type: "blob"}).then(function (content) {
                     saveAs(content, "bulk_metadata.zip");
+
+                    controls.btnExport.removeClass("loading").removeClass("disabled");
                 });
             });
 
@@ -1234,7 +1319,11 @@ const bulk = (function () {
 
                 if (file) {
                     controls.inputValue.val(file.name);
+                } else {
+                    return;
                 }
+
+                controls.btnImport.addClass("loading").addClass("disabled");
 
                 JSZip.loadAsync(file).then(function (content) {
                     // if you return a promise in a "then", you will chain the two promises
@@ -1254,23 +1343,9 @@ const bulk = (function () {
 
                     console.log(tagsData);
 
-                    const tagRows = [];
-                    for (let tag in tagsData) {
-                        tagRows.push([tag, tagsData[tag]]);
-                    }
-                    function loadTags(index, slice) {
-                        controls.tagsTable.rows.add(tagRows.slice(index, index + slice)).draw(false);
-
-                        setTimeout(function () {
-                            loadTags(index + slice, index);
-                        }, 200);
-                    }
-                    loadTags(0, 1000);
-
-                    for (let i = 0; i < otherData.length; i++) {
-                        const other = otherData[i];
-                        controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
-                    }
+                    loadAggregateTables(function () {
+                        controls.btnImport.removeClass("loading").removeClass("disabled");
+                    });
                 });
             });
 
@@ -1299,10 +1374,15 @@ const bulk = (function () {
             tableRows = [csvHeaderRow.join("\t")];
             rawVideoData = [];
             tagsData = {};
+            geotagsData = {};
             controls.videosTable.clear();
+            controls.videosTable.draw(false);
 
             controls.tagsTable.clear();
             controls.tagsTable.draw(false);
+
+            controls.geotagsTable.clear();
+            controls.geotagsTable.draw(false);
 
             for (let i = 0; i < otherData.length; i++) {
                 otherData[i].value = 0;
