@@ -240,16 +240,22 @@ const bulk = (function () {
 
                 youtube.ajax("channels", {
                     part: "contentDetails",
-                    id: ids.join(""),
+                    id: ids.join(","),
                     maxResults: 50
                 }).done(function (res) {
                     console.log(res);
 
-                    const uploadsPlaylistId = idx(["items", 0, "contentDetails", "relatedPlaylists", "uploads"], res);
-                    console.log(uploadsPlaylistId);
+                    if (res.items) {
+                        for (let i = 0; i < res.items.length; i++) {
+                            const channel = res.items[i];
 
-                    if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
-                        playlistIds.push(uploadsPlaylistId);
+                            const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
+                            console.log(uploadsPlaylistId);
+
+                            if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
+                                playlistIds.push(uploadsPlaylistId);
+                            }
+                        }
                     }
 
                     get(index + slice, slice);
@@ -444,18 +450,7 @@ const bulk = (function () {
         for (let tag in tagsData) {
             tagRows.push([tag, tagsData[tag]]);
         }
-        function loadTags(index, slice) {
-            const toAdd = tagRows.slice(index, index + slice);
-            if (toAdd.length === 0) {
-                return;
-            }
-            controls.tagsTable.rows.add(toAdd).draw(false);
-
-            setTimeout(function () {
-                loadTags(index + slice, slice);
-            }, 200);
-        }
-        loadTags(0, 1000);
+        sliceLoad(tagRows, controls.tagsTable);
 
         const geotagRows = [];
         for (let geotag in geotagsData) {
@@ -465,36 +460,33 @@ const bulk = (function () {
                 geotagsData[geotag].count
             ]);
         }
-        function loadGeoTags(index, slice) {
-            const toAdd = geotagRows.slice(index, index + slice);
-            if (toAdd.length === 0) {
-                return;
-            }
-            controls.geotagsTable.rows.add(toAdd).draw(false);
-
-            setTimeout(function () {
-                loadGeoTags(index + slice, slice);
-            }, 200);
-        }
-        loadGeoTags(0, 1000);
+        sliceLoad(geotagRows, controls.geotagsTable);
 
         for (let i = 0; i < otherData.length; i++) {
             const other = otherData[i];
             controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
         }
 
-        callback();
+        if (callback) {
+            callback();
+        }
     }
 
-    $.fn.dataTable.render.ellipsis = function (max) {
-        const maxlength = max ? max : 25;
+    function sliceLoad(data, table) {
+        function slice(index, size) {
+            const toAdd = data.slice(index, index + size);
+            if (toAdd.length === 0) {
+                return;
+            }
 
-        return function (data, type, row) {
-            return type === 'display' && data.length > maxlength ?
-                data.substr(0, maxlength) + '…' :
-                data;
+            table.rows.add(toAdd).draw(false);
+
+            setTimeout(function() {
+                slice(index + size, size)
+            }, 200);
         }
-    };
+        slice(0, 1000);
+    }
 
     function formatDuration(duration, includeMs, ignoreTime) {
         const years = duration.years();
@@ -1292,7 +1284,7 @@ const bulk = (function () {
                 const geotagCsvRows = ["Coords\tName(s)\tCount"];
                 for (let geotag in geotagsData) {
                     const tag = geotagsData[geotag];
-                    tagCsvRows.push(geotag + "\t" + tag.names.join(", ") + "\t" + tag.count);
+                    geotagCsvRows.push(geotag + "\t" + tag.names.join(", ") + "\t" + tag.count);
                 }
                 zip.file("geotags.csv", geotagCsvRows.join("\r\n"));
 
@@ -1339,7 +1331,7 @@ const bulk = (function () {
 
                     console.log(rows);
 
-                    controls.videosTable.rows.add(rows).draw(false);
+                    sliceLoad(rows, controls.videosTable);
 
                     console.log(tagsData);
 
