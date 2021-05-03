@@ -782,9 +782,31 @@ const bulk = (function () {
                     }
 
                     return pairs.join(", ");
-                } else {
-                    return "";
                 }
+
+                return "";
+            }
+        },
+        {
+            title: "Region Restriction",
+            visible: false,
+            _idx: ["contentDetails", "regionRestriction"],
+            valueMod: function (value) {
+                if (!$.isEmptyObject(value)) {
+                    console.log(value);
+
+                    if (value.hasOwnProperty('allowed')) {
+                        value.allowed.sort();
+
+                        return "Allowed [" + value.allowed.join(", ") + "]";
+                    } else if (value.hasOwnProperty('blocked')) {
+                        value.blocked.sort();
+
+                        return "Blocked [" + value.blocked.join(", ") + "]";
+                    }
+                }
+
+                return "";
             }
         },
         {
@@ -1008,10 +1030,19 @@ const bulk = (function () {
                 }
             }
         }, {
-            text: "Videos with age restriction(s)",
+            text: "Videos with content rating(s)",
             value: 0,
             check: function (video) {
                 const stat = idx(["contentDetails", "contentRating"], video);
+                if (!$.isEmptyObject(stat)) {
+                    this.value = this.value + 1;
+                }
+            }
+        }, {
+            text: "Videos with region restriction(s)",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "regionRestriction"], video);
                 if (!$.isEmptyObject(stat)) {
                     this.value = this.value + 1;
                 }
