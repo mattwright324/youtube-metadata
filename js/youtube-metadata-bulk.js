@@ -1301,8 +1301,8 @@ const bulk = (function () {
                 console.log("Creating videos.json...")
                 zip.file("videos.json", JSON.stringify(rawVideoData));
 
-                console.log("Creating table.csv...")
-                zip.file("table.csv", tableRows.join("\r\n"));
+                console.log("Creating videos.csv...")
+                zip.file("videos.csv", tableRows.join("\r\n"));
 
                 console.log("Creating tags.csv...")
                 const tagCsvRows = ["Tag\tCount"];
