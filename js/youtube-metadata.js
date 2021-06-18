@@ -435,6 +435,18 @@
                         }
                         partDiv.append("<ul>" + translations.join("") + "</ul>")
                     }
+
+                    const contentRating = partJson.contentRating;
+                    if (!$.isEmptyObject(contentRating)) {
+                        const keys = Object.keys(contentRating);
+                        const pairs = [];
+
+                        for (let i = 0; i < keys.length; i++) {
+                            pairs.push(keys[i] + "/" + contentRating[keys[i]]);
+                        }
+
+                        partDiv.append("<p class='mb-15'>This video has a content rating of <span class='orange'>" + pairs.join(", ") + "</span></p>")
+                    }
                 }
             },
             topicDetails: {
