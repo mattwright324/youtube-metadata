@@ -21,11 +21,18 @@ layout: null
             integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
     <script src="./js/moment.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
+            integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"
+            integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA=="
+            crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
     <script src="./js/iso-639-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/iso-3166-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/bcp-47-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/youtube-api-v3.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
+    <script src="./js/youtube-metadata-examples.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/youtube-metadata.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -66,7 +73,8 @@ layout: null
     </div>
 </div>
 <div class="ui container" style="margin-top:1.5%">
-    <p>YouTube Metadata normal grabs singular details about a video and its uploader, playlist and its creator, or channel.</p>
+    <p>YouTube Metadata normal grabs singular details about a video and its uploader, playlist and its creator, or
+        channel.</p>
     <p>Accepted formats include:</p>
     <ul>
         <li>https://www.youtube.com/watch?v=<span class="orange">video_id</span></li>
@@ -91,11 +99,32 @@ layout: null
     </div>
 </div>
 <div class="ui container" style="margin-top:1.5%">
+    <h1>Export</h1>
+    <p>Save this result as a zip file or load from a previous export.</p>
+    <p>
+    <div id="export" class="ui button">
+        <i class="download icon"></i> Export
+    </div>
+    <div id="import" class="ui button" onclick="document.getElementById('importFileChooser').click()">
+        <i class="upload icon"></i> Import
+        <input id="importFileChooser" type="file" hidden/>
+    </div>
+    </p>
+    <p>Contains file(s)
+    <ul>
+        <li>about.txt - Metadata about this result.</li>
+        <li>video.json - Raw video data.</li>
+        <li>playlist.json - Raw playlist data.</li>
+        <li>channel.json - Raw channel data.</li>
+    </ul>
+    </p>
+</div>
+<div class="ui container" style="margin-top:1.5%">
     <div id="video" class="ui section">
         <h1>Video</h1>
         <p>
             The video submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/videos#properties_1" target="_blank">here</a>
+            Click <a href="https://developers.google.com/youtube/v3/docs/videos#properties" target="_blank">here</a>
             to see detailed property descriptions.
         </p>
         <div id="video-section"></div>
@@ -109,7 +138,7 @@ layout: null
     <div id="playlist" class="ui section">
         <h1>Playlist</h1>
         <p>The playlist submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/playlists#properties_1"
+            Click <a href="https://developers.google.com/youtube/v3/docs/playlists#properties"
                      target="_blank">here</a> to see detailed property descriptions.
         </p>
         <div id="playlist-section"></div>
@@ -118,7 +147,7 @@ layout: null
     <div id="channel" class="ui section">
         <h1>Channel</h1>
         <p>The video author, playlist creator, or channel submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties_1" target="_blank">here</a>
+            Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties" target="_blank">here</a>
             to see detailed property descriptions.
         </p>
         <div id="channel-section"></div>

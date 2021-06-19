@@ -979,7 +979,7 @@ const bulk = (function () {
             text: "Videos with geolocation",
             value: 0,
             check: function (video) {
-                const stat = idx(["recordingDetails", "locationDescription"], video);
+                const stat = idx(["recordingDetails", "location", "latitude"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1140,6 +1140,7 @@ const bulk = (function () {
     const internal = {
         init: function () {
             controls.inputValue = $("#value");
+            controls.inputValue.val(EXAMPLE_BULK[Math.trunc(Math.random() * EXAMPLE_BULK.length)])
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
             controls.videosTable = $('#videosTable').DataTable({
@@ -1301,8 +1302,8 @@ const bulk = (function () {
                 console.log("Creating videos.json...")
                 zip.file("videos.json", JSON.stringify(rawVideoData));
 
-                console.log("Creating table.csv...")
-                zip.file("table.csv", tableRows.join("\r\n"));
+                console.log("Creating videos.csv...")
+                zip.file("videos.csv", tableRows.join("\r\n"));
 
                 console.log("Creating tags.csv...")
                 const tagCsvRows = ["Tag\tCount"];
