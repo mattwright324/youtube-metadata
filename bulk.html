@@ -34,6 +34,7 @@ layout: null
     <script src="./js/iso-3166-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/bcp-47-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/youtube-api-v3.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
+    <script src="./js/youtube-metadata-examples.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
     <script src="./js/youtube-metadata-bulk.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -56,7 +57,7 @@ layout: null
         <img src="./img/icon.png" class="image header-img">
         <span class="content">
             <span>
-                YouTube Metadata
+                YouTube Metadata Bulk
             </span>
             <span>
                 <a href="./" style="padding-left: 15px">Normal</a>
@@ -67,8 +68,7 @@ layout: null
     <p>Submit a link to multiple videos, playlists, or channels</p>
     <div class="ui four column">
         <div class="ui fluid action input">
-            <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov"
-                   value="https://www.youtube.com/user/oceanexplorergov">
+            <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov">
             <div id="submit" class="ui button">Submit</div>
         </div>
     </div>

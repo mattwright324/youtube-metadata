@@ -11,6 +11,9 @@
 
     const elements = {};
     const controls = {};
+    let exportData = {};
+
+    const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
 
     const patterns = {
         video_id: [
@@ -174,15 +177,12 @@
             snippet: {
                 title: "Snippet",
                 postProcess: function (partJson, fullJson) {
-                    submit({
-                        type: 'channel_id',
-                        value: partJson.channelId,
-                        mayHideOthers: false
-                    });
-
                     const partDiv = $("#video-section #snippet");
 
-                    partDiv.append("<a target='_blank' href='https://youtu.be/" + fullJson.id + "'><img src='" + partJson.thumbnails.medium.url + "' class='mb-15'></a>");
+                    const thumbs = partJson.thumbnails;
+                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url:"https://placehold.it/480x360"}).url;
+
+                    partDiv.append("<a target='_blank' href='https://youtu.be/" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15'></a>");
 
                     const titleHtml =
                         "<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>";
@@ -271,36 +271,39 @@
                     const location = partJson.location;
                     if (location && location.latitude && location.longitude) {
                         const latlng = location.latitude + "," + location.longitude;
-                        const staticMap = "https://maps.googleapis.com/maps/api/staticmap?center=" + latlng + "&zoom=13&size=1000x300&key=AIzaSyCGWanOEMEgdHqsxNDaa_ZXTZ6hoYQrnAI&markers=color:red|" + latlng;
+                        const staticMap = "https://maps.googleapis.com/maps/api/staticmap?center=" + latlng + "&zoom=14&size=1000x300&key=AIzaSyCGWanOEMEgdHqsxNDaa_ZXTZ6hoYQrnAI&markers=color:red|" + latlng;
+
+                        const link = partJson.hasOwnProperty("locationDescription") ?
+                            "https://maps.google.com/maps/search/" + encodeURI(partJson.locationDescription).replace(/'/g, "%27") + "/@" + latlng + ",14z" :
+                            "https://maps.google.com/maps?q=loc:"+latlng;
 
                         const html =
-                            "<a href='https://maps.google.com/maps?q=loc:"+latlng+"' target='_blank'>" +
-                                "<img class='mb-15' src='"+ staticMap +"' alt='Google Maps Static Map'>" +
+                            "<p class='mb-15'><a href='" + link + "' target='_blank'>" +
+                                "<img src='"+ staticMap +"' alt='Google Maps Static Map'>" +
                                 "<p>Click to open in Google Maps</p>" +
-                            "</a>";
+                            "</a></p>";
 
                         partDiv.append(html);
                     }
 
                     if (partJson.recordingDate && fullJson.snippet) {
-                        const recordDate = new Date(partJson.recordingDate);
-                        const recordMoment = moment(recordDate);
+                        const recordDate = moment(partJson.recordingDate);
 
                         const dateHtml =
                             "<p class='mt-15 mb-15'><strong>Recorded on</strong> " +
-                                "<span class='orange'>" + recordDate.toUTCString() + "</span>" +
-                                " (" + recordMoment.fromNow() + "). YouTube appears to strip the time, it is always zero'd out." +
+                                "<span class='orange'>" + recordDate.format("ddd, DD MMM YYYY") + "</span>" +
+                                " (" + recordDate.fromNow() + "). YouTube Studio only allows creators to pick the date so there is no time on this timestamp." +
                             "</p>";
                         partDiv.append(dateHtml);
 
                         const published = moment(fullJson.snippet.publishedAt);
-                        const format = formatDuration(getDuration(recordMoment, published), false, true);
+                        const format = formatDuration(getDuration(recordDate, published), false, true);
                         if (format === "0s") {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>same day</span> as the publish date.</p>")
-                        } else if (published.isAfter(recordMoment)) {
+                        } else if (published.isAfter(recordDate)) {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> before the publish date.</p>")
                         } else {
-                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> after the publish date. This shouldn't be possible?</p>");
+                            partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>" + format + "</span> after the publish date.</p>");
                         }
                     }
                 }
@@ -405,7 +408,7 @@
                     const format = formatDuration(duration);
 
                     if (format === "0s") {
-                        partDiv.append("<p class='mb-15'>Livestream? A video shouldn't be 0 seconds.</p>");
+                        partDiv.append("<p class='mb-15'>A video can't be 0 seconds. This must be a livestream.</p>");
                     } else {
                         partDiv.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
                     }
@@ -478,7 +481,8 @@
                 postProcess: function (partJson, fullJson) {
                     const partDiv = $("#channel-section #snippet");
 
-                    const thumbUrl = (partJson.thumbnails ? partJson.thumbnails.medium.url : "https://placehold.it/64x64");
+                    const thumbs = partJson.thumbnails;
+                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url:"https://placehold.it/240x240"}).url;
 
                     partDiv.append("<a target='_blank' href='https://www.youtube.com/channel/" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15 profile'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
@@ -714,15 +718,12 @@
             snippet: {
                 title: "Snippet",
                 postProcess: function (partJson, fullJson) {
-                    submit({
-                        type: 'channel_id',
-                        value: partJson.channelId,
-                        mayHideOthers: false
-                    });
-
                     const partDiv = $("#playlist-section #snippet");
 
-                    partDiv.append("<a target='_blank' href='https://www.youtube.com/playlist?list=" + fullJson.id + "'><img src='" + partJson.thumbnails.medium.url + "' class='mb-15'></a>");
+                    const thumbs = partJson.thumbnails;
+                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url:"https://placehold.it/480x360"}).url;
+
+                    partDiv.append("<a target='_blank' href='https://www.youtube.com/playlist?list=" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const authorHtml =
@@ -787,6 +788,8 @@
         if (res.items.length > 0) {
             const item = res.items[0];
 
+            exportData[partMapType] = res;
+
             for (let part in partMap[partMapType]) {
                 const section = $("#" + sectionId + " #" + part);
                 const sectionHeader = $(section.find(".section-header"));
@@ -840,11 +843,46 @@
         }
     }
 
-    async function parseVideo(res, input) {
+    async function parseVideo(res, input, skipGetChannel) {
+        const channelId = idx(["items", "0", "snippet", "channelId"], res)
+        if (!skipGetChannel && channelId) {
+            submit({
+                type: 'channel_id',
+                value: channelId,
+                mayHideOthers: false
+            });
+        }
+
         parseType("video", "video-section", res, input);
+
+        const id = input.value;
+        const thumbsDiv = $("#thumbnails");
+
+        thumbsDiv.empty();
+        for (let i = 0; i < 4; i++) {
+            const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + i + ".jpg";
+            const html =
+                "<div class='mb-15 column'>" +
+                "<a href='https://www.google.com/searchbyimage?image_url=" + thumbUrl + "' target='_blank'>" +
+                "<img src='"+ thumbUrl +"' alt='Thumb " + i + "' style='max-width: 200px;'>" +
+                "<p>Click to reverse image search</p>" +
+                "</a>" +
+                "</div>";
+
+            thumbsDiv.append(html);
+        }
     }
 
-    async function parsePlaylist(res, input) {
+    async function parsePlaylist(res, input, skipGetChannel) {
+        const channelId = idx(["items", "0", "snippet", "channelId"], res)
+        if (!skipGetChannel && channelId) {
+            submit({
+                type: 'channel_id',
+                value: channelId,
+                mayHideOthers: false
+            });
+        }
+
         parseType("playlist", "playlist-section", res, input);
     }
 
@@ -973,23 +1011,6 @@
                 console.log(res);
 
                 parseVideo(res, parsedInput);
-
-                const id = parsedInput.value;
-                const thumbsDiv = $("#thumbnails");
-
-                thumbsDiv.empty();
-                for (let i = 0; i < 4; i++) {
-                    const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + i + ".jpg";
-                    const html =
-                        "<div class='mb-15 column'>" +
-                            "<a href='https://www.google.com/searchbyimage?image_url=" + thumbUrl + "' target='_blank'>" +
-                                "<img src='"+ thumbUrl +"' alt='Thumb " + i + "' style='max-width: 200px;'>" +
-                                "<p>Click to reverse image search</p>" +
-                            "</a>" +
-                        "</div>";
-
-                    thumbsDiv.append(html);
-                }
             }).fail(function (err) {
                 console.log(err);
 
@@ -1063,44 +1084,15 @@
 
             new ClipboardJS(".clipboard");
 
+            controls.btnExport = $("#export");
+            controls.btnImport = $("#import");
+            controls.importFileChooser = $("#importFileChooser");
+
             elements.videoSection = $("#video-section");
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            // Videos gathered with YouTube Geofind
-            // Top 50 each of Eastern US, Europe, and Australia for 150 total example videos
-            const examples = [
-                "_r1-M5lnSyo","-mA8JzVeC1g","-NqaupGcCpw","-Q0zZXsbbpI","09rkasaUW-I",
-                "0JhT1mR2y70","0mazj4V11aA","0puueZTNumc","0Q1g4SWLk6g","1ZZrAdNoXB8",
-                "2ivpYPMVaMU","3e0FsU1N6OQ","3S76xHvgh1w","42NIPZh01_E","4K74M0iYZkk",
-                "4slwp1xcXmk","4ZlLk-PxAbI","5FeFZnashKc","5t0otbwp87Y","6r2DW9IaB5A",
-                "6u2oTke_LLk","8Q_9h6VKm9c","9QneqUhCVtU","9ZTfR4AHq-c","a9I5iBk2_No",
-                "AcMbsBDROnQ","aM4s8jFpmNw","Ao17K0uNSZk","AVVWVcIA1mw","b_jGUNwZWkU",
-                "ba18HtbjZjQ","BB-2nj8g78Y","bGa66UvrX_4","BHfGNSRNWrI","bTwCMK-Eaqs",
-                "BYbvf1p5mXo","bzPyOjLy4Bw","c1XOgrBz6sU","c3Ywo8Tsyys","Cej2qbUa90E",
-                "CITYxc8d1s4","CoAvaYOwm6k","D2CwcTUau04","Dk-SYl5jCXU","dYsTiW8skv0",
-                "e10pVhxNOco","E2YuDmaxR1U","eJ7ZkQ5TC08","eK2WZaoX2WY","EkaMkdlX45M",
-                "eMvXZN1JQGk","ES6UTyyREzA","F1BC5bTJgZk","fCNuPcf8L00","fJpFAmLGC3Q",
-                "Fk48A5e18AA","fKSc5m5uGvg","g02PS03bKRA","GB3zR_X25UU","GhBXx-2PadM",
-                "GQUqjFQH-jg","GT74WlNDsg0","hhDHZZUaLB4","HjVPNjnRKYs","hO6-jw78Sg8",
-                "hXa3Qt3mQDg","HzhJeTVFbws","HZOuDhwzsq0","HzrN-Y3cxiE","I7seHasGy4I",
-                "j8e0fBlvEMQ","j9zvh9SC2kY","jdfjh0WVyYI","jSklAwAnsxg","jVKEcUPEF8M",
-                "k3629rNR2yA","k6QmE4RQVkI","kD_xpFo7DPM","kedJiv-RTtc","kkldeDrLHTQ",
-                "kSdy_NxFQzI","KtU1Ji7v-ys","KTv3S4KMrxs","l_vapoze3EQ","L4yzZXvg0Z4",
-                "l5nv2e3fUJA","LGGuCL2Ixbc","LrcmOraCqM4","m05Y0yqvyUc","mKt16yEhBRw",
-                "mnGjQKdJrPU","mNJz5L6wbCg","MxgMsXM2cg8","N8FvQMJzudg","n8QOhGrZkEw",
-                "nBD-4ZDWJr8","NjsY2k84uaw","nmW2Ml5ry6M","oKr-LdijAyM","OwbW4vxUL3M",
-                "p0rK4oO-g9A","p3GwLf4QJJ4","pjb4EyEjdoY","pJRozpMfYGo","Pl74ybpyNLk",
-                "PtMQbN9x8I8","q76bMs-NwRk","qjyGbkL4kKk","qVd46qhiNjg","R5Cz9DnjbzU",
-                "R5Fz9HpEEks","rAeQqG85Sl4","rVao0TtDBvk","Rw3C-6vVZXw","S9Q644-1lNE",
-                "sANlCvgOZF0","sp7Bi_udKnc","t9plnoKLGwY","TBD5HIDNJXQ","TeTGV9Ngm8Y",
-                "tGcouu-4VDk","U3u4pQ4WKOk","U91AUYttTyc","uJ5vm5Yvhxc","UJZxtO9XNno",
-                "V0H5VPRAZBM","VaeoB7DKSO0","vAoADCSpD-8","vAZN1ebMbmQ","vnMYL8sF7bQ",
-                "vR_MvDZ8qVE","vsMWVW4xtwI","vvMO4bWn2pE","WaKNmOsLaro","wrjYr7-gKQg",
-                "wzc_VNh42HM","X_J9FEQWEOg","x4imf5uv24U","x959zhL3F6s","xqCY7hh9kRs",
-                "xs0ZL2F4y4E","xUHg2jYJtUE","yA7wdvv4VmM","YEqCJmOPCik","Ym3etBc_gwQ",
-                "yP09Gm5rp9I","yv2mEhDidrE","Z-Kre-mnZzg","ZQ7XIGVCwsA","zU5WU_d7fsM"];
-            const exampleLink = "https://youtu.be/" + examples[Math.trunc(Math.random() * examples.length)];
+            const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[Math.trunc(Math.random() * EXAMPLE_VIDEOS.length)];
             controls.inputValue.val(exampleLink);
 
             internal.buildPage(true);
@@ -1147,6 +1139,8 @@
                 }
             });
             controls.btnSubmit.on('click', function () {
+                exportData = {};
+
                 const value = controls.inputValue.val();
 
                 const baseUrl = location.origin + location.pathname;
@@ -1159,6 +1153,86 @@
                 $("#unknown").hide();
                 internal.buildPage(false);
                 submit(parsed);
+            });
+
+            controls.btnExport.on('click', async function () {
+                controls.btnExport.addClass("loading").addClass("disabled");
+
+                const zip = new JSZip();
+                console.log("Creating about.txt...")
+                zip.file("about.txt",
+                    "Downloaded by YouTube Metadata " + new Date().toLocaleString() + "\n\n" +
+                    "URL: " + window.location + "\n\n" +
+                    "Input: " + controls.inputValue.val()
+                );
+
+                if (exportData.hasOwnProperty("video")) {
+                    console.log("Creating video.json...")
+                    zip.file("video.json", JSON.stringify(exportData.video, null, 4));
+                }
+
+                if (exportData.hasOwnProperty("playlist")) {
+                    console.log("Creating playlist.json...")
+                    zip.file("playlist.json", JSON.stringify(exportData.playlist, null, 4));
+                }
+
+                if (exportData.hasOwnProperty("channel")) {
+                    console.log("Creating channel.json...")
+                    zip.file("channel.json", JSON.stringify(exportData.channel, null, 4));
+                }
+
+                console.log("Saving as metadata.zip")
+                zip.generateAsync({type: "blob"}).then(function (content) {
+                    saveAs(content, "metadata.zip");
+
+                    controls.btnExport.removeClass("loading").removeClass("disabled");
+                });
+            });
+
+            controls.importFileChooser.on('change', function (event) {
+                console.log(event);
+
+                let file = event.target.files[0];
+
+                if (file) {
+                    controls.inputValue.val(file.name);
+                } else {
+                    return;
+                }
+
+                console.log("Importing from file " + file.name);
+
+                controls.btnImport.addClass("loading").addClass("disabled");
+
+                $("#video,#playlist,#channel").show();
+                $("#unknown").hide();
+                internal.buildPage(false);
+
+                function loadFile(fileName, parseMethod, inputType) {
+                    return JSZip.loadAsync(file).then(function (content) {
+                        const file = content.file(fileName);
+                        return file ? file.async("string") : null;
+                    }).then(function (text) {
+                        if (!text) {
+                            $("#" + inputType).hide();
+                            return;
+                        }
+                        const content = JSON.parse(text);
+                        console.log(content);
+                        parseMethod(content, {
+                            type: inputType,
+                            value: idx(["items", 0, "id"], content)
+                        }, true);
+                    });
+                }
+
+                loadFile("video.json", parseVideo, "video").then(function () {
+                    loadFile("playlist.json", parsePlaylist, "playlist").then(function () {
+                        loadFile("channel.json", parseChannel, "channel").then(function () {
+                            controls.btnImport.removeClass("loading").removeClass("disabled");
+                        })
+                    });
+                });
             });
 
             function parseQuery(queryString) {

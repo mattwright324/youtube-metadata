@@ -30,8 +30,8 @@ h1 {
 }
 
 .profile {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
 }
 .section {
     margin-bottom: 15px;
@@ -68,7 +68,7 @@ h1 {
 .good {
     color: mediumseagreen;
 }
-.bad {
+.bad, .gray {
     color: lightgray;
 }
 .text-right {
