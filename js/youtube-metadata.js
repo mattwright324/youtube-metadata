@@ -18,6 +18,7 @@
     const patterns = {
         video_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/shorts\/([\w_-]+)(?:&.*)?/i,
             /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i
         ],
         playlist_id: [
