@@ -410,6 +410,20 @@ const bulk = (function () {
             }
         }
 
+        const description = idx(["snippet", "description"], video);
+        if (description) {
+            // https://stackoverflow.com/a/3809435/2650847
+            const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/gi;
+            const matches = description.match(URL_REGEX);
+            if (matches) {
+                for (let j = 0; j < matches.length; j++) {
+                    const link = matches[j];
+
+                    linksData[link] = ++linksData[link] || 1;
+                }
+            }
+        }
+
         for (let i = 0; i < otherData.length; i++) {
             otherData[i].check(video);
         }
@@ -462,6 +476,12 @@ const bulk = (function () {
             ]);
         }
         sliceLoad(geotagRows, controls.geotagsTable);
+
+        const linksRows = [];
+        for (let link in linksData) {
+            linksRows.push([link, linksData[link]]);
+        }
+        sliceLoad(linksRows, controls.linksTable);
 
         for (let i = 0; i < otherData.length; i++) {
             const other = otherData[i];
@@ -939,6 +959,7 @@ const bulk = (function () {
     let rawVideoData = [];
     let tagsData = {};
     let geotagsData = {};
+    let linksData = {};
     let otherData = [
         {
             text: "Total videos",
@@ -1049,6 +1070,15 @@ const bulk = (function () {
                 }
             }
         }, {
+            text: "Videos with captions",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "caption"], video);
+                if (stat === true) {
+                    this.value = this.value + 1;
+                }
+            }
+        }, {
             text: "Videos with comments disabled",
             value: 0,
             check: function (video) {
@@ -1117,6 +1147,24 @@ const bulk = (function () {
             check: function (video) {
                 const stat = idx(["status", "embeddable"], video);
                 if (stat === false) {
+                    this.value = this.value + 1;
+                }
+            }
+        }, {
+            text: "Videos with dimension=3d",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "dimension"], video);
+                if (stat === "3d") {
+                    this.value = this.value + 1;
+                }
+            }
+        }, {
+            text: "Videos with projection=360",
+            value: 0,
+            check: function (video) {
+                const stat = idx(["contentDetails", "projection"], video);
+                if (stat === "360") {
                     this.value = this.value + 1;
                 }
             }
@@ -1225,6 +1273,23 @@ const bulk = (function () {
                 deferRender: true,
                 bDeferRender: true
             });
+            controls.linksTable = $("#linksTable").DataTable({
+                columns: [
+                    {title: "Link"},
+                    {
+                        title: "Count",
+                        type: "num",
+                        className: "text-right dt-nowrap"
+                    }
+                ],
+                columnDefs: [{
+                    "defaultContent": "",
+                    "targets": "_all"
+                }],
+                order: [[1, 'desc'], [0, 'asc']],
+                deferRender: true,
+                bDeferRender: true
+            });
 
             controls.otherTable = $("#otherTable").DataTable({
                 columns: [
@@ -1321,6 +1386,13 @@ const bulk = (function () {
                 }
                 zip.file("geotags.csv", geotagCsvRows.join("\r\n"));
 
+                console.log("Creating links.csv...")
+                const linkCsvRows = ["Link\tCount"];
+                for (let link in linksData) {
+                    linkCsvRows.push(link + "\t" + linksData[link]);
+                }
+                zip.file("links.csv", linkCsvRows.join("\r\n"));
+
                 console.log("Creating other.csv...")
                 const otherCsvRows = ["Statistic\tValue"];
                 for (let i = 0; i < otherData.length; i++) {
@@ -1398,16 +1470,20 @@ const bulk = (function () {
         reset: function () {
             tableRows = [csvHeaderRow.join("\t")];
             rawVideoData = [];
-            tagsData = {};
-            geotagsData = {};
             controls.videosTable.clear();
             controls.videosTable.draw(false);
 
+            tagsData = {};
             controls.tagsTable.clear();
             controls.tagsTable.draw(false);
 
+            geotagsData = {};
             controls.geotagsTable.clear();
             controls.geotagsTable.draw(false);
+
+            linksData = {};
+            controls.linksTable.clear();
+            controls.linksTable.draw(false);
 
             for (let i = 0; i < otherData.length; i++) {
                 otherData[i].value = 0;
