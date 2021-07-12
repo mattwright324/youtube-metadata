@@ -413,7 +413,7 @@ const bulk = (function () {
         const description = idx(["snippet", "description"], video);
         if (description) {
             // https://stackoverflow.com/a/3809435/2650847
-            const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/gi;
+            const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)/gi;
             const matches = description.match(URL_REGEX);
             if (matches) {
                 for (let j = 0; j < matches.length; j++) {
