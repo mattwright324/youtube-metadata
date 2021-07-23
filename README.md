@@ -19,7 +19,6 @@ What's unique about this tool? How can you use it?
     - Time difference between actual publish date and video recording date
     - Reverse image search for a video's default 4 thumbnails
     - Whether the video is aimed at children or not
-    - Channel long uploads status
     - Tags present on a video
 3. Gives helpful suggestions if a link doesn't work
     - Google search for the id

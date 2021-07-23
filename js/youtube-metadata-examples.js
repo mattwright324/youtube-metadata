@@ -453,11 +453,18 @@ const EXAMPLE_VIDEOS = [
     "UXH9DWWll9o"
 ];
 
+// Randomly chosen channels, playlists, videos and examples of comma delimited lists
 const EXAMPLE_BULK = [
     "https://www.youtube.com/user/oceanexplorergov",
+    "https://www.youtube.com/user/NOAAVisualizations",
+    "https://www.youtube.com/user/NOAAPMEL",
+    "https://www.youtube.com/user/usnoaafisheriesgov",
+    "https://www.youtube.com/user/scienceonasphere",
+    "https://www.youtube.com/user/sanctuaries",
+    "https://www.youtube.com/user/usoceangov",
+    "https://www.youtube.com/user/usoceangov,https://www.youtube.com/user/NOAAVisualizations,https://www.youtube.com/user/NOAAPMEL,https://www.youtube.com/user/usnoaafisheriesgov,https://www.youtube.com/user/scienceonasphere,https://www.youtube.com/user/sanctuaries,https://www.youtube.com/user/usoceangov",
     "https://youtu.be/GmgON3CKNLw,https://youtu.be/MeYyhWccD6E,https://youtu.be/Gj0r1zaIgkk",
     "https://www.youtube.com/playlist?list=PLMFoDoF5WCjivNyZjSOWfzjD4TyFbvqhu",
-    "https://www.youtube.com/user/usnoaafisheriesgov",
     "https://youtu.be/sdleWJ5LQcY,https://youtu.be/HkQYDbQTB-o,https://youtu.be/w0kaHullT2A,https://youtu.be/VQT-9aGUUcY",
     "https://www.youtube.com/playlist?list=PLV2ewAgCPCq0DVamOw2sQSAVdFVjA6x78"
 ];

@@ -63,6 +63,7 @@ const bulk = (function () {
         const channelUsers = [];
         const channelCustoms = [];
         const channelIds = [];
+        const channelIdsCreatedPlaylists = [];
         const playlistIds = [];
         const videoIds = [];
 
@@ -84,14 +85,18 @@ const bulk = (function () {
             }
         }
 
-        // Channels condense to uploads playlist ids
+        // Channels condense to uploads playlist ids and channel ids
         const channelProcess = Promise.all([
-            handleChannelUsers(channelUsers, playlistIds),
-            handleChannelCustoms(channelCustoms, playlistIds),
-            handleChannelIds(channelIds, playlistIds)
+            handleChannelUsers(channelUsers, playlistIds, channelIdsCreatedPlaylists),
+            handleChannelCustoms(channelCustoms, playlistIds, channelIdsCreatedPlaylists),
+            handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists)
         ]);
+        // Created playlists condense to playlist ids (when option checked)
+        const createdPlaylistProcess = channelProcess.then(function () {
+            return handleChannelIdsCreatedPlaylists(channelIdsCreatedPlaylists, playlistIds);
+        })
         // Playlists condense to video ids
-        const playlistProcess = channelProcess.then(function () {
+        const playlistProcess = createdPlaylistProcess.then(function () {
             return handlePlaylistIds(playlistIds, videoIds)
         });
         // Videos are results to be displayed
@@ -109,7 +114,7 @@ const bulk = (function () {
         });
     }
 
-    function handleChannelUsers(channelUsers, playlistIds) {
+    function handleChannelUsers(channelUsers, playlistIds, channelIdsCreatedPlaylists) {
         return new Promise(function (resolve, reject) {
             if (channelUsers.length === 0) {
                 console.log("no channelUsers")
@@ -133,6 +138,11 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
+                    const channelId = idx(["items", 0, "id"], res);
+                    if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
+                        channelIdsCreatedPlaylists.push(channelId);
+                    }
+
                     const uploadsPlaylistId = idx(["items", 0, "contentDetails", "relatedPlaylists", "uploads"], res);
                     console.log(uploadsPlaylistId);
 
@@ -151,7 +161,7 @@ const bulk = (function () {
         });
     }
 
-    function handleChannelCustoms(channelCustoms, playlistIds) {
+    function handleChannelCustoms(channelCustoms, playlistIds, channelIdsCreatedPlaylists) {
         return new Promise(function (resolve, reject) {
             if (channelCustoms.length === 0) {
                 console.log("no channelCustoms")
@@ -179,7 +189,13 @@ const bulk = (function () {
 
                     const channelIds = [];
                     for (let i = 0; i < res.items.length; i++) {
-                        channelIds.push(res.items[i].id.channelId);
+                        const channelId = idx(["items", i, "id", "channelId"], res);
+
+                        channelIds.push(channelId);
+
+                        if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
+                            channelIdsCreatedPlaylists.push(channelId);
+                        }
                     }
 
                     youtube.ajax("channels", {
@@ -217,7 +233,13 @@ const bulk = (function () {
         });
     }
 
-    function handleChannelIds(channelIds, playlistIds) {
+    function handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists) {
+        for (let i = 0; i < channelIds.length; i++) {
+            const id = channelIds[i];
+            if (channelIdsCreatedPlaylists.indexOf(id) === -1) {
+                channelIdsCreatedPlaylists.push(id);
+            }
+        }
         return new Promise(function (resolve, reject) {
             if (channelIds.length === 0) {
                 console.log("no channelIds")
@@ -267,6 +289,65 @@ const bulk = (function () {
             }
 
             get(0, 50);
+        });
+    }
+
+    function handleChannelIdsCreatedPlaylists(channelIds, playlistIds) {
+        return new Promise(function (resolve, reject) {
+            if (channelIds.length === 0) {
+                console.log("no handleChannelIdsCreatedPlaylists")
+                resolve();
+                return;
+            }
+
+            if (controls.createdPlaylists.is(":checked") === false) {
+                console.log("createdPlaylists not checked, skipping")
+                resolve();
+                return;
+            }
+
+
+            function get(index) {
+                if (index >= channelIds.length) {
+                    console.log("finished handleChannelIdsCreatedPlaylists");
+                    resolve();
+                    return;
+                }
+
+                console.log("handleChannelIdsCreatedPlaylists.get(" + index + ")")
+
+                const id = channelIds[index];
+
+                console.log(id);
+
+                youtube.ajax("playlists", {
+                    part: "id",
+                    channelId: id,
+                    maxResults: 50
+                }).done(function (res) {
+                    console.log(res);
+
+                    if (res.items) {
+                        for (let i = 0; i < res.items.length; i++) {
+                            const playlist = res.items[i];
+
+                            const createdPlaylistId = idx(["id"], playlist);
+                            console.log(createdPlaylistId);
+
+                            if (playlistIds.indexOf(createdPlaylistId) === -1) {
+                                playlistIds.push(createdPlaylistId);
+                            }
+                        }
+                    }
+
+                    get(index + 1);
+                }).fail(function (err) {
+                    console.error(err);
+                    get(index + 1);
+                });
+            }
+
+            get(0);
         });
     }
 
@@ -1189,6 +1270,8 @@ const bulk = (function () {
 
     const internal = {
         init: function () {
+            $(".ui.checkbox").checkbox();
+
             controls.inputValue = $("#value");
             controls.inputValue.val(EXAMPLE_BULK[Math.trunc(Math.random() * EXAMPLE_BULK.length)])
             controls.btnSubmit = $("#submit");
@@ -1206,6 +1289,7 @@ const bulk = (function () {
             controls.columnOptions = $("#column-options");
             controls.columnOptions.html(columnOptionsHtml.join(""));
             controls.progress = $("#videoProgress").progress();
+            controls.createdPlaylists = $("#createdPlaylists");
 
             controls.progress.reset = function () {
             }
@@ -1336,7 +1420,8 @@ const bulk = (function () {
                 const value = controls.inputValue.val();
 
                 const baseUrl = location.origin + location.pathname;
-                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(value) + "&submit=true");
+                const optionalCreatedPlaylists = controls.createdPlaylists.is(":checked") ? "&createdPlaylists=true" : "";
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(value) + optionalCreatedPlaylists + "&submit=true");
                 controls.shareLink.attr("disabled", false);
 
                 const parsed = [];
@@ -1363,7 +1448,8 @@ const bulk = (function () {
                 zip.file("about.txt",
                     "Downloaded by YouTube Metadata " + new Date().toLocaleString() + "\n\n" +
                     "URL: " + window.location + "\n\n" +
-                    "Input: " + controls.inputValue.val()
+                    "Input: " + controls.inputValue.val() + "\n\n" +
+                    "Created Playlists: " + controls.createdPlaylists.is(":checked")
                 );
 
                 console.log("Creating videos.json...")
@@ -1461,6 +1547,11 @@ const bulk = (function () {
             console.log(query);
             if (query.hasOwnProperty("url")) {
                 controls.inputValue.val(decodeURIComponent(query.url));
+            }
+            if (query.hasOwnProperty("createdPlaylists") && String(query.createdPlaylists).toLowerCase() === String(true)) {
+                controls.createdPlaylists.prop("checked", true);
+            } else {
+                controls.createdPlaylists.prop("checked", false);
             }
             if (query.hasOwnProperty("submit") && String(query.submit).toLowerCase() === String(true)) {
                 setTimeout(function () {

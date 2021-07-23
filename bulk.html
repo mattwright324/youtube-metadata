@@ -56,25 +56,30 @@ layout: null
     <h1 class="ui image header">
         <img src="./img/icon.png" class="image header-img">
         <span class="content">
-            <span>
+            <span class="title">
                 YouTube Metadata Bulk
             </span>
-            <span>
+            <span class="nac">
                 <a href="./" style="padding-left: 15px">Normal</a>
                 <a href="./bulk" style="padding-left: 15px">Bulk</a>
             </span>
         </span>
     </h1>
+    <p>YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.</p>
     <p>Submit a link to multiple videos, playlists, or channels</p>
     <div class="ui four column">
         <div class="ui fluid action input">
             <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov">
             <div id="submit" class="ui button">Submit</div>
         </div>
+        <br>
+        <div class="ui checkbox">
+            <input id="createdPlaylists" type="checkbox">
+            <label>Inspect videos in created playlists to find unlisted videos (channels only)</label>
+        </div>
     </div>
 </div>
 <div class="ui container" style="margin-top:1.5%">
-    <p>YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.</p>
     <p>Accepted formats include:</p>
     <ul>
         <li>https://www.youtube.com/watch?v=<span class="orange">video_id</span></li>
