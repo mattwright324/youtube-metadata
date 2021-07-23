@@ -108,6 +108,8 @@ const bulk = (function () {
             console.log("done");
             console.log(videoIds);
 
+            controls.videosTable.columns.adjust().draw(false);
+
             setTimeout(loadAggregateTables, 200);
         }).catch(function (err) {
             console.error(err);
@@ -583,6 +585,7 @@ const bulk = (function () {
             }
 
             table.rows.add(toAdd).draw(false);
+            table.columns.adjust().draw(false);
 
             setTimeout(function() {
                 slice(index + size, size)
