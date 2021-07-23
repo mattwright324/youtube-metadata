@@ -134,7 +134,7 @@
             translations.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + formatBCP47(bcp47.lookup(code)) + "</span></li>")
         }
 
-        partDiv.append("<p class='mb-15'><strong>Localizations for...</strong>" +
+        partDiv.append("<p class='mb-15'>Localizations for..." +
                 "<ul>" + translations.join("") + "</ul>" +
             "</p>")
     }
@@ -190,7 +190,7 @@
                     partDiv.append(titleHtml);
 
                     const authorHtml =
-                        "<p class='mb-15'><strong>Published by</strong> " +
+                        "<p class='mb-15'>Published by " +
                             "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
                                 partJson.channelTitle +
                             "</a>" +
@@ -199,7 +199,7 @@
 
                     const published = new Date(partJson.publishedAt);
                     const dateHtml =
-                        "<p class='mb-15'><strong>Published on</strong> " +
+                        "<p class='mb-15'>Published on " +
                             "<span class='orange'>" + published.toUTCString() + "</span>" +
                             " (" + moment(published).fromNow() + ")" +
                         "</p>";
@@ -207,7 +207,7 @@
 
                     if (partJson.tags) {
                         const tagsHtml =
-                            "<p class='mb-15'><strong>Tag(s): </strong>" +
+                            "<p class='mb-15'>Tag(s): " +
                                 "<span class='tag'>" + partJson.tags.join("</span><span class='comma'>, </span><span class='tag'>") + "</span>" +
                             "</p>";
                         partDiv.append(tagsHtml);
@@ -219,14 +219,14 @@
                         const code = partJson.defaultLanguage.toUpperCase();
                         const translated = bcp47.lookup(code);
 
-                        partDiv.append("<p class='mb-15'><strong>Default language is</strong> <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
+                        partDiv.append("<p class='mb-15'>Default language is <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
 
                     if (partJson.defaultAudioLanguage) {
                         const code = partJson.defaultAudioLanguage.toUpperCase();
                         const translated = bcp47.lookup(code);
 
-                        partDiv.append("<p class='mb-15'><strong>Audio language is</strong> <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
+                        partDiv.append("<p class='mb-15'>Audio language is <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
 
                     partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
@@ -245,21 +245,21 @@
 
                         const html =
                             "<p class='mb-15'>" +
-                                "<strong>Normalized like ratio:</strong> " +
+                                "Normalized like ratio: " +
                                 "<span style='color:green'>" + Math.trunc(normalized.a) + " like(s)</span> per " +
                                 "<span style='color:red'>" + Math.trunc(normalized.b) + " dislike(s)</span>" +
                             "</p>";
                         partDiv.append(html);
                     } else {
-                        partDiv.append("<p class='mb-15'>This video has <strong>likes disabled.</strong></p>")
+                        partDiv.append("<p class='mb-15'>This video has likes disabled.</p>")
                     }
 
                     if (!partJson.hasOwnProperty("viewCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <strong>view counts disabled.</strong></p>")
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>view counts disabled.</span></p>")
                     }
 
                     if (!partJson.hasOwnProperty("commentCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <strong>comments disabled.</strong></p>")
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>comments disabled.</span></p>")
                     }
 
                 }
@@ -291,7 +291,7 @@
                         const recordDate = moment(partJson.recordingDate);
 
                         const dateHtml =
-                            "<p class='mt-15 mb-15'><strong>Recorded on</strong> " +
+                            "<p class='mt-15 mb-15'>Recorded on " +
                                 "<span class='orange'>" + recordDate.format("ddd, DD MMM YYYY") + "</span>" +
                                 " (" + recordDate.fromNow() + "). YouTube Studio only allows creators to pick the date so there is no time on this timestamp." +
                             "</p>";
@@ -490,7 +490,7 @@
 
                     const published = new Date(partJson.publishedAt);
                     const dateHtml =
-                        "<p class='mb-15'><strong>Channel created on </strong> " +
+                        "<p class='mb-15'>Channel created on " +
                             "<span class='orange'>" + published.toUTCString() + "</span>" +
                             " (" + moment(published).fromNow() + ")" +
                         "</p>";
@@ -633,7 +633,7 @@
                         }
 
                         const keywordsHtml =
-                            "<p class='mb-15'><strong>Channel Keyword(s): </strong>" +
+                            "<p class='mb-15'>Channel Keyword(s): " +
                                 (parsed && parsed.length ?
                                     "<span class='tag'>" +
                                         parsed.join("</span><span class='comma'>, </span><span class='tag'>") +
@@ -728,7 +728,7 @@
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const authorHtml =
-                        "<p class='mb-15'><strong>Published by</strong> " +
+                        "<p class='mb-15'>Published by " +
                             "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
                                 partJson.channelTitle +
                             "</a>" +
@@ -737,7 +737,7 @@
 
                     const published = new Date(partJson.publishedAt);
                     const dateHtml =
-                        "<p class='mb-15'><strong>Playlist created on </strong> " +
+                        "<p class='mb-15'>Playlist created on " +
                             "<span class='orange'>" + published.toUTCString() + "</span>" +
                             " (" + moment(published).fromNow() + ")" +
                         "</p>";
