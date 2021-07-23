@@ -194,10 +194,6 @@ const bulk = (function () {
                         const channelId = idx(["items", i, "id", "channelId"], res);
 
                         channelIds.push(channelId);
-
-                        if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
-                            channelIdsCreatedPlaylists.push(channelId);
-                        }
                     }
 
                     youtube.ajax("channels", {
@@ -208,9 +204,14 @@ const bulk = (function () {
                         console.log(res2);
 
                         for (let i = 0; i < res2.items.length; i++) {
-                            const customUrl = idx(["snippet", "customUrl"], res2.items[i]);
+                            const channelId = idx(["items", i, "id"], res2);
+                            const customUrl = idx(["items", i, "snippet", "customUrl"], res2);
 
                             if (String(customUrl).toLowerCase() === String(channelCustoms[index]).toLowerCase()) {
+                                if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
+                                    channelIdsCreatedPlaylists.push(channelId);
+                                }
+
                                 const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], res2.items[i]);
                                 console.log(uploadsPlaylistId);
 
