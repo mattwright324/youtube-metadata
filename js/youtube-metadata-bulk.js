@@ -497,9 +497,11 @@ const bulk = (function () {
         const description = idx(["snippet", "description"], video);
         if (description) {
             // https://stackoverflow.com/a/3809435/2650847
-            const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:%_!+.~#?&/=]*)/gi;
+            //const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:%_!+.~#?&/=]*)/gi;
+            //const matches = description.match(URL_REGEX);
+            const URL_XREGEX = XRegExp("(\\p{L}[\\p{L}\\d\\-+.]*)?:\\/\\/[-\\p{L}0-9@:%._+~#=]{1,256}\\.[\\p{L}0-9()]{1,6}\\b([-\\p{L}0-9@:%_!+.~#?&\\/=]*)", "gi");
+            const matches = XRegExp.match(description, URL_XREGEX);
             const END_CHARS = /[.()]*$/gi; // Remove periods and parenthesis on end of the link.
-            const matches = description.match(URL_REGEX);
             if (matches) {
                 for (let j = 0; j < matches.length; j++) {
                     const link = matches[j].replace(END_CHARS, "");
