@@ -465,13 +465,37 @@ const bulk = (function () {
     function loadVideo(video, skipAdd) {
         const dataRow = [];
         const csvDataRow = [];
+        const publishedAt = moment(idx(["snippet", "publishedAt"], video));
 
         const tags = idx(["snippet", "tags"], video);
         if (tags) {
             for (let j = 0; j < tags.length; j++) {
                 const tag = tags[j];
+                if (!tagsData[tag]) {
+                    tagsData[tag] = {}
+                }
 
-                tagsData[tag] = ++tagsData[tag] || 1;
+                tagsData[tag].count = ++tagsData[tag].count || 1;
+
+                if (tagsData[tag].firstUsed) {
+                    if (publishedAt.isBefore(tagsData[tag].firstUsed)) {
+                        tagsData[tag].firstUsed = publishedAt;
+                        tagsData[tag].firstVideo = video.id;
+                    }
+                } else {
+                    tagsData[tag].firstUsed = publishedAt;
+                    tagsData[tag].firstVideo = video.id;
+                }
+
+                if (tagsData[tag].lastUsed) {
+                    if (publishedAt.isAfter(tagsData[tag].lastUsed)) {
+                        tagsData[tag].lastUsed = publishedAt;
+                        tagsData[tag].lastVideo = video.id;
+                    }
+                } else {
+                    tagsData[tag].lastUsed = publishedAt;
+                    tagsData[tag].lastVideo = video.id;
+                }
             }
         }
 
@@ -505,8 +529,30 @@ const bulk = (function () {
             if (matches) {
                 for (let j = 0; j < matches.length; j++) {
                     const link = matches[j].replace(END_CHARS, "");
+                    if (!linksData[link]) {
+                        linksData[link] = {}
+                    }
+                    linksData[link].count = ++linksData[link].count || 1;
 
-                    linksData[link] = ++linksData[link] || 1;
+                    if (linksData[link].firstUsed) {
+                        if (publishedAt.isBefore(linksData[link].firstUsed)) {
+                            linksData[link].firstUsed = publishedAt;
+                            linksData[link].firstVideo = video.id;
+                        }
+                    } else {
+                        linksData[link].firstUsed = publishedAt;
+                        linksData[link].firstVideo = video.id;
+                    }
+
+                    if (linksData[link].lastUsed) {
+                        if (publishedAt.isAfter(linksData[link].lastUsed)) {
+                            linksData[link].lastUsed = publishedAt;
+                            linksData[link].lastVideo = video.id;
+                        }
+                    } else {
+                        linksData[link].lastUsed = publishedAt;
+                        linksData[link].lastVideo = video.id;
+                    }
                 }
             }
         }
@@ -548,9 +594,17 @@ const bulk = (function () {
     }
 
     function loadAggregateTables(callback) {
+        const dateFormat = "YYYY-MM-DD";
+
         const tagRows = [];
         for (let tag in tagsData) {
-            tagRows.push([tag, tagsData[tag]]);
+            const tagData = tagsData[tag];
+            tagRows.push([
+                tag,
+                "<a href='https://youtu.be/" + tagData.firstVideo + "' target='_blank'>" + tagData.firstUsed.format(dateFormat) + "</a>",
+                "<a href='https://youtu.be/" + tagData.lastVideo + "' target='_blank'>" + tagData.lastUsed.format(dateFormat) + "</a>",
+                tagData.count
+            ]);
         }
         sliceLoad(tagRows, controls.tagsTable);
 
@@ -566,7 +620,13 @@ const bulk = (function () {
 
         const linksRows = [];
         for (let link in linksData) {
-            linksRows.push([link, linksData[link]]);
+            const linkData = linksData[link];
+            linksRows.push([
+                link,
+                "<a href='https://youtu.be/" + linkData.firstVideo + "' target='_blank'>" + linkData.firstUsed.format(dateFormat) + "</a>",
+                "<a href='https://youtu.be/" + linkData.lastVideo + "' target='_blank'>" + linkData.lastUsed.format(dateFormat) + "</a>",
+                linkData.count
+            ]);
         }
         sliceLoad(linksRows, controls.linksTable);
 
@@ -1333,6 +1393,16 @@ const bulk = (function () {
                 columns: [
                     {title: "Tag"},
                     {
+                        title: "First used",
+                        type: 'datetime',
+                        className: "dt-nowrap"
+                    },
+                    {
+                        title: "Last used",
+                        type: 'datetime',
+                        className: "dt-nowrap"
+                    },
+                    {
                         title: "Count",
                         type: "num",
                         className: "text-right dt-nowrap"
@@ -1342,7 +1412,7 @@ const bulk = (function () {
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[1, 'desc'], [0, 'asc']],
+                order: [[3, 'desc'], [0, 'asc']],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1368,6 +1438,16 @@ const bulk = (function () {
                 columns: [
                     {title: "Link"},
                     {
+                        title: "First used",
+                        type: 'datetime',
+                        className: "dt-nowrap"
+                    },
+                    {
+                        title: "Last used",
+                        type: 'datetime',
+                        className: "dt-nowrap"
+                    },
+                    {
                         title: "Count",
                         type: "num",
                         className: "text-right dt-nowrap"
@@ -1377,7 +1457,7 @@ const bulk = (function () {
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[1, 'desc'], [0, 'asc']],
+                order: [[3, 'desc'], [0, 'asc']],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1447,6 +1527,7 @@ const bulk = (function () {
             });
 
             controls.btnExport.on('click', function () {
+                const dateFormat = "YYYY-MM-DD";
                 controls.btnExport.addClass("loading").addClass("disabled");
 
                 const zip = new JSZip();
@@ -1465,9 +1546,10 @@ const bulk = (function () {
                 zip.file("videos.csv", tableRows.join("\r\n"));
 
                 console.log("Creating tags.csv...")
-                const tagCsvRows = ["Tag\tCount"];
+                const tagCsvRows = ["Tag\tCount\tFirst used\tFirst video\tLast used\tLast video"];
                 for (let tag in tagsData) {
-                    tagCsvRows.push(tag + "\t" + tagsData[tag]);
+                    const tagData = tagsData[tag];
+                    tagCsvRows.push(tag + "\t" + tagData.count + "\t" + tagData.firstUsed.format(dateFormat) + "\t" + tagData.firstVideo + "\t" + tagData.lastUsed.format(dateFormat) + "\t" + tagData.lastVideo);
                 }
                 zip.file("tags.csv", tagCsvRows.join("\r\n"));
 
@@ -1480,9 +1562,10 @@ const bulk = (function () {
                 zip.file("geotags.csv", geotagCsvRows.join("\r\n"));
 
                 console.log("Creating links.csv...")
-                const linkCsvRows = ["Link\tCount"];
+                const linkCsvRows = ["Link\tCount\tFirst used\tFirst video\tLast used\tLast video"];
                 for (let link in linksData) {
-                    linkCsvRows.push(link + "\t" + linksData[link]);
+                    const linkData = linksData[link];
+                    linkCsvRows.push(link + "\t" + linkData.count + "\t" + linkData.firstUsed.format(dateFormat) + "\t" + linkData.firstVideo + "\t" + linkData.lastUsed.format(dateFormat) + "\t" + linkData.lastVideo);
                 }
                 zip.file("links.csv", linkCsvRows.join("\r\n"));
 
