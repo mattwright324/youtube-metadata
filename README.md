@@ -20,6 +20,7 @@ What's unique about this tool? How can you use it?
    - Geolocation direct link to Google Maps
    - Interpretation and display of meaningful fields
    - Reverse image search thumbnails
+   - Archive video and channel data that may disappear
 5. Export and import
    - Save data as a zip
    - Import zip to view in app again later
