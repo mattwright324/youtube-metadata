@@ -1,73 +1,13 @@
 ---
-layout: null
+layout: default
+title: YouTube Metadata Bulk
+script: youtube-metadata-bulk
 ---
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="description"
-          content="Quickly gather all the metadata about a video, playlist, or channel from the YouTube API. Reverse image search thumbnails, geolocate in google maps, and translate ISO country and language codes.">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" href="./img/icon.png">
-    <title>YouTube Metadata Bulk</title>
-
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
-    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
-
-    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
-    <link rel="stylesheet" href="./css/youtube-metadata.css?v={{ site.time | date_to_xmlschema }}"/>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css"/>
-
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
-            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
-    <script src="./js/moment.min.js" type="text/javascript"></script>
-    <script src="//cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
-            integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw=="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"
-            integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA=="
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xregexp@5.1.0/xregexp-all.js"></script>
-    <script src="./js/iso-639-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
-    <script src="./js/iso-3166-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
-    <script src="./js/bcp-47-translator.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
-    <script src="./js/youtube-api-v3.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
-    <script src="./js/youtube-metadata-examples.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
-    <script src="./js/youtube-metadata-bulk.js?v={{ site.time | date_to_xmlschema }}" type="text/javascript"></script>
-
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100434147-9"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-
-        gtag('js', new Date());
-
-        gtag('config', 'UA-100434147-9');
-    </script>
-</head>
-<body>
 <div class="ui container" style="margin-top:3%">
-    <h1 class="ui image header">
-        <img src="./img/icon.png" class="image header-img">
-        <span class="content">
-            <span class="title">
-                YouTube Metadata Bulk
-            </span>
-            <span class="nac">
-                <a href="./" style="padding-left: 15px">Normal</a>
-                <a href="./bulk" style="padding-left: 15px">Bulk</a>
-            </span>
-        </span>
-    </h1>
+    {% include nav.html %}
+
     <p>YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.</p>
-    <p>Submit a link to multiple videos, playlists, or channels</p>
+    <p>Submit a comma separated list of multiple videos, playlists, or channels</p>
     <div class="ui four column">
         <div class="ui fluid action input">
             <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov">
@@ -80,31 +20,7 @@ layout: null
         </div>
     </div>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <p>Accepted formats include:</p>
-    <ul>
-        <li>https://www.youtube.com/watch?v=<span class="orange">video_id</span></li>
-        <li>https://youtube.com/shorts/<span class="orange">video_id</span></li>
-        <li>https://youtu.be/<span class="orange">video_id</span></li>
-        <li>https://www.youtube.com/playlist?list=<span class="orange">playlist_id</span></li>
-        <li>https://www.youtube.com/user/<span class="orange">username</span></li>
-        <li>https://www.youtube.com/channel/<span class="orange">channel_id</span></li>
-        <li>https://www.youtube.com/c/<span class="orange">custom_url</span> (may not work, <a
-                href="https://github.com/mattwright324/youtube-metadata/issues/1">see here</a>)
-        </li>
-        <li>https://www.youtube.com/<span class="orange">custom_url</span> (may not work, <a
-                href="https://github.com/mattwright324/youtube-metadata/issues/1">see here</a>)
-        </li>
-    </ul>
-
-    <p>Share this result:</p>
-    <div class="ui action input">
-        <input type="text" id="shareLink" disabled>
-        <button class="ui teal right icon button clipboard" title="Copy" data-clipboard-target="#shareLink">
-            <i class="copy icon"></i>
-        </button>
-    </div>
-</div>
+{% include format_share.html %}
 <div class="ui container" style="margin-top:1.5%">
     <h1>Export</h1>
     <p>Save this result as a zip file or load from a previous export.</p>
@@ -190,9 +106,3 @@ layout: null
 <div class="ui container" style="margin-top:1.5%">
     <table id="otherTable" class="display" style="width:100%"></table>
 </div>
-<div class="ui container" style="padding-top:3%;padding-bottom:3%;color:darkgray" align="center">
-    mattwright324 | 2021 | <a href="/">home</a> | <a href="https://github.com/mattwright324">github</a> | <a
-        href="https://github.com/mattwright324/youtube-metadata">youtube-metadata</a>
-</div>
-</body>
-</html>
