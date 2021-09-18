@@ -25,6 +25,10 @@ What's unique about this tool? How can you use it?
    - Import zip to view in app again later
    - Both raw json data from the api and csv from the tables
 
+## Wiki
+
+For more details and notes about YouTube metadata and the API, [check out the wiki!](https://github.com/mattwright324/youtube-metadata/wiki)
+
 ## Build
 
 Refer to [BUILD.md](https://github.com/mattwright324/youtube-metadata/blob/master/BUILD.md)
