@@ -3,39 +3,39 @@
 A quick way to gather all the metadata about a video, playlist, or channel from the YouTube API.
 
 - https://mattw.io/youtube-metadata/
+- https://mattw.io/youtube-metadata/bulk
+
+![img.png](img/readme.png)
 
 What's unique about this tool? How can you use it?
 
-1. If you're just curious about a video, playlist, or channel!
-    - How long has the channel or playlist been around?
-    - What's the like/dislike ratio?
-    - What can YouTube tell you?
-2. Use it for investigative purposes, OSINT.
-    - Tells you what it found **and** what it didn't find.
-    - Exact date and times for video publish and playlist/channel creation
-    - Auto-translations for BCP-47 country and language codes
-    - Livestream date and times; actual runtime and how late/early it started
-    - Geolocation with direct link to Google Maps
-    - Time difference between actual publish date and video recording date
-    - Reverse image search for a video's default 4 thumbnails
-    - Whether the video is aimed at children or not
-    - Tags present on a video
-3. Gives helpful suggestions if a link doesn't work
-    - Google search for the id
-    - Archive.org for the link
-    - YouTubeRecover.com for the video id
-    - SocialBlade.com for the channel username
-4. Grab video details in bulk from a list of videos, playlists, or channels
-   - Viewable in a searchable sortable table
-   - Export table and raw data in a zip
-   - Import a previous export to view in the app again
+1. If you're curious about a video and its author, playlist and its creator, or channel
+2. If you're curious about an entire playlist's videos or channel's videos
+3. Use it as an API-explorer
+   - Grabs every part available
+   - Provides shareable link
+4. Use it for investigative purposes and OSINT
+   - Tells you what if found and what it didn't find
+   - Auto-translations of language and country codes
+   - Geolocation direct link to Google Maps
+   - Interpretation and display of meaningful fields
+   - Reverse image search thumbnails
+   - Archive video and channel data that may disappear
+5. Export and import
+   - Save data as a zip
+   - Import zip to view in app again later
+   - Both raw json data from the api and csv from the tables
 
-### Building
+## Wiki
+
+For more details and notes about YouTube metadata and the API, [check out the wiki!](https://github.com/mattwright324/youtube-metadata/wiki)
+
+## Build
 
 Refer to [BUILD.md](https://github.com/mattwright324/youtube-metadata/blob/master/BUILD.md)
-for instructions on how to build and run `youtube-metadata` from source.
+for instructions on how to build and run from source.
 
-### Contributing
+## Contributing
 
 Contributions are welcome, refer
 to [CONTRIBUTING.md](https://github.com/mattwright324/youtube-metadata/blob/master/CONTRIBUTING.md)
