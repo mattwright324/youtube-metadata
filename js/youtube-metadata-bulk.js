@@ -600,8 +600,8 @@ const bulk = (function () {
             const tagData = tagsData[tag];
             tagRows.push([
                 tag,
-                "<a href='https://youtu.be/" + tagData.firstVideo + "' target='_blank'>" + tagData.firstUsed.format(dateFormat) + "</a>",
-                "<a href='https://youtu.be/" + tagData.lastVideo + "' target='_blank'>" + tagData.lastUsed.format(dateFormat) + "</a>",
+                "<a data-value='" + tagData.firstUsed + "' href='https://youtu.be/" + tagData.firstVideo + "' target='_blank'>" + tagData.firstUsed.format(dateFormat) + "</a>",
+                "<a data-value='" + tagData.lastUsed + "' href='https://youtu.be/" + tagData.lastVideo + "' target='_blank'>" + tagData.lastUsed.format(dateFormat) + "</a>",
                 tagData.count
             ]);
         }
@@ -622,8 +622,8 @@ const bulk = (function () {
             const linkData = linksData[link];
             linksRows.push([
                 link,
-                "<a href='https://youtu.be/" + linkData.firstVideo + "' target='_blank'>" + linkData.firstUsed.format(dateFormat) + "</a>",
-                "<a href='https://youtu.be/" + linkData.lastVideo + "' target='_blank'>" + linkData.lastUsed.format(dateFormat) + "</a>",
+                "<a data-value='" + linkData.firstUsed + "' href='https://youtu.be/" + linkData.firstVideo + "' target='_blank'>" + linkData.firstUsed.format(dateFormat) + "</a>",
+                "<a data-value='" + linkData.lastUsed + "' href='https://youtu.be/" + linkData.lastVideo + "' target='_blank'>" + linkData.lastUsed.format(dateFormat) + "</a>",
                 linkData.count
             ]);
         }
@@ -1410,6 +1410,9 @@ const bulk = (function () {
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
+                },{
+                    "width": "100%",
+                    "targets": 0
                 }],
                 order: [[3, 'desc'], [0, 'asc']],
                 deferRender: true,
@@ -1455,6 +1458,9 @@ const bulk = (function () {
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
+                },{
+                    "width": "100%",
+                    "targets": 0
                 }],
                 order: [[3, 'desc'], [0, 'asc']],
                 deferRender: true,

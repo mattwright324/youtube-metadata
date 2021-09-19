@@ -1,14 +1,13 @@
 Build Documentation
 =
 
-### Building youtube-metadata
+### Setup
+
 Get a copy of the repository
 
 ```
 git clone https://github.com/mattwright324/youtube-metadata.git
 ```
-
-### Setup
 
 Install Ruby (and gems jekyll and bundler) following the steps for your operating system
 
