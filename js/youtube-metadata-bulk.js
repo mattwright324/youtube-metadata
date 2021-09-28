@@ -1345,6 +1345,7 @@ const bulk = (function () {
                 columns: columns,
                 columnDefs: [{
                     "defaultContent": "",
+                    "className": "wrap",
                     "targets": "_all"
                 }],
                 order: [[7, 'desc']],
@@ -1409,6 +1410,7 @@ const bulk = (function () {
                 ],
                 columnDefs: [{
                     "defaultContent": "",
+                    "className": "wrap",
                     "targets": "_all"
                 },{
                     "width": "100%",
@@ -1430,6 +1432,7 @@ const bulk = (function () {
                 ],
                 columnDefs: [{
                     "defaultContent": "",
+                    "className": "wrap",
                     "targets": "_all"
                 }],
                 order: [[2, 'desc'], [0, 'asc']],
@@ -1457,6 +1460,7 @@ const bulk = (function () {
                 ],
                 columnDefs: [{
                     "defaultContent": "",
+                    "className": "wrap",
                     "targets": "_all"
                 },{
                     "width": "100%",
@@ -1478,6 +1482,7 @@ const bulk = (function () {
                 ],
                 columnDefs: [{
                     "defaultContent": "",
+                    "className": "wrap",
                     "targets": "_all"
                 }],
                 order: [],
