@@ -465,6 +465,7 @@ const bulk = (function () {
         const dataRow = [];
         const csvDataRow = [];
         const publishedAt = moment(idx(["snippet", "publishedAt"], video));
+        publishedAt.utc();
 
         const tags = idx(["snippet", "tags"], video);
         if (tags) {
@@ -629,6 +630,8 @@ const bulk = (function () {
         }
         sliceLoad(linksRows, controls.linksTable);
 
+        loadChartData(controls.offset.val());
+
         for (let i = 0; i < otherData.length; i++) {
             const other = otherData[i];
             controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
@@ -637,6 +640,41 @@ const bulk = (function () {
         if (callback) {
             callback();
         }
+    }
+
+    function loadChartData(timezoneOffset) {
+        if (rawVideoData.length === 0) {
+            return;
+        }
+
+        console.log('Loading chart data offset=' + timezoneOffset)
+
+        const rawChartData = {};
+        for (let i = 0; i < rawVideoData.length; i++) {
+            const video = rawVideoData[i];
+            const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
+            const day = timestamp.day();
+            const dayName = timestamp.format('dddd');
+            const hour24 = timestamp.format('H');
+            console.log(dayName + ", " + hour24 + ", " + timestamp.toString())
+            if (!rawChartData.hasOwnProperty(day)) {
+                rawChartData[day] = {
+                    name: dayName,
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+            }
+
+            rawChartData[day].data[hour24] = rawChartData[day].data[hour24] + 1;
+        }
+
+        console.log(rawChartData);
+
+        const newChartData = [];
+        for (let weekday in rawChartData) {
+            newChartData.push(rawChartData[weekday]);
+            chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
+        }
+        controls.uploadFrequency.updateSeries(newChartData);
     }
 
     function sliceLoad(data, table) {
@@ -649,10 +687,11 @@ const bulk = (function () {
             table.rows.add(toAdd).draw(false);
             table.columns.adjust().draw(false);
 
-            setTimeout(function() {
+            setTimeout(function () {
                 slice(index + size, size)
             }, 200);
         }
+
         slice(0, 1000);
     }
 
@@ -1107,6 +1146,7 @@ const bulk = (function () {
     let tagsData = {};
     let geotagsData = {};
     let linksData = {};
+    let chartData = {};
     let otherData = [
         {
             text: "Total videos",
@@ -1410,7 +1450,7 @@ const bulk = (function () {
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
-                },{
+                }, {
                     "width": "100%",
                     "targets": 0
                 }],
@@ -1458,7 +1498,7 @@ const bulk = (function () {
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
-                },{
+                }, {
                     "width": "100%",
                     "className": "wrap",
                     "targets": 0
@@ -1467,6 +1507,61 @@ const bulk = (function () {
                 deferRender: true,
                 bDeferRender: true
             });
+            controls.offset = $("#offset");
+            controls.offset.on('change', function() {
+                loadChartData(controls.offset.val());
+            });
+            const options = {
+                series: [
+                    {
+                        name: 'Saturday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    },
+                    {
+                        name: 'Friday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    },
+                    {
+                        name: 'Thursday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    },
+                    {
+                        name: 'Wednesday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    },
+                    {
+                        name: 'Tuesday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    },
+                    {
+                        name: 'Monday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    },
+                    {
+                        name: 'Sunday',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    }
+                ],
+                xaxis: {
+                    categories: [
+                        "12AM", "1AM", "2AM", "3AM", "4AM", "5AM", "6AM", "7AM", "8AM", "9AM", "10AM", "11AM",
+                        "12PM", "1PM", "2PM", "3PM", "4PM", "5PM", "6PM", "7PM", "8PM", "9PM", "10PM", "11PM"
+                    ]
+                },
+                chart: {
+                    height: 350,
+                    type: 'heatmap',
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                colors: ["#008FFB"],
+                title: {
+                    text: 'Day and Time Frequency'
+                },
+            };
+            controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
+            controls.uploadFrequency.render();
 
             controls.otherTable = $("#otherTable").DataTable({
                 columns: [
@@ -1574,6 +1669,14 @@ const bulk = (function () {
                     linkCsvRows.push(link + "\t" + linkData.count + "\t" + linkData.firstUsed.format(dateFormat) + "\t" + linkData.firstVideo + "\t" + linkData.lastUsed.format(dateFormat) + "\t" + linkData.lastVideo);
                 }
                 zip.file("links.csv", linkCsvRows.join("\r\n"));
+
+                console.log("Creating frequency.csv...")
+                const frequencyCsvRows = ["Weekday\t12AM\t1AM\t2AM\t3AM\t4AM\t5AM\t6AM\t7AM\t8AM\t9AM\t10AM\t11AM\t12PM\t1PM\t2PM\t3PM\t4PM\t5PM\t6PM\t7PM\t8PM\t9PM\t10PM\t11PM"];
+                for (let row in chartData) {
+                    const data = chartData[row];
+                    frequencyCsvRows.push(row + "\t" + data.join("\t"));
+                }
+                zip.file("frequency.csv", frequencyCsvRows.join("\r\n"));
 
                 console.log("Creating other.csv...")
                 const otherCsvRows = ["Statistic\tValue"];
