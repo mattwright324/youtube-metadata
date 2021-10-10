@@ -649,31 +649,37 @@ const bulk = (function () {
 
         console.log('Loading chart data offset=' + timezoneOffset)
 
+        const days = ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
+
         const rawChartData = {};
+        for (let i = 0; i < days.length; i++) {
+            const dayName = days[i];
+            rawChartData[dayName] = {
+                name: dayName,
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            }
+        }
         for (let i = 0; i < rawVideoData.length; i++) {
             const video = rawVideoData[i];
             const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
-            const day = timestamp.day();
             const dayName = timestamp.format('dddd');
             const hour24 = timestamp.format('H');
-            console.log(dayName + ", " + hour24 + ", " + timestamp.toString())
-            if (!rawChartData.hasOwnProperty(day)) {
-                rawChartData[day] = {
-                    name: dayName,
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                }
-            }
-
-            rawChartData[day].data[hour24] = rawChartData[day].data[hour24] + 1;
+            rawChartData[dayName].data[hour24] = rawChartData[dayName].data[hour24] + 1;
         }
 
         console.log(rawChartData);
 
         const newChartData = [];
-        for (let weekday in rawChartData) {
-            newChartData.push(rawChartData[weekday]);
-            chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
+        for (let i = 0; i < days.length; i++) {
+            const dayName = days[i];
+            for (let weekday in rawChartData) {
+                if (weekday === dayName) {
+                    newChartData.push(rawChartData[weekday]);
+                    chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
+                }
+            }
         }
+
         controls.uploadFrequency.updateSeries(newChartData);
     }
 
