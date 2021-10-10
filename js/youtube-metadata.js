@@ -201,7 +201,7 @@
                     const dateHtml =
                         "<p class='mb-15'>Published on " +
                             "<span class='orange'>" + published.toUTCString() + "</span>" +
-                            " (" + moment(published).fromNow() + ")" +
+                            " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -288,7 +288,7 @@
                     }
 
                     if (partJson.recordingDate && fullJson.snippet) {
-                        const recordDate = moment(partJson.recordingDate);
+                        const recordDate = moment(partJson.recordingDate).utc();
 
                         const dateHtml =
                             "<p class='mt-15 mb-15'>Recorded on " +
@@ -297,7 +297,7 @@
                             "</p>";
                         partDiv.append(dateHtml);
 
-                        const published = moment(fullJson.snippet.publishedAt);
+                        const published = moment(fullJson.snippet.publishedAt).utc();
                         const format = formatDuration(getDuration(recordDate, published), false, true);
                         if (format === "0s") {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>same day</span> as the publish date.</p>")
@@ -352,10 +352,10 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #liveStreamingDetails");
 
-                    const now = moment(new Date());
+                    const now = moment(new Date()).utc();
                     if (partJson.hasOwnProperty("scheduledStartTime") && !partJson.hasOwnProperty("actualStartTime")) {
                         // Stream hasn't started
-                        const start = moment(partJson.scheduledStartTime);
+                        const start = moment(partJson.scheduledStartTime).utc();
                         const format = formatDuration(getDuration(start, now));
 
                         if (start.isAfter(now)) {
@@ -366,8 +366,8 @@
                     }
                     if (partJson.hasOwnProperty("actualStartTime") && partJson.hasOwnProperty("scheduledStartTime")) {
                         // Stream started. Time between schedule date and actual start?
-                        const start = moment(partJson.actualStartTime);
-                        const scheduled = moment(partJson.scheduledStartTime);
+                        const start = moment(partJson.actualStartTime).utc();
+                        const scheduled = moment(partJson.scheduledStartTime).utc();
                         const format = formatDuration(getDuration(start, scheduled));
                         if (start.isAfter(scheduled)) {
                             partDiv.append("<p class='mb-15'>The stream was <span class='orange'>" + format + "</span> late to start</p>")
@@ -377,15 +377,15 @@
                     }
                     if (partJson.hasOwnProperty("actualStartTime") && !partJson.hasOwnProperty("actualEndTime")) {
                         // Stream started but still going. Time between start and now?
-                        const start = moment(partJson.actualStartTime);
+                        const start = moment(partJson.actualStartTime).utc();
                         const format = formatDuration(getDuration(start, now));
 
                         partDiv.append("<p class='mb-15'>The stream is still going. It has been running for <span class='orange'>" + format + "</span></p>");
                     }
                     if (partJson.hasOwnProperty("actualStartTime") && partJson.hasOwnProperty("actualEndTime")) {
                         // Stream done. Time between start and end?
-                        const start = moment(partJson.actualStartTime);
-                        const end = moment(partJson.actualEndTime);
+                        const start = moment(partJson.actualStartTime).utc();
+                        const end = moment(partJson.actualEndTime).utc();
                         const format = formatDuration(getDuration(start, end));
 
                         partDiv.append("<p class='mb-15'>The stream is over. It's length was <span class='orange'>" + format + "</span></p>");
@@ -492,7 +492,7 @@
                     const dateHtml =
                         "<p class='mb-15'>Channel created on " +
                             "<span class='orange'>" + published.toUTCString() + "</span>" +
-                            " (" + moment(published).fromNow() + ")" +
+                            " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -739,7 +739,7 @@
                     const dateHtml =
                         "<p class='mb-15'>Playlist created on " +
                             "<span class='orange'>" + published.toUTCString() + "</span>" +
-                            " (" + moment(published).fromNow() + ")" +
+                            " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
 
