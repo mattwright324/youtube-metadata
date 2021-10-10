@@ -630,31 +630,7 @@ const bulk = (function () {
         }
         sliceLoad(linksRows, controls.linksTable);
 
-        const rawChartData = {};
-        for (let i = 0; i < rawVideoData.length; i++) {
-            const video = rawVideoData[i];
-            const timestamp = moment(idx(["snippet", "publishedAt"], video));
-            timestamp.utc();
-            const day = timestamp.day();
-            const dayName = timestamp.format('dddd');
-            const hour24 = timestamp.format('H');
-            console.log(dayName + ", " + hour24 + ", " + idx(["snippet", "publishedAt"], video));
-            if (!rawChartData.hasOwnProperty(day)) {
-                rawChartData[day] = {
-                    name: dayName,
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                }
-            }
-
-            rawChartData[day].data[hour24] = rawChartData[day].data[hour24] + 1;
-        }
-        const newChartData = [];
-        for (let weekday in rawChartData) {
-            newChartData.push(rawChartData[weekday]);
-            chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
-        }
-        controls.uploadFrequency.updateSeries(newChartData)
-
+        loadChartData(controls.offset.val());
 
         for (let i = 0; i < otherData.length; i++) {
             const other = otherData[i];
@@ -664,6 +640,41 @@ const bulk = (function () {
         if (callback) {
             callback();
         }
+    }
+
+    function loadChartData(timezoneOffset) {
+        if (rawVideoData.length === 0) {
+            return;
+        }
+
+        console.log('Loading chart data offset=' + timezoneOffset)
+
+        const rawChartData = {};
+        for (let i = 0; i < rawVideoData.length; i++) {
+            const video = rawVideoData[i];
+            const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
+            const day = timestamp.day();
+            const dayName = timestamp.format('dddd');
+            const hour24 = timestamp.format('H');
+            console.log(dayName + ", " + hour24 + ", " + timestamp.toString())
+            if (!rawChartData.hasOwnProperty(day)) {
+                rawChartData[day] = {
+                    name: dayName,
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+            }
+
+            rawChartData[day].data[hour24] = rawChartData[day].data[hour24] + 1;
+        }
+
+        console.log(rawChartData);
+
+        const newChartData = [];
+        for (let weekday in rawChartData) {
+            newChartData.push(rawChartData[weekday]);
+            chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
+        }
+        controls.uploadFrequency.updateSeries(newChartData);
     }
 
     function sliceLoad(data, table) {
@@ -1496,6 +1507,10 @@ const bulk = (function () {
                 deferRender: true,
                 bDeferRender: true
             });
+            controls.offset = $("#offset");
+            controls.offset.on('change', function() {
+                loadChartData(controls.offset.val());
+            });
             const options = {
                 series: [
                     {
@@ -1542,7 +1557,7 @@ const bulk = (function () {
                 },
                 colors: ["#008FFB"],
                 title: {
-                    text: 'Day and Time Frequency (UTC)'
+                    text: 'Day and Time Frequency'
                 },
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);

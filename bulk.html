@@ -30,7 +30,7 @@ script: youtube-metadata-bulk
     </div>
     <div id="import" class="ui button" onclick="document.getElementById('importFileChooser').click()">
         <i class="upload icon"></i> Import
-        <input id="importFileChooser" type="file" hidden />
+        <input id="importFileChooser" type="file" hidden/>
     </div>
     </p>
     <p>Contains file(s)
@@ -41,7 +41,7 @@ script: youtube-metadata-bulk
         <li>tags.csv - Tags table data.</li>
         <li>geotags.csv - Geotags table data.</li>
         <li>links.csv - Links table data.</li>
-        <li>frequency.csv - Upload frequency table data.</li>
+        <li>frequency.csv - Upload frequency table data (UTC+0).</li>
         <li>other.csv - Other table data.</li>
     </ul>
     </p>
@@ -105,6 +105,48 @@ script: youtube-metadata-bulk
     </p>
 </div>
 <div class="ui container" style="margin-top:1.5%">
+    <p>
+        <select id="offset" class="ui dropdown">
+            <option value="-1200">UTC −12:00</option>
+            <option value="-1100">UTC −11:00</option>
+            <option value="-1000">UTC −10:00</option>
+            <option value="-0930">UTC −09:30</option>
+            <option value="-0900">UTC −09:00</option>
+            <option value="-0800">UTC −08:00</option>
+            <option value="-0700">UTC −07:00</option>
+            <option value="-0600">UTC −06:00</option>
+            <option value="-0500">UTC −05:00</option>
+            <option value="-0400">UTC −04:00</option>
+            <option value="-0330">UTC −03:30</option>
+            <option value="-0300">UTC −03:00</option>
+            <option value="-0200">UTC −02:00</option>
+            <option value="-0100">UTC −01:00</option>
+            <option value="+0000" selected>UTC ±00:00</option>
+            <option value="+0100">UTC +01:00</option>
+            <option value="+0200">UTC +02:00</option>
+            <option value="+0300">UTC +03:00</option>
+            <option value="+0330">UTC +03:30</option>
+            <option value="+0400">UTC +04:00</option>
+            <option value="+0430">UTC +04:30</option>
+            <option value="+0500">UTC +05:00</option>
+            <option value="+0530">UTC +05:30</option>
+            <option value="+0545">UTC +05:45</option>
+            <option value="+0600">UTC +06:00</option>
+            <option value="+0630">UTC +06:30</option>
+            <option value="+0700">UTC +07:00</option>
+            <option value="+0800">UTC +08:00</option>
+            <option value="+0845">UTC +08:45</option>
+            <option value="+0900">UTC +09:00</option>
+            <option value="+0930">UTC +09:30</option>
+            <option value="+1000">UTC +10:00</option>
+            <option value="+1030">UTC +10:30</option>
+            <option value="+1100">UTC +11:00</option>
+            <option value="+1200">UTC +12:00</option>
+            <option value="+1245">UTC +12:45</option>
+            <option value="+1300">UTC +13:00</option>
+            <option value="+1400">UTC +14:00</option>
+        </select>
+    </p>
     <div id="uploadFrequency"></div>
 </div>
 <div class="ui container" style="margin-top:1.5%">
