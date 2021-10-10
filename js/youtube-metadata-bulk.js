@@ -1221,7 +1221,7 @@ const bulk = (function () {
             value: 0,
             check: function (video) {
                 const stat = idx(["contentDetails", "caption"], video);
-                if (stat === true) {
+                if (stat === "true") {
                     this.value = this.value + 1;
                 }
             }
