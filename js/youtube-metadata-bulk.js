@@ -651,6 +651,7 @@ const bulk = (function () {
         const newChartData = [];
         for (let weekday in rawChartData) {
             newChartData.push(rawChartData[weekday]);
+            chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
         }
         controls.uploadFrequency.updateSeries(newChartData)
 
@@ -1134,6 +1135,7 @@ const bulk = (function () {
     let tagsData = {};
     let geotagsData = {};
     let linksData = {};
+    let chartData = {};
     let otherData = [
         {
             text: "Total videos",
@@ -1652,6 +1654,14 @@ const bulk = (function () {
                     linkCsvRows.push(link + "\t" + linkData.count + "\t" + linkData.firstUsed.format(dateFormat) + "\t" + linkData.firstVideo + "\t" + linkData.lastUsed.format(dateFormat) + "\t" + linkData.lastVideo);
                 }
                 zip.file("links.csv", linkCsvRows.join("\r\n"));
+
+                console.log("Creating frequency.csv...")
+                const frequencyCsvRows = ["Weekday\t12AM\t1AM\t2AM\t3AM\t4AM\t5AM\t6AM\t7AM\t8AM\t9AM\t10AM\t11AM\t12PM\t1PM\t2PM\t3PM\t4PM\t5PM\t6PM\t7PM\t8PM\t9PM\t10PM\t11PM"];
+                for (let row in chartData) {
+                    const data = chartData[row];
+                    frequencyCsvRows.push(row + "\t" + data.join("\t"));
+                }
+                zip.file("frequency.csv", frequencyCsvRows.join("\r\n"));
 
                 console.log("Creating other.csv...")
                 const otherCsvRows = ["Statistic\tValue"];
