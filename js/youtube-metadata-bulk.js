@@ -630,7 +630,23 @@ const bulk = (function () {
         }
         sliceLoad(linksRows, controls.linksTable);
 
-        loadChartData(controls.offset.val());
+        const timezoneOffset = controls.offset.val();
+        const years = [];
+        for (let i = 0; i < rawVideoData.length; i++) {
+            const video = rawVideoData[i];
+            const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
+            const year = timestamp.format('yyyy');
+            if (years.indexOf(year) === -1) {
+                years.push(year);
+            }
+        }
+        years.sort();
+        years.reverse();
+        for (let i = 0; i < years.length; i++) {
+            const year = years[i];
+            controls.year.append("<option value='" + year + "'>" + year + "</option>");
+        }
+        loadChartData(timezoneOffset);
 
         for (let i = 0; i < otherData.length; i++) {
             const other = otherData[i];
@@ -642,15 +658,14 @@ const bulk = (function () {
         }
     }
 
-    function loadChartData(timezoneOffset) {
+    function loadChartData(timezoneOffset, yearFilter) {
         if (rawVideoData.length === 0) {
             return;
         }
 
-        console.log('Loading chart data offset=' + timezoneOffset)
+        console.log('Loading chart data [offset=' + timezoneOffset + ", yearFilter=" + yearFilter + "]")
 
         const days = ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
-
         const rawChartData = {};
         for (let i = 0; i < days.length; i++) {
             const dayName = days[i];
@@ -664,7 +679,11 @@ const bulk = (function () {
             const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
             const dayName = timestamp.format('dddd');
             const hour24 = timestamp.format('H');
-            rawChartData[dayName].data[hour24] = rawChartData[dayName].data[hour24] + 1;
+            const year = timestamp.format('yyyy');
+
+            if (!yearFilter || yearFilter === "" || year === yearFilter) {
+                rawChartData[dayName].data[hour24] = rawChartData[dayName].data[hour24] + 1;
+            }
         }
 
         console.log(rawChartData);
@@ -1515,7 +1534,11 @@ const bulk = (function () {
             });
             controls.offset = $("#offset");
             controls.offset.on('change', function() {
-                loadChartData(controls.offset.val());
+                loadChartData(controls.offset.val(), controls.year.val());
+            });
+            controls.year = $("#year");
+            controls.year.on('change', function() {
+                loadChartData(controls.offset.val(), controls.year.val());
             });
             const options = {
                 series: [
@@ -1780,6 +1803,8 @@ const bulk = (function () {
             linksData = {};
             controls.linksTable.clear();
             controls.linksTable.draw(false);
+
+            controls.year.html("<option value='' selected>All years</option>")
 
             for (let i = 0; i < otherData.length; i++) {
                 otherData[i].value = 0;
