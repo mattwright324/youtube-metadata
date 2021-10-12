@@ -1716,7 +1716,13 @@ const bulk = (function () {
                 zip.file("other.csv", otherCsvRows.join("\r\n"));
 
                 console.log("Saving as bulk_metadata.zip")
-                zip.generateAsync({type: "blob"}).then(function (content) {
+                zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE",
+                    compressionOptions: {
+                        level: 9
+                    }
+                }).then(function (content) {
                     saveAs(content, "bulk_metadata.zip");
 
                     controls.btnExport.removeClass("loading").removeClass("disabled");

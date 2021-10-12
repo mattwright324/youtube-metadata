@@ -1183,7 +1183,13 @@
                 }
 
                 console.log("Saving as metadata.zip")
-                zip.generateAsync({type: "blob"}).then(function (content) {
+                zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE",
+                    compressionOptions: {
+                        level: 9
+                    }
+                }).then(function (content) {
                     saveAs(content, "metadata.zip");
 
                     controls.btnExport.removeClass("loading").removeClass("disabled");
