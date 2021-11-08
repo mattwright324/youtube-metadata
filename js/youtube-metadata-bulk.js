@@ -623,6 +623,7 @@ const bulk = (function () {
             const linkData = linksData[link];
             linksRows.push([
                 link,
+                link.startsWith('http') ? "<a href='" + link + "' target='_blank'>" + link + "</a>" : link,
                 "<a data-value='" + linkData.firstUsed + "' href='https://youtu.be/" + linkData.firstVideo + "' target='_blank'>" + linkData.firstUsed.format(dateFormat) + "</a>",
                 "<a data-value='" + linkData.lastUsed + "' href='https://youtu.be/" + linkData.lastVideo + "' target='_blank'>" + linkData.lastUsed.format(dateFormat) + "</a>",
                 linkData.count
@@ -632,19 +633,23 @@ const bulk = (function () {
 
         const timezoneOffset = controls.offset.val();
         const years = [];
+        const yearCount = {};
         for (let i = 0; i < rawVideoData.length; i++) {
             const video = rawVideoData[i];
             const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
             const year = timestamp.format('yyyy');
             if (years.indexOf(year) === -1) {
                 years.push(year);
+                yearCount[year] = 1;
+            } else {
+                yearCount[year] = yearCount[year] + 1;
             }
         }
         years.sort();
         years.reverse();
         for (let i = 0; i < years.length; i++) {
             const year = years[i];
-            controls.year.append("<option value='" + year + "'>" + year + "</option>");
+            controls.year.append("<option value='" + year + "'>" + year + "  (" + yearCount[year] + " videos)</option>");
         }
         loadChartData(timezoneOffset);
 
@@ -1392,7 +1397,7 @@ const bulk = (function () {
             "type='checkbox' " +
             "name='" + column.title + "' " +
             (column.visible ? "checked" : "") + " " +
-            "onclick='bulk.toggleColumn(" + i + ")'" +
+            "onclick='bulk.toggleResultsColumn(" + i + ")'" +
             ">" +
             "<label for='column-" + column.title + "'>" + column.title + "</label>" +
             "</div>")
@@ -1503,7 +1508,14 @@ const bulk = (function () {
             });
             controls.linksTable = $("#linksTable").DataTable({
                 columns: [
-                    {title: "Link"},
+                    {
+                        title: "Link",
+                        visible: true
+                    },
+                    {
+                        title: "Link (hyper)",
+                        visible: false,
+                    },
                     {
                         title: "First used",
                         type: 'datetime',
@@ -1526,9 +1538,9 @@ const bulk = (function () {
                 }, {
                     "width": "100%",
                     "className": "wrap",
-                    "targets": 0
+                    "targets": [0, 1]
                 }],
-                order: [[3, 'desc'], [0, 'asc']],
+                order: [[4, 'desc'], [0, 'asc']],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1823,8 +1835,14 @@ const bulk = (function () {
     $(document).ready(internal.init);
 
     return {
-        toggleColumn(index) {
+        toggleResultsColumn(index) {
             const column = controls.videosTable.column(index);
+
+            column.visible(!column.visible());
+        },
+        toggleLinksColumn(index) {
+            console.log('toggle links ' + index)
+            const column = controls.linksTable.column(index);
 
             column.visible(!column.visible());
         }
