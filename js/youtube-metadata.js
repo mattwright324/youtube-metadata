@@ -240,7 +240,7 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #statistics");
 
-                    if (partJson.hasOwnProperty("likeCount")) {
+                    if (partJson.hasOwnProperty("likeCount") && partJson.hasOwnProperty("dislikeCount")) {
                         const normalized = normalize(partJson.likeCount, partJson.dislikeCount);
 
                         const html =
@@ -250,7 +250,7 @@
                                 "<span style='color:red'>" + Math.trunc(normalized.b) + " dislike(s)</span>" +
                             "</p>";
                         partDiv.append(html);
-                    } else {
+                    } else if (!partJson.hasOwnProperty("likeCount")) {
                         partDiv.append("<p class='mb-15'>This video has likes disabled.</p>")
                     }
 

@@ -89,3 +89,7 @@ h1 {
 .text-left {
     text-align: left;
 }
+
+.exclamation.triangle {
+    color: orange;
+}

@@ -10,6 +10,7 @@ const bulk = (function () {
     'use strict';
 
     const controls = {};
+    const BEFORE_2022 = moment().isBefore(moment('2022-01-01'));
 
     const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
 
@@ -887,14 +888,14 @@ const bulk = (function () {
         {
             title: "Dislikes",
             type: "num",
-            visible: true,
+            visible: BEFORE_2022,
             _idx: ["statistics", "dislikeCount"],
             valueMod: function (value) {
                 return value ? {
                     display: Number(value).toLocaleString(),
                     num: value
                 } : {
-                    display: "disabled",
+                    display: BEFORE_2022 ? "disabled" : "", // Dislikes will not be returned in 2022
                     num: -1
                 };
             },
