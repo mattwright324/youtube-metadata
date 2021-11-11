@@ -888,7 +888,7 @@ const bulk = (function () {
         {
             title: "Dislikes",
             type: "num",
-            visible: true,
+            visible: BEFORE_2022,
             _idx: ["statistics", "dislikeCount"],
             valueMod: function (value) {
                 return value ? {
