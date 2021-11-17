@@ -10,6 +10,7 @@ const bulk = (function () {
     'use strict';
 
     const controls = {};
+    const elements = {};
     const BEFORE_DISLIKES = moment().isBefore(moment('2021-12-13'));
 
     const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
@@ -55,6 +56,45 @@ const bulk = (function () {
             }
         }
         return parsed;
+    }
+
+    function handleSearch(searchParams, maxPages) {
+        new Promise(function (resolve, reject) {
+            const results = [];
+
+            function doSearch(page, token) {
+                console.log("page " + page);
+
+                youtube.ajax("search", $.extend({
+                    pageToken: token
+                }, searchParams)).done(function (res) {
+                    console.log(res);
+
+                    for (let i = 0; i < res.items.length; i++) {
+                        const id = idx(["items", i, "id"], res);
+                        if (id.hasOwnProperty("videoId")) {
+                            results.push({type: "video_id", value: id.videoId});
+                        }
+                        if (id.hasOwnProperty("channelId")) {
+                            results.push({type: "channel_id", value: id.channelId});
+                        }
+                        if (id.hasOwnProperty("playlistId")) {
+                            results.push({type: "playlist_id", value: id.playlistId});
+                        }
+                    }
+                    if (res.hasOwnProperty("nextPageToken") && page < maxPages) {
+                        doSearch(page + 1, res.nextPageToken);
+                    } else {
+                        resolve(results);
+                    }
+                }).fail(function (err) {
+                    console.log(err);
+                });
+            }
+            doSearch(1, "");
+        }).then(function (results) {
+            handleParsedNew(results);
+        });
     }
 
     function handleParsedNew(parsed) {
@@ -895,7 +935,7 @@ const bulk = (function () {
                     display: Number(value).toLocaleString(),
                     num: value
                 } : {
-                    display: BEFORE_DISLIKES ? "disabled" : "", // Dislikes will not be returned in 2022
+                    display: BEFORE_DISLIKES ? "disabled" : "",
                     num: -1
                 };
             },
@@ -1628,6 +1668,15 @@ const bulk = (function () {
             controls.btnImport = $("#import");
             controls.importFileChooser = $("#importFileChooser");
 
+            elements.regularInput = $("#regularInput");
+            elements.searchInput = $("#searchInput");
+
+            controls.searchQuery = $("#searchQuery");
+            controls.searchType = $("#searchType");
+            controls.searchOrder = $("#searchOrder");
+            controls.searchPages = $("#searchPages");
+            controls.btnSubmitSearch = $("#submitSearch");
+
             new ClipboardJS(".clipboard");
 
             internal.buildPage(true);
@@ -1667,6 +1716,23 @@ const bulk = (function () {
                 controls.progress.indeterminate(0);
 
                 handleParsedNew(parsed);
+            });
+            controls.btnSubmitSearch.on('click', function () {
+                internal.reset();
+
+                const searchParams = {
+                    part: 'id',
+                    q: controls.searchQuery.val(),
+                    type: controls.searchType.val(),
+                    order: controls.searchOrder.val(),
+                    maxResults: 50
+                }
+                const maxPages = controls.searchPages.val();
+
+                console.log(searchParams);
+                console.log(maxPages + "pages");
+
+                handleSearch(searchParams, maxPages)
             });
 
             controls.btnExport.on('click', function () {
@@ -1791,6 +1857,11 @@ const bulk = (function () {
 
             const query = parseQuery(window.location.search);
             console.log(query);
+            if (query.hasOwnProperty("searchMode") && String(query.searchMode).toLowerCase() === String(true)) {
+                elements.regularInput.attr("hidden", true);
+                elements.searchInput.attr("hidden", false);
+                $("#formatShare").hide();
+            }
             if (query.hasOwnProperty("url")) {
                 controls.inputValue.val(decodeURIComponent(query.url));
             }

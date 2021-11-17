@@ -7,16 +7,47 @@ script: youtube-metadata-bulk
     {% include nav.html title=page.title %}
 
     <p>YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.</p>
-    <p>Submit a comma separated list of multiple videos, playlists, or channels</p>
-    <div class="ui four column">
-        <div class="ui fluid action input">
-            <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov">
-            <div id="submit" class="ui button">Submit</div>
+    <div id="regularInput">
+        <p>Submit a comma separated list of multiple videos, playlists, or channels</p>
+        <div class="ui four column">
+            <div class="ui fluid action input">
+                <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov">
+                <div id="submit" class="ui button">Submit</div>
+            </div>
+            <br>
+            <div class="ui checkbox">
+                <input id="createdPlaylists" type="checkbox">
+                <label>Inspect videos in created playlists to find unlisted videos (channels only)</label>
+            </div>
         </div>
-        <br>
-        <div class="ui checkbox">
-            <input id="createdPlaylists" type="checkbox">
-            <label>Inspect videos in created playlists to find unlisted videos (channels only)</label>
+    </div>
+    <div id="searchInput" hidden>
+        <!-- Hidden as not intended to be available yet -->
+        <p>Submit inputs to inspect videos from the search function.</p>
+        <div class="ui two column">
+            <div class="ui fluid action input">
+                <input id="searchQuery" type="text" placeholder="Search">
+                <select id="searchType" class="ui dropdown">
+                    <option value="">Any type</option>
+                    <option value="video" selected>Videos only</option>
+                    <option value="channel">Channels only</option>
+                    <option value="playlist">Playlists only</option>
+                </select>
+                <select id="searchOrder" class="ui dropdown">
+                    <option value="date">Date order</option>
+                    <option value="rating">Rating order</option>
+                    <option value="relevance">Relevance order</option>
+                    <option value="viewCount">View count order</option>
+                </select>
+                <select id="searchPages" class="ui dropdown">
+                    <option value="1">1 page</option>
+                    <option value="2">2 pages</option>
+                    <option value="3" selected>3 pages</option>
+                    <option value="4">4 pages</option>
+                    <option value="5">5 pages</option>
+                </select>
+                <div id="submitSearch" class="ui button">Submit</div>
+            </div>
         </div>
     </div>
 </div>
