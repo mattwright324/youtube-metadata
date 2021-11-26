@@ -1481,7 +1481,7 @@ const bulk = (function () {
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[7, 'desc']],
+                order: [[8, 'desc']],
                 deferRender: true,
                 bDeferRender: true
             });
