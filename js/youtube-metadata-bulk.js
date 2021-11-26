@@ -9,8 +9,8 @@
 const bulk = (function () {
     'use strict';
 
-    const controls = {};
     const elements = {};
+    const controls = {};
     const BEFORE_DISLIKES = moment().isBefore(moment('2021-12-13'));
 
     const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
@@ -859,6 +859,29 @@ const bulk = (function () {
                     num: length
                 } : {
                     display: formatDuration(duration, false),
+                    num: length
+                }
+            },
+            render: {
+                _: 'display',
+                sort: 'num'
+            },
+            className: "dt-nowrap"
+        },
+        {
+            title: "Length (Seconds)",
+            type: "num",
+            visible: false,
+            _idx: ["contentDetails", "duration"],
+            valueMod: function (value) {
+                const duration = moment.duration(value);
+                const length = duration.asMilliseconds();
+
+                return length === 0 ? {
+                    display: 'livestream',
+                    num: length
+                } : {
+                    display: length / 1000,
                     num: length
                 }
             },
@@ -1846,10 +1869,10 @@ const bulk = (function () {
             });
 
             function parseQuery(queryString) {
-                var query = {};
-                var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-                for (var i = 0; i < pairs.length; i++) {
-                    var pair = pairs[i].split('=');
+                let query = {};
+                let pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+                for (let i = 0; i < pairs.length; i++) {
+                    let pair = pairs[i].split('=');
                     query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
                 }
                 return query;
