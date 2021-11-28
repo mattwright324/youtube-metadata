@@ -10,6 +10,14 @@ body {
     color: orange;
 }
 
+.red {
+    color: red;
+}
+
+.green {
+    color: green;
+}
+
 table {
     font-size: initial;
 }
