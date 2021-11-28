@@ -417,14 +417,16 @@
                     if (partJson.hasOwnProperty('regionRestriction')) {
                         const restriction = partJson.regionRestriction;
 
+                        const totalIsoCodes = iso3166.codes.length;
                         // Should have only one or the other, never both
+                        let message;
                         if (restriction.hasOwnProperty('allowed')) {
-                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction allowed</span>. " +
-                                "Only these " + restriction.allowed.length + " region(s) are allowed to watch the video.</p>");
+                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction allowed</span>.");
+                            message = "These <span class='orange'>" + restriction.allowed.length + " / " + totalIsoCodes + "</span> region(s) are allowed to watch the video.</p>";
                             restriction.allowed.sort();
                         } else if (restriction.hasOwnProperty('blocked')) {
-                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction blocked</span>. " +
-                                "These " + restriction.blocked.length + " region(s) are not allowed to watch the video.</p>");
+                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction blocked</span>.");
+                            message = "These <span class='orange'>" + restriction.blocked.length + " / " + totalIsoCodes + "</span> region(s) are not allowed to watch the video.</p>";
                             restriction.blocked.sort();
                         }
 
@@ -437,7 +439,52 @@
 
                             translations.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>")
                         }
-                        partDiv.append("<ul>" + translations.join("") + "</ul>")
+                        partDiv.append(
+                            "<div class='ui accordion'>" +
+                                "<div class='title'>" +
+                                    "<i class='dropdown icon'></i>" +
+                                    message +
+                                "</div>" +
+                                "<div class='content'>" +
+                                    "<ul>" + translations.join("") + "</ul>" +
+                                "</div>" +
+                            "</div>");
+
+                        const notInList = [];
+                        for (let i = 0; i < iso3166.codes.length; i++) {
+                            const code = iso3166.codes[i].alpha2;
+                            if (codes.indexOf(code) === -1) {
+                                notInList.push(code);
+                            }
+                        }
+                        let message2;
+                        if (restriction.hasOwnProperty('allowed')) {
+                            message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are not allowed to watch the video.";
+                            restriction.allowed.sort();
+                        } else if (restriction.hasOwnProperty('blocked')) {
+                            message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are allowed to watch the video.";
+                            restriction.blocked.sort();
+                        }
+                        notInList.sort();
+                        const translations2 = [];
+                        for (let i = 0; i < notInList.length; i++) {
+                            const code = notInList[i];
+                            const result = iso3166.lookup(code);
+                            const name = (result ? result.name : 'ISO-3166 Could not translate')
+
+                            translations2.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>")
+                        }
+                        partDiv.append(
+                            "<div class='ui accordion'>" +
+                                "<div class='title'>" +
+                                    "<i class='dropdown icon'></i>" +
+                                    message2 +
+                                "</div>" +
+                                "<div class='content'>" +
+                                    "<ul>" + translations2.join("") + "</ul>" +
+                                "</div>" +
+                            "</div>");
+                        $('.ui.accordion').accordion();
                     }
 
                     const contentRating = partJson.contentRating;
@@ -772,16 +819,33 @@
         }
     };
 
-    function errorState(message, funcAppend) {
+    function errorState(message, funcAppend, errorJson) {
         $("#video,#playlist,#channel").hide();
-        $("#unknown").show();
 
-        $("#reason").html(message);
 
-        $("#reason-append").empty();
+        let reasonAppend;
+        const reason = idx(["responseJSON", "error", "errors", 0, "reason"], errorJson);
+        if (reason === "quotaExceeded") {
+            $("#quota").show();
+            reasonAppend = $("#quota-reason-append");
+            reasonAppend.empty();
+        } else {
+            $("#unknown").show();
+            $("#reason").html(message);
 
-        if (funcAppend) {
-            funcAppend($("#reason-append"));
+            reasonAppend = $("#reason-append");
+            reasonAppend.empty();
+
+            if (funcAppend) {
+                funcAppend(reasonAppend);
+            }
+        }
+        if (errorJson) {
+            reasonAppend.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+
+            const json = reasonAppend.find("code");
+            json.text(JSON.stringify(errorJson, null, 4));
+            hljs.highlightElement(json[0]);
         }
     }
 
@@ -812,7 +876,7 @@
 
                     const json = section.find("code");
                     json.text(JSON.stringify(item[part], null, 4));
-                    hljs.highlightBlock(json[0]);
+                    hljs.highlightElement(json[0]);
 
                     partMap[partMapType][part].postProcess(item[part], item);
                 }
@@ -824,16 +888,18 @@
         } else {
             errorState("Your link looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
                 const options = [];
+                const id = parsedInput.value;
 
-                options.push("<li><a target='_blank' href='https://www.google.com/search?q=\"" + parsedInput.value + "\"'>Google Search - \"" + parsedInput.value + "\"</a></li>");
-                options.push("<li><a target='_blank' href='https://web.archive.org/web/*/" + parsedInput.original + "'>Archive.org - " + parsedInput.original + "</a></li>");
+                options.push("<li><a target='_blank' href='https://www.google.com/search?q=\"" + id + "\"'>Google Search - \"" + id + "\"</a></li>");
 
                 if (partMapType === "video") {
-                    options.push("<li><a target='_blank' href='https://youtuberecover.com/watch?v=" + parsedInput.value + "'>YouTubeRecover.com - " + parsedInput.value + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://youtu.be/" + id + "'>Archive.org - https://youtu.be/" + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/?watch=" + id + "'>Archive.org - https://www.youtube.com/?watch=" + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://youtuberecover.com/watch?v=" + id + "'>YouTubeRecover.com - " + id + "</a></li>");
                 }
 
                 if (parsedInput.type === "channel_user") {
-                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + parsedInput.value + "'>SocialBlade.com - " + parsedInput.value + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
                 }
 
                 append.append("<p class='mb-15'>" +
@@ -1015,7 +1081,7 @@
             }).fail(function (err) {
                 console.log(err);
 
-                errorState("There was a problem querying for the video.");
+                errorState("There was a problem querying for the video.", null, err);
             });
         } else if (parsedInput.type === 'channel_id') {
             console.log('grabbing channel id');
@@ -1034,7 +1100,7 @@
             }).fail(function (err) {
                 console.error(err);
 
-                errorState("There was a problem querying for the channel.");
+                errorState("There was a problem querying for the channel.", null, err);
             });
         } else if (parsedInput.type === 'channel_user') {
             console.log('grabbing channel user');
@@ -1053,7 +1119,7 @@
             }).fail(function (err) {
                 console.error(err);
 
-                errorState("There was a problem querying for the channel.");
+                errorState("There was a problem querying for the channel.", null, err);
             });
         } else if (parsedInput.type === 'playlist_id') {
             console.log('grabbing playlist');
@@ -1072,7 +1138,7 @@
             }).fail(function (err) {
                 console.error(err);
 
-                errorState("There was a problem querying for the playlist.");
+                errorState("There was a problem querying for the playlist.", null, err);
             });
         }
     }
@@ -1151,7 +1217,7 @@
                 const parsed = determineInput(value);
 
                 $("#video,#playlist,#channel").show();
-                $("#unknown").hide();
+                $("#unknown,#quota").hide();
                 internal.buildPage(false);
                 submit(parsed);
             });
@@ -1212,7 +1278,7 @@
                 controls.btnImport.addClass("loading").addClass("disabled");
 
                 $("#video,#playlist,#channel").show();
-                $("#unknown").hide();
+                $("#unknown,#quota").hide();
                 internal.buildPage(false);
 
                 function loadFile(fileName, parseMethod, inputType) {

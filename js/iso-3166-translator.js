@@ -1269,6 +1269,7 @@ const iso3166 = (function () {
                     return codeMap;
                 }
             }
-        }
+        },
+        codes: codes
     }
 }());

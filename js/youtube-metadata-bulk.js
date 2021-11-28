@@ -1089,6 +1089,38 @@ const bulk = (function () {
             }
         },
         {
+            title: "Region Restriction Count",
+            type: "num",
+            visible: false,
+            _idx: ["contentDetails", "regionRestriction"],
+            valueMod: function (value) {
+                if (!$.isEmptyObject(value)) {
+                    console.log(value);
+
+                    if (value.hasOwnProperty('allowed')) {
+                        return {
+                            display: value.allowed.length + " (allowed)",
+                            num: value.allowed.length
+                        };
+                    } else if (value.hasOwnProperty('blocked')) {
+                        return {
+                            display: value.blocked.length + " (blocked)",
+                            num: value.blocked.length
+                        };
+                    }
+                }
+
+                return {
+                    display: "",
+                    num: 0
+                };
+            },
+            render: {
+                _: 'display',
+                sort: 'num'
+            }
+        },
+        {
             title: "Region Restriction",
             visible: false,
             _idx: ["contentDetails", "regionRestriction"],
