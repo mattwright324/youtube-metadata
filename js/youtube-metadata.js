@@ -421,12 +421,12 @@
                         // Should have only one or the other, never both
                         let message;
                         if (restriction.hasOwnProperty('allowed')) {
-                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction allowed</span>.");
-                            message = "These <span class='orange'>" + restriction.allowed.length + " / " + totalIsoCodes + "</span> region(s) are allowed to watch the video.</p>";
+                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction</span> <span class='green'>allowed</span>.");
+                            message = "These <span class='orange'>" + restriction.allowed.length + " / " + totalIsoCodes + "</span> region(s) are <span class='green'>allowed</span> to watch the video.</p>";
                             restriction.allowed.sort();
                         } else if (restriction.hasOwnProperty('blocked')) {
-                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction blocked</span>.");
-                            message = "These <span class='orange'>" + restriction.blocked.length + " / " + totalIsoCodes + "</span> region(s) are not allowed to watch the video.</p>";
+                            partDiv.append("<p class='mb-15'>This video is <span class='orange'>region-restriction</span> <span class='red'>blocked</span>.");
+                            message = "These <span class='orange'>" + restriction.blocked.length + " / " + totalIsoCodes + "</span> region(s) are <span class='red'>not allowed</span> to watch the video.</p>";
                             restriction.blocked.sort();
                         }
 
@@ -459,10 +459,10 @@
                         }
                         let message2;
                         if (restriction.hasOwnProperty('allowed')) {
-                            message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are not allowed to watch the video.";
+                            message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are <span class='red'>not allowed</span> to watch the video.";
                             restriction.allowed.sort();
                         } else if (restriction.hasOwnProperty('blocked')) {
-                            message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are allowed to watch the video.";
+                            message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are <span class='green'>allowed</span> to watch the video.";
                             restriction.blocked.sort();
                         }
                         notInList.sort();
