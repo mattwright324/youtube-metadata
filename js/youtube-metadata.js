@@ -850,7 +850,7 @@
     }
 
     function parseType(partMapType, sectionId, res, parsedInput) {
-        if (res.items.length > 0) {
+        if (res && res.items && res.items.length > 0) {
             const item = res.items[0];
 
             exportData[partMapType] = res;
@@ -894,11 +894,22 @@
 
                 if (partMapType === "video") {
                     options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://youtu.be/" + id + "'>Archive.org - https://youtu.be/" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/?watch=" + id + "'>Archive.org - https://www.youtube.com/?watch=" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://youtuberecover.com/watch?v=" + id + "'>YouTubeRecover.com - " + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + id + "'>Archive.org - https://www.youtube.com/watch?v=" + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://filmot.com/video/" + id + "'>Filmot.com - " + id + "</a></li>");
+                } else if (partMapType === "playlist") {
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/playlist?list=" + id + "'>Archive.org - https://www.youtube.com/playlist?list=" + id + "</a></li>");
                 }
 
                 if (parsedInput.type === "channel_user") {
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/user/" + id + "'>Archive.org - https://www.youtube.com/user/" + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
+                } else if (parsedInput.type === "channel_id") {
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/channel/" + id + "'>Archive.org - https://www.youtube.com/channel/" + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://filmot.com/channel/" + id + "'>Filmot.com - " + id + "</a></li>");
+                } else if (parsedInput.type === "channel_custom") {
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/c/" + id + "'>Archive.org - https://www.youtube.com/c/" + id + "</a></li>");
+                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/" + id + "'>Archive.org - https://www.youtube.com/" + id + "</a></li>");
                     options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
                 }
 
