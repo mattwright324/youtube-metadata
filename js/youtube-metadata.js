@@ -61,6 +61,7 @@
 
     function getSuggestedHtml(parsedInput, fullJson, jsonType) {
         const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType);
+        suggested.sort((a, b) => (a.text > b.text) ? 1 : -1)
         const html = [];
         for (let i = 0; i < suggested.length; i++) {
             const link = suggested[i];
