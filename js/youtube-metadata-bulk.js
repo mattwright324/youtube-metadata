@@ -59,7 +59,7 @@ const bulk = (function () {
     }
 
     function handleSearch(searchParams, maxPages) {
-        new Promise(function (resolve, reject) {
+        new Promise(function (resolve) {
             const results = [];
 
             function doSearch(page, token) {
@@ -157,7 +157,7 @@ const bulk = (function () {
     }
 
     function handleChannelUsers(channelUsers, playlistIds, channelIdsCreatedPlaylists) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             if (channelUsers.length === 0) {
                 console.log("no channelUsers")
                 resolve();
@@ -204,7 +204,7 @@ const bulk = (function () {
     }
 
     function handleChannelCustoms(channelCustoms, playlistIds, channelIdsCreatedPlaylists) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             if (channelCustoms.length === 0) {
                 console.log("no channelCustoms")
                 resolve();
@@ -283,7 +283,7 @@ const bulk = (function () {
                 channelIdsCreatedPlaylists.push(id);
             }
         }
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             if (channelIds.length === 0) {
                 console.log("no channelIds")
                 resolve();
@@ -336,7 +336,7 @@ const bulk = (function () {
     }
 
     function handleChannelIdsCreatedPlaylists(channelIds, playlistIds) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             if (channelIds.length === 0) {
                 console.log("no handleChannelIdsCreatedPlaylists")
                 resolve();
@@ -395,7 +395,7 @@ const bulk = (function () {
     }
 
     function handlePlaylistIds(playlistIds, videoIds) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             if (playlistIds.length === 0) {
                 console.log("no playlistIds")
                 resolve();
@@ -452,7 +452,7 @@ const bulk = (function () {
     function handleVideoIds(videoIds) {
         let processed = 0;
 
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             if (videoIds.length === 0) {
                 console.log("no videoIds")
                 resolve();
@@ -636,6 +636,32 @@ const bulk = (function () {
 
     function loadAggregateTables(callback) {
         const dateFormat = "YYYY-MM-DD";
+
+        let hasDislikes = false;
+        let hasUnlisted = false;
+        for (let i = 0; i < rawVideoData.length; i++) {
+            const video = rawVideoData[i];
+
+            const dislikes = idx(["statistics", "dislikeCount"], video);
+            if (dislikes) {
+                hasDislikes = true;
+            }
+
+            const privacyStatus = idx(["status", "privacyStatus"], video);
+            if (privacyStatus === "unlisted") {
+                hasUnlisted = true;
+            }
+        }
+        const dislikesCheck = document.getElementById("column-Dislikes");
+        const privacyStatusCheck = document.getElementById("column-Privacy Status");
+        console.log(hasDislikes + " " + dislikesCheck.checked + " " + hasUnlisted + " " + privacyStatusCheck.checked)
+        if (hasDislikes && !dislikesCheck.checked) {
+            dislikesCheck.click();
+        }
+        if (hasUnlisted && !privacyStatusCheck.checked) {
+            privacyStatusCheck.click();
+        }
+        console.log(hasDislikes + " " + dislikesCheck.checked + " " + hasUnlisted + " " + privacyStatusCheck.checked)
 
         const tagRows = [];
         for (let tag in tagsData) {
@@ -1504,7 +1530,7 @@ const bulk = (function () {
             $(".ui.checkbox").checkbox();
 
             controls.inputValue = $("#value");
-            controls.inputValue.val(EXAMPLE_BULK[Math.trunc(Math.random() * EXAMPLE_BULK.length)])
+            controls.inputValue.val(EXAMPLE_BULK[rando(0, EXAMPLE_BULK.length-1)]);
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
             controls.videosTable = $('#videosTable').DataTable({
@@ -1732,11 +1758,17 @@ const bulk = (function () {
             controls.searchPages = $("#searchPages");
             controls.btnSubmitSearch = $("#submitSearch");
 
+            elements.dislikeMessage = $("#dislikeMessage");
+
             new ClipboardJS(".clipboard");
 
             internal.buildPage(true);
         },
         buildPage: function (doSetup) {
+            if (!BEFORE_DISLIKES) {
+                elements.dislikeMessage.hide();
+            }
+
             if (doSetup) {
                 internal.setupControls();
             }

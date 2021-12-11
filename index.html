@@ -36,10 +36,11 @@ script: youtube-metadata
         <li>video.json - Raw video data.</li>
         <li>playlist.json - Raw playlist data.</li>
         <li>channel.json - Raw channel data.</li>
+        <li>✱-thumb.png - Thumbs if available.</li>
     </ul>
     </p>
     <p class='mb-15'>
-    <div class='ui yellow message'>
+    <div id='dislikeMessage' class='ui yellow message'>
         <i class='exclamation triangle icon'></i>
         YouTube is <a href='https://blog.youtube/news-and-events/update-to-youtube/' target='_blank'>removing the
         dislikeCount after 2021-12-13</a>.
@@ -61,6 +62,11 @@ script: youtube-metadata
         <div class="ui four column stackable grid">
             <div id="thumbnails" class="row"></div>
         </div>
+        <div class='section-header unknown'><i class='question circle icon'></i><span>More</span></div>
+        <p>Check other resources for details or archival.</p>
+        <div class="ui four column stackable grid">
+            <div id="video-more" class="row" style="padding-top:0"></div>
+        </div>
     </div>
 
     <div id="playlist" class="ui section">
@@ -70,6 +76,11 @@ script: youtube-metadata
                      target="_blank">here</a> to see detailed property descriptions.
         </p>
         <div id="playlist-section"></div>
+        <div class='section-header unknown'><i class='question circle icon'></i><span>More</span></div>
+        <p>Check other resources for details or archival.</p>
+        <div class="ui four column stackable grid">
+            <div id="playlist-more" class="row" style="padding-top:0"></div>
+        </div>
     </div>
 
     <div id="channel" class="ui section">
@@ -79,6 +90,11 @@ script: youtube-metadata
             to see detailed property descriptions.
         </p>
         <div id="channel-section"></div>
+        <div class='section-header unknown'><i class='question circle icon'></i><span>More</span></div>
+        <p>Check other resources for details or archival.</p>
+        <div class="ui four column stackable grid">
+            <div id="channel-more" class="row" style="padding-top:0"></div>
+        </div>
     </div>
 
     <div id="unknown" class="ui section" style="display: none">
