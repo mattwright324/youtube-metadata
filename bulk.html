@@ -64,6 +64,10 @@ script: youtube-metadata-bulk
         <input id="importFileChooser" type="file" hidden/>
     </div>
     </p>
+    <div class="ui checkbox" style="margin-bottom: 1em">
+        <input id="includeThumbs" type="checkbox">
+        <label>Include thumbnails on export (this may take a long time)</label>
+    </div>
     <p>Contains file(s)
     <ul>
         <li>about.txt - Metadata about this result.</li>
@@ -74,6 +78,7 @@ script: youtube-metadata-bulk
         <li>links.csv - Links table data.</li>
         <li>frequency.csv - Upload frequency table data (UTC+0).</li>
         <li>other.csv - Other table data.</li>
+        <li>thumbs/videoId.png - Thumbs if available.</li>
     </ul>
     </p>
     <p class='mb-15'>
