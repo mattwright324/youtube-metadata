@@ -11,6 +11,7 @@
 
     const elements = {};
     const controls = {};
+    const BEFORE_DISLIKES = moment().isBefore(moment('2021-12-13'));
     let exportData = {};
 
     const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
@@ -56,6 +57,135 @@
             }
         }
         return parsed;
+    }
+
+    function getSuggestedHtml(parsedInput, fullJson, jsonType) {
+        const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType);
+        const html = [];
+        for (let i = 0; i < suggested.length; i++) {
+            const link = suggested[i];
+            html.push("<li><a target='_blank' href='" + link.url + "'>" + link.text + "</a></li>")
+        }
+        return "<ul>" + html.join("") + "</ul>";
+    }
+
+    function getSuggestedLinks(parsedInput, fullJson, jsonType) {
+        const data = {}
+        if (parsedInput) {
+            data[parsedInput.type] = parsedInput.value;
+        } else if (fullJson) {
+            if (jsonType === "video") {
+                data["video_id"] = fullJson.id;
+                data["video_title"] = idx(["snippet", "title"], fullJson);
+                data["test"] = "test";
+            } else if (jsonType === "playlist") {
+                data["playlist_id"] = fullJson.id;
+                data["playlist_title"] = idx(["snippet", "title"], fullJson);
+            } else if (jsonType === "channel") {
+                data["channel_id"] = fullJson.id;
+                data["channel_title"] = idx(["snippet", "title"], fullJson);
+
+                const custom = idx(["snippet", "customUrl"], fullJson);
+                if (custom) {
+                    data["channel_custom"] = custom;
+                }
+            }
+        }
+        console.log(data);
+
+        const suggestions = [];
+        if (data.hasOwnProperty("video_title")) {
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.video_title + "\"",
+                text: "Google - \"" + data.video_title + "\""
+            });
+        }
+        if (data.hasOwnProperty("video_id")) {
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.video_id + "\"",
+                text: "Google - \"" + data.video_id + "\""
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://youtu.be/" + data.video_id,
+                text: "Archive.org - https://youtu.be/" + data.video_id
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + data.video_id,
+                text: "Archive.org - https://www.youtube.com/watch?v=" + data.video_id
+            });
+            suggestions.push({
+                url: "https://filmot.com/video/" + data.video_id,
+                text: "Filmot.com - https://filmot.com/video/" + data.video_id
+            });
+        }
+        if (data.hasOwnProperty("playlist_title")) {
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.playlist_title + "\"",
+                text: "Google - \"" + data.playlist_title + "\""
+            });
+        }
+        if (data.hasOwnProperty("playlist_id")) {
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.playlist_id + "\"",
+                text: "Google - \"" + data.playlist_id + "\""
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://www.youtube.com/playlist?list=" + data.playlist_id,
+                text: "Archive.org - https://www.youtube.com/playlist?list=" + data.playlist_id
+            });
+        }
+        if (data.hasOwnProperty("channel_title")) {
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.channel_title + "\"",
+                text: "Google - \"" + data.channel_title + "\""
+            });
+        }
+        if (data.hasOwnProperty("channel_user")) {
+            // this can only happen if /user/ no longer exists on submit
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.channel_user + "\"",
+                text: "Google - \"" + data.channel_user + "\""
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://www.youtube.com/user/" + data.channel_user,
+                text: "Archive.org - https://www.youtube.com/user/" + data.channel_user
+            });
+        }
+        if (data.hasOwnProperty("channel_custom")) {
+            // this can only happen in channel-more if user has custom value
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.channel_custom + "\"",
+                text: "Google - \"" + data.channel_custom + "\""
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://www.youtube.com/c/" + data.channel_custom,
+                text: "Archive.org - https://www.youtube.com/c/" + data.channel_custom
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://www.youtube.com/" + data.channel_custom,
+                text: "Archive.org - https://www.youtube.com/" + data.channel_custom
+            });
+        }
+        if (data.hasOwnProperty("channel_id")) {
+            suggestions.push({
+                url: "https://www.google.com/search?q=\"" + data.channel_id + "\"",
+                text: "Google - \"" + data.channel_id + "\""
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/*/https://www.youtube.com/channel/" + data.channel_id,
+                text: "Archive.org - https://www.youtube.com/channel/" + data.channel_id
+            });
+            suggestions.push({
+                url: "https://socialblade.com/youtube/channel/" + data.channel_id,
+                text: "Socialblade.com - " + data.channel_id
+            })
+            suggestions.push({
+                url: "https://filmot.com/channel/" + data.channel_id,
+                text: "Filmot.com - https://filmot.com/channel/" + data.channel_id
+            });
+        }
+
+        return suggestions;
     }
 
     function getDuration(a, b) {
@@ -135,7 +265,7 @@
         }
 
         partDiv.append("<p class='mb-15'>Localizations for..." +
-                "<ul>" + translations.join("") + "</ul>" +
+            "<ul>" + translations.join("") + "</ul>" +
             "</p>")
     }
 
@@ -150,6 +280,7 @@
                 }
                 return gcd(q, p % q);
             }
+
             gcdValue = gcd(a, b);
             gcdA = gcdValue === 0 ? 0 : a / gcdValue;
             gcdB = gcdValue === 0 ? 0 : b / gcdValue;
@@ -181,9 +312,9 @@
                     const partDiv = $("#video-section #snippet");
 
                     const thumbs = partJson.thumbnails;
-                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url:"https://placehold.it/480x360"}).url;
+                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: "https://placehold.it/480x360"}).url;
 
-                    partDiv.append("<a target='_blank' href='https://youtu.be/" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15'></a>");
+                    partDiv.append("<a target='_blank' href='https://youtu.be/" + fullJson.id + "'><img id='video-thumb' src='" + thumbUrl + "' class='mb-15'></a>");
 
                     const titleHtml =
                         "<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>";
@@ -191,24 +322,24 @@
 
                     const authorHtml =
                         "<p class='mb-15'>Published by " +
-                            "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
-                                partJson.channelTitle +
-                            "</a>" +
+                        "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
+                        partJson.channelTitle +
+                        "</a>" +
                         "</p>";
                     partDiv.append(authorHtml);
 
                     const published = new Date(partJson.publishedAt);
                     const dateHtml =
                         "<p class='mb-15'>Published on " +
-                            "<span class='orange'>" + published.toUTCString() + "</span>" +
-                            " (" + moment(published).utc().fromNow() + ")" +
+                        "<span class='orange'>" + published.toUTCString() + "</span>" +
+                        " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
 
                     if (partJson.tags) {
                         const tagsHtml =
                             "<p class='mb-15'>Tag(s): " +
-                                "<span class='tag'>" + partJson.tags.join("</span><span class='comma'>, </span><span class='tag'>") + "</span>" +
+                            "<span class='tag'>" + partJson.tags.join("</span><span class='comma'>, </span><span class='tag'>") + "</span>" +
                             "</p>";
                         partDiv.append(tagsHtml);
                     } else {
@@ -245,13 +376,18 @@
 
                         const html =
                             "<p class='mb-15'>" +
-                                "Normalized like ratio: " +
-                                "<span style='color:green'>" + Math.trunc(normalized.a) + " like(s)</span> per " +
-                                "<span style='color:red'>" + Math.trunc(normalized.b) + " dislike(s)</span>" +
+                            "Normalized like ratio: " +
+                            "<span style='color:green'>" + Math.trunc(normalized.a) + " like(s)</span> per " +
+                            "<span style='color:red'>" + Math.trunc(normalized.b) + " dislike(s)</span>" +
                             "</p>";
                         partDiv.append(html);
                     } else if (!partJson.hasOwnProperty("likeCount")) {
-                        partDiv.append("<p class='mb-15'>This video has likes disabled.</p>")
+                        partDiv.append("<p class='mb-15'>This video has likes disabled.</p>");
+                    }
+
+                    if (!partJson.hasOwnProperty("dislikeCount")) {
+                        partDiv.append("<p class='mb-15'>YouTube no longer provides the <span class='orange'>dislikeCount</span> since 2021-12-13 " +
+                            "(<a href='https://developers.google.com/youtube/v3/revision_history#november-18,-2021' target='_blank'>see more here</a>). </p>");
                     }
 
                     if (!partJson.hasOwnProperty("viewCount")) {
@@ -276,12 +412,12 @@
 
                         const link = partJson.hasOwnProperty("locationDescription") ?
                             "https://maps.google.com/maps/search/" + encodeURI(partJson.locationDescription).replace(/'/g, "%27") + "/@" + latlng + ",14z" :
-                            "https://maps.google.com/maps?q=loc:"+latlng;
+                            "https://maps.google.com/maps?q=loc:" + latlng;
 
                         const html =
                             "<p class='mb-15'><a href='" + link + "' target='_blank'>" +
-                                "<img src='"+ staticMap +"' alt='Google Maps Static Map'>" +
-                                "<p>Click to open in Google Maps</p>" +
+                            "<img src='" + staticMap + "' alt='Google Maps Static Map'>" +
+                            "<p>Click to open in Google Maps</p>" +
                             "</a></p>";
 
                         partDiv.append(html);
@@ -292,8 +428,8 @@
 
                         const dateHtml =
                             "<p class='mt-15 mb-15'>Recorded on " +
-                                "<span class='orange'>" + recordDate.format("ddd, DD MMM YYYY") + "</span>" +
-                                " (" + recordDate.fromNow() + "). YouTube Studio only allows creators to pick the date so there is no time on this timestamp." +
+                            "<span class='orange'>" + recordDate.format("ddd, DD MMM YYYY") + "</span>" +
+                            " (" + recordDate.fromNow() + "). YouTube Studio only allows creators to pick the date so there is no time on this timestamp." +
                             "</p>";
                         partDiv.append(dateHtml);
 
@@ -441,13 +577,13 @@
                         }
                         partDiv.append(
                             "<div class='ui accordion'>" +
-                                "<div class='title'>" +
-                                    "<i class='dropdown icon'></i>" +
-                                    message +
-                                "</div>" +
-                                "<div class='content'>" +
-                                    "<ul>" + translations.join("") + "</ul>" +
-                                "</div>" +
+                            "<div class='title'>" +
+                            "<i class='dropdown icon'></i>" +
+                            message +
+                            "</div>" +
+                            "<div class='content'>" +
+                            "<ul>" + translations.join("") + "</ul>" +
+                            "</div>" +
                             "</div>");
 
                         const notInList = [];
@@ -476,13 +612,13 @@
                         }
                         partDiv.append(
                             "<div class='ui accordion'>" +
-                                "<div class='title'>" +
-                                    "<i class='dropdown icon'></i>" +
-                                    message2 +
-                                "</div>" +
-                                "<div class='content'>" +
-                                    "<ul>" + translations2.join("") + "</ul>" +
-                                "</div>" +
+                            "<div class='title'>" +
+                            "<i class='dropdown icon'></i>" +
+                            message2 +
+                            "</div>" +
+                            "<div class='content'>" +
+                            "<ul>" + translations2.join("") + "</ul>" +
+                            "</div>" +
                             "</div>");
                         $('.ui.accordion').accordion();
                     }
@@ -507,9 +643,9 @@
 
                     const categories = partJson.topicCategories;
                     if (categories) {
-                        for(let i = 0; i < categories.length; i++) {
+                        for (let i = 0; i < categories.length; i++) {
                             const url = categories[i];
-                            const text = url.substr(url.lastIndexOf('/')+1).replace(/_/g, " ");
+                            const text = url.substr(url.lastIndexOf('/') + 1).replace(/_/g, " ");
 
                             partDiv.append("<p class='mb-15'><a target='_blank' href='" + url + "'>" + text + "</a></p>")
                         }
@@ -530,16 +666,16 @@
                     const partDiv = $("#channel-section #snippet");
 
                     const thumbs = partJson.thumbnails;
-                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url:"https://placehold.it/240x240"}).url;
+                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: "https://placehold.it/240x240"}).url;
 
-                    partDiv.append("<a target='_blank' href='https://www.youtube.com/channel/" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15 profile'></a>");
+                    partDiv.append("<a target='_blank' href='https://www.youtube.com/channel/" + fullJson.id + "'><img id='channel-thumb' src='" + thumbUrl + "' class='mb-15 profile'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const published = new Date(partJson.publishedAt);
                     const dateHtml =
                         "<p class='mb-15'>Channel created on " +
-                            "<span class='orange'>" + published.toUTCString() + "</span>" +
-                            " (" + moment(published).utc().fromNow() + ")" +
+                        "<span class='orange'>" + published.toUTCString() + "</span>" +
+                        " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -555,7 +691,7 @@
                     if (partJson.hasOwnProperty("customUrl")) {
                         const customUrl = "https://www.youtube.com/c/" + partJson.customUrl;
 
-                        partDiv.append("<p class='mb-15'>The channel has a custom url of value '<a target='_blank' href='"+customUrl+"'>" + partJson.customUrl + "</a>'</p>");
+                        partDiv.append("<p class='mb-15'>The channel has a custom url of value '<a target='_blank' href='" + customUrl + "'>" + partJson.customUrl + "</a>'</p>");
                     }
                 }
             },
@@ -626,7 +762,7 @@
                             "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
                             "Inspect the metadata for all of this channel's videos" +
                             "</a></p>");
-                    }else {
+                    } else {
                         partDiv.append("<p class='mb-15'>This channel has no public videos.</p>");
                     }
                 }
@@ -657,7 +793,7 @@
                         // Also, why didn't google make this an array like video tags?
                         let word = "";
                         let inQuotes = false;
-                        for (let i=0; i<keywords.length; i++) {
+                        for (let i = 0; i < keywords.length; i++) {
                             const char = keywords.charAt(i);
 
                             if (char === '"' && inQuotes === false) {
@@ -681,10 +817,10 @@
 
                         const keywordsHtml =
                             "<p class='mb-15'>Channel Keyword(s): " +
-                                (parsed && parsed.length ?
-                                    "<span class='tag'>" +
-                                        parsed.join("</span><span class='comma'>, </span><span class='tag'>") +
-                                    "</span>" : "") +
+                            (parsed && parsed.length ?
+                                "<span class='tag'>" +
+                                parsed.join("</span><span class='comma'>, </span><span class='tag'>") +
+                                "</span>" : "") +
                             "</p>";
                         partDiv.append(keywordsHtml);
                     } else {
@@ -747,9 +883,9 @@
 
                     const categories = partJson.topicCategories;
                     if (categories) {
-                        for(let i = 0; i < categories.length; i++) {
+                        for (let i = 0; i < categories.length; i++) {
                             const url = categories[i];
-                            const text = url.substr(url.lastIndexOf('/')+1).replace(/_/g, " ");
+                            const text = url.substr(url.lastIndexOf('/') + 1).replace(/_/g, " ");
 
                             partDiv.append("<p class='mb-15'><a target='_blank' href='" + url + "'>" + text + "</a></p>")
                         }
@@ -769,24 +905,24 @@
                     const partDiv = $("#playlist-section #snippet");
 
                     const thumbs = partJson.thumbnails;
-                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url:"https://placehold.it/480x360"}).url;
+                    const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: "https://placehold.it/480x360"}).url;
 
-                    partDiv.append("<a target='_blank' href='https://www.youtube.com/playlist?list=" + fullJson.id + "'><img src='" + thumbUrl + "' class='mb-15'></a>");
+                    partDiv.append("<a target='_blank' href='https://www.youtube.com/playlist?list=" + fullJson.id + "'><img id='playlist-thumb' src='" + thumbUrl + "' class='mb-15'></a>");
                     partDiv.append("<p class='mb-15' style='font-size: 1.25em'>" + partJson.title + "</p>");
 
                     const authorHtml =
                         "<p class='mb-15'>Published by " +
-                            "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
-                                partJson.channelTitle +
-                            "</a>" +
+                        "<a href='https://www.youtube.com/channel/" + partJson.channelId + "' target='_blank'>" +
+                        partJson.channelTitle +
+                        "</a>" +
                         "</p>";
                     partDiv.append(authorHtml);
 
                     const published = new Date(partJson.publishedAt);
                     const dateHtml =
                         "<p class='mb-15'>Playlist created on " +
-                            "<span class='orange'>" + published.toUTCString() + "</span>" +
-                            " (" + moment(published).utc().fromNow() + ")" +
+                        "<span class='orange'>" + published.toUTCString() + "</span>" +
+                        " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -887,36 +1023,10 @@
             }
         } else {
             errorState("Your link looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
-                const options = [];
-                const id = parsedInput.value;
-
-                options.push("<li><a target='_blank' href='https://www.google.com/search?q=\"" + id + "\"'>Google Search - \"" + id + "\"</a></li>");
-
-                if (partMapType === "video") {
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://youtu.be/" + id + "'>Archive.org - https://youtu.be/" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + id + "'>Archive.org - https://www.youtube.com/watch?v=" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://filmot.com/video/" + id + "'>Filmot.com - " + id + "</a></li>");
-                } else if (partMapType === "playlist") {
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/playlist?list=" + id + "'>Archive.org - https://www.youtube.com/playlist?list=" + id + "</a></li>");
-                }
-
-                if (parsedInput.type === "channel_user") {
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/user/" + id + "'>Archive.org - https://www.youtube.com/user/" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
-                } else if (parsedInput.type === "channel_id") {
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/channel/" + id + "'>Archive.org - https://www.youtube.com/channel/" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://filmot.com/channel/" + id + "'>Filmot.com - " + id + "</a></li>");
-                } else if (parsedInput.type === "channel_custom") {
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/c/" + id + "'>Archive.org - https://www.youtube.com/c/" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/" + id + "'>Archive.org - https://www.youtube.com/" + id + "</a></li>");
-                    options.push("<li><a target='_blank' href='https://socialblade.com/search/search?query=" + id + "'>SocialBlade.com - " + id + "</a></li>");
-                }
-
                 append.append("<p class='mb-15'>" +
                     "You may find more details by trying..." +
-                    "<ul>" + options.join("") + "</ul>" +
-                "</p>");
+                    getSuggestedHtml(parsedInput) +
+                    "</p>");
             });
         }
     }
@@ -940,15 +1050,19 @@
         for (let i = 0; i < 4; i++) {
             const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + i + ".jpg";
             const html =
-                "<div class='mb-15 column'>" +
+                "<div class='column' style='margin-bottom: 1.5%!important;'>" +
                 "<a href='https://www.google.com/searchbyimage?image_url=" + thumbUrl + "' target='_blank'>" +
-                "<img src='"+ thumbUrl +"' alt='Thumb " + i + "' style='max-width: 200px;'>" +
+                "<img id='video-thumb-" + i + "' src='" + thumbUrl + "' alt='Thumb " + i + "' style='max-width: 200px;'>" +
                 "<p>Click to reverse image search</p>" +
                 "</a>" +
                 "</div>";
 
             thumbsDiv.append(html);
         }
+
+        const videoMore = $("#video-more");
+        videoMore.empty();
+        videoMore.append(getSuggestedHtml(null, idx(["items", 0], res), "video"));
     }
 
     async function parsePlaylist(res, input, skipGetChannel) {
@@ -962,10 +1076,18 @@
         }
 
         parseType("playlist", "playlist-section", res, input);
+
+        const playlistMore = $("#playlist-more");
+        playlistMore.empty();
+        playlistMore.append(getSuggestedHtml(null, idx(["items", 0], res), "playlist"));
     }
 
     async function parseChannel(res, input) {
         parseType("channel", "channel-section", res, input);
+
+        const channelMore = $("#channel-more");
+        channelMore.empty();
+        channelMore.append(getSuggestedHtml(null, idx(["items", 0], res), "channel"));
     }
 
     /**
@@ -991,7 +1113,7 @@
             }
 
             const channelIds = [];
-            for (let i=0; i<res.items.length; i++) {
+            for (let i = 0; i < res.items.length; i++) {
                 channelIds.push(res.items[i].id.channelId);
             }
 
@@ -1004,7 +1126,7 @@
 
                 let match;
                 if (res.items) {
-                    for (let i=0; i<res.items.length; i++) {
+                    for (let i = 0; i < res.items.length; i++) {
                         const item = res.items[i];
                         const snippet = item.snippet;
                         if (snippet.hasOwnProperty('customUrl') && parsedInput.value.toLowerCase() === snippet.customUrl.toLowerCase()) {
@@ -1021,7 +1143,7 @@
                 if (match) {
                     callbackResubmit(match);
                 } else if (page < 3 && !$.isEmptyObject(nextPageToken)) {
-                    resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page+1)
+                    resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page + 1)
                 } else {
                     errorState("Could not resolve Custom Channel URL", function (append) {
                         append.append("<p class='mb-15'>" +
@@ -1170,20 +1292,26 @@
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[Math.trunc(Math.random() * EXAMPLE_VIDEOS.length)];
+            elements.dislikeMessage = $("#dislikeMessage");
+
+            const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length-1)];
             controls.inputValue.val(exampleLink);
 
             internal.buildPage(true);
         },
-        buildPage: function(doSetup) {
+        buildPage: function (doSetup) {
             $(".part-section").remove();
             $("#thumbnails").empty();
+
+            if (new Date() > BEFORE_DISLIKES) {
+                elements.dislikeMessage.hide();
+            }
 
             for (let part in partMap.video) {
                 const partData = partMap.video[part];
                 const html =
                     "<div id='" + part + "' class='part-section'>" +
-                        "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
                     "</div>";
                 elements.videoSection.append(html);
             }
@@ -1192,7 +1320,7 @@
                 const partData = partMap.channel[part];
                 const html =
                     "<div id='" + part + "' class='part-section'>" +
-                        "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
                     "</div>";
                 elements.channelSection.append(html);
             }
@@ -1210,7 +1338,7 @@
                 internal.setupControls();
             }
         },
-        setupControls: function() {
+        setupControls: function () {
             controls.inputValue.on('keypress', function (e) {
                 if (e.originalEvent.code === "Enter") {
                     controls.btnSubmit.click();
@@ -1233,6 +1361,30 @@
                 submit(parsed);
             });
 
+            function getImageBinaryCorsProxy(fileName, imageUrl, zip) {
+                return new Promise(function (resolve) {
+                    // CORS proxy workaround for downloading YouTube thumbnails in client-side app
+                    // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
+                    console.log('Attempting to download image over CORS proxy: ' + imageUrl);
+                    const start = new Date();
+                    JSZipUtils.getBinaryContent("https://cors.eu.org/" + imageUrl, function (err, data) {
+                        const ms = new Date() - start;
+
+                        if (err) {
+                            console.log('Failed ' + fileName + " (" + ms + "ms)");
+                            console.warn("Could not get image: " + imageUrl)
+                            console.warn(err);
+                        } else {
+                            console.log('Retrieved ' + fileName + " (" + ms + "ms)");
+                            console.log("Creating " + fileName + "...");
+                            zip.file(fileName, data, {binary: true});
+                        }
+
+                        resolve();
+                    });
+                });
+            }
+
             controls.btnExport.on('click', async function () {
                 controls.btnExport.addClass("loading").addClass("disabled");
 
@@ -1244,32 +1396,51 @@
                     "Input: " + controls.inputValue.val()
                 );
 
+                const thumbLinks = {};
                 if (exportData.hasOwnProperty("video")) {
-                    console.log("Creating video.json...")
+                    console.log("Creating video.json...");
                     zip.file("video.json", JSON.stringify(exportData.video, null, 4));
+
+                    thumbLinks["video-thumb.png"] = document.getElementById('video-thumb').src;
+                    thumbLinks["video-thumb1.png"] = document.getElementById('video-thumb-0').src;
+                    thumbLinks["video-thumb2.png"] = document.getElementById('video-thumb-1').src;
+                    thumbLinks["video-thumb3.png"] = document.getElementById('video-thumb-2').src;
+                    thumbLinks["video-thumb4.png"] = document.getElementById('video-thumb-3').src;
                 }
 
                 if (exportData.hasOwnProperty("playlist")) {
-                    console.log("Creating playlist.json...")
+                    console.log("Creating playlist.json...");
                     zip.file("playlist.json", JSON.stringify(exportData.playlist, null, 4));
+
+                    thumbLinks["playlist-thumb.png"] = document.getElementById('playlist-thumb').src;
                 }
 
                 if (exportData.hasOwnProperty("channel")) {
-                    console.log("Creating channel.json...")
+                    console.log("Creating channel.json...");
                     zip.file("channel.json", JSON.stringify(exportData.channel, null, 4));
+
+                    thumbLinks["channel-thumb.png"] = document.getElementById('channel-thumb').src;
                 }
 
-                console.log("Saving as metadata.zip")
-                zip.generateAsync({
-                    type: "blob",
-                    compression: "DEFLATE",
-                    compressionOptions: {
-                        level: 9
-                    }
-                }).then(function (content) {
-                    saveAs(content, "metadata.zip");
+                const optionalImages = [];
+                for (let fileName in thumbLinks) {
+                    optionalImages.push(getImageBinaryCorsProxy(fileName, thumbLinks[fileName], zip));
+                }
 
-                    controls.btnExport.removeClass("loading").removeClass("disabled");
+                Promise.all(optionalImages).then(function () {
+                    console.log("Saving as metadata.zip");
+
+                    zip.generateAsync({
+                        type: "blob",
+                        compression: "DEFLATE",
+                        compressionOptions: {
+                            level: 9
+                        }
+                    }).then(function (content) {
+                        saveAs(content, "metadata.zip");
+
+                        controls.btnExport.removeClass("loading").removeClass("disabled");
+                    });
                 });
             });
 
@@ -1328,6 +1499,7 @@
                 }
                 return query;
             }
+
             const query = parseQuery(window.location.search);
             console.log(query);
             if (query.hasOwnProperty("url")) {
