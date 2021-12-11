@@ -1304,7 +1304,7 @@
             $(".part-section").remove();
             $("#thumbnails").empty();
 
-            if (new Date() > BEFORE_DISLIKES) {
+            if (!BEFORE_DISLIKES) {
                 elements.dislikeMessage.hide();
             }
 

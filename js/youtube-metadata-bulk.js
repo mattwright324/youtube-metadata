@@ -1765,7 +1765,7 @@ const bulk = (function () {
             internal.buildPage(true);
         },
         buildPage: function (doSetup) {
-            if (new Date() > BEFORE_DISLIKES) {
+            if (!BEFORE_DISLIKES) {
                 elements.dislikeMessage.hide();
             }
 
