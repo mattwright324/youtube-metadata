@@ -1547,6 +1547,7 @@ const bulk = (function () {
             controls.columnOptions.html(columnOptionsHtml.join(""));
             controls.progress = $("#videoProgress").progress();
             controls.createdPlaylists = $("#createdPlaylists");
+            controls.includeThumbs = $("#includeThumbs");
 
             controls.progress.reset = function () {
             }
@@ -1822,7 +1823,32 @@ const bulk = (function () {
                 handleSearch(searchParams, maxPages)
             });
 
+            function getImageBinaryCorsProxy(fileName, imageUrl, zip) {
+                return new Promise(function (resolve) {
+                    // CORS proxy workaround for downloading YouTube thumbnails in client-side app
+                    // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
+                    console.log('Attempting to download image over CORS proxy: ' + imageUrl);
+                    const start = new Date();
+                    JSZipUtils.getBinaryContent("https://cors.eu.org/" + imageUrl, function (err, data) {
+                        const ms = new Date() - start;
+
+                        if (err) {
+                            console.log('Failed ' + fileName + " (" + ms + "ms)");
+                            console.warn("Could not get image: " + imageUrl)
+                            console.warn(err);
+                        } else {
+                            console.log('Retrieved ' + fileName + " (" + ms + "ms)");
+                            console.log("Creating " + fileName + "...");
+                            zip.folder('thumbs').file(fileName, data, {binary: true});
+                        }
+
+                        resolve();
+                    });
+                });
+            }
+
             controls.btnExport.on('click', function () {
+                const includeThumbs = controls.includeThumbs.is(":checked");
                 const dateFormat = "YYYY-MM-DD";
                 controls.btnExport.addClass("loading").addClass("disabled");
 
@@ -1881,17 +1907,32 @@ const bulk = (function () {
                 }
                 zip.file("other.csv", otherCsvRows.join("\r\n"));
 
-                console.log("Saving as bulk_metadata.zip")
-                zip.generateAsync({
-                    type: "blob",
-                    compression: "DEFLATE",
-                    compressionOptions: {
-                        level: 9
+                const optionalImages = [];
+                if (includeThumbs) {
+                    for (let i = 0; i < rawVideoData.length; i++) {
+                        const video = rawVideoData[i];
+                        const fileName = video.id + ".png";
+                        const thumbs = idx(["snippet", "thumbnails"], video) || {};
+                        const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
+                        if (thumbUrl) {
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip));
+                        }
                     }
-                }).then(function (content) {
-                    saveAs(content, "bulk_metadata.zip");
+                }
 
-                    controls.btnExport.removeClass("loading").removeClass("disabled");
+                Promise.all(optionalImages).then(function () {
+                    console.log("Saving as bulk_metadata.zip")
+                    zip.generateAsync({
+                        type: "blob",
+                        compression: "DEFLATE",
+                        compressionOptions: {
+                            level: 9
+                        }
+                    }).then(function (content) {
+                        saveAs(content, "bulk_metadata.zip");
+
+                        controls.btnExport.removeClass("loading").removeClass("disabled");
+                    });
                 });
             });
 
