@@ -149,6 +149,17 @@ const bulk = (function () {
             console.log("done");
             console.log(videoIds);
 
+            const resultIds = [];
+            for (let i = 0; i < rawVideoData.length; i++) {
+                resultIds.push(rawVideoData[i].id);
+            }
+            for (let i = 0; i < videoIds.length; i++) {
+                const videoId = videoIds[i];
+                if (!unavailableData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
+                    unavailableData[videoId] = {title: "Did not come back in API."};
+                }
+            }
+
             controls.videosTable.columns.adjust().draw(false);
 
             setTimeout(loadAggregateTables, 200);
