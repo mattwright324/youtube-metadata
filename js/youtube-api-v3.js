@@ -53,4 +53,4 @@ const youtube = (function ($) {
         }
     };
 }($));
-youtube.setDefaultKey("AIzaSyCGWanOEMEgdHqsxNDaa_ZXTZ6hoYQrnAI");
+youtube.setDefaultKey(atob('QUl6YVN5QWEtbzU1YUlNdDRZQzBtaFB5cDhXZkdxbDVEVmdfZnA0'));

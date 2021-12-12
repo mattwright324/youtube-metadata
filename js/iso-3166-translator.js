@@ -1263,7 +1263,7 @@ const iso3166 = (function () {
             if (!code) {
                 return;
             }
-            for (let i=0; i<codes.length; i++) {
+            for (let i = 0; i < codes.length; i++) {
                 const codeMap = codes[i];
                 if (String(code).toUpperCase() === codeMap.alpha2 || Number(code) === Number(codeMap.numeric3)) {
                     return codeMap;
