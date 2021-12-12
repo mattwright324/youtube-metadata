@@ -7,7 +7,7 @@ const bcp47 = (function (iso3166, iso639) {
     'use strict';
 
     return {
-        lookup: function(code) {
+        lookup: function (code) {
             if (!code) {
                 return;
             }

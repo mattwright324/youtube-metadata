@@ -1,6 +1,6 @@
 body {
     font-weight: 400;
-    font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif!important;
+    font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
     color: #222;
     background-image: url("https://mattw.io/img/noise.png");
     background-repeat: repeat;
@@ -38,30 +38,35 @@ img {
 }
 
 .header-img {
-    width: 45px!important;
-    height: 45px!important;
+    width: 45px !important;
+    height: 45px !important;
 }
 
 h1 {
-    font-weight: 100!important;
+    font-weight: 100 !important;
 }
 
 .profile {
     width: 100px;
     height: 100px;
 }
+
 .section {
     margin-bottom: 15px;
 }
+
 .part-section {
     margin-bottom: 1.5%;
 }
+
 .mb-15 {
     margin-bottom: 1.5%;
 }
+
 .mt-15 {
     margin-top: 1.5%;
 }
+
 .tag {
     background-color: lightskyblue;
     padding: 2px 5px;
@@ -70,30 +75,38 @@ h1 {
     margin-bottom: 3px;
     display: inline-block;
 }
+
 .comma {
     color: transparent;
     width: 0;
     display: inline-block;
 }
+
 .section-header {
     font-size: 1.5em;
     margin: 0 0 0.3em;
 }
+
 .unknown {
     color: mediumpurple;
 }
+
 .good {
     color: mediumseagreen;
 }
+
 .bad, .gray {
     color: lightgray;
 }
+
 .text-right {
     text-align: right;
 }
+
 .text-center {
     text-align: center;
 }
+
 .text-left {
     text-align: left;
 }

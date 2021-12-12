@@ -1295,7 +1295,7 @@
 
             elements.dislikeMessage = $("#dislikeMessage");
 
-            const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length-1)];
+            const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length - 1)];
             controls.inputValue.val(exampleLink);
 
             internal.buildPage(true);

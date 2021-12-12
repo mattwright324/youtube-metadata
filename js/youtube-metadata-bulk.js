@@ -91,6 +91,7 @@ const bulk = (function () {
                     console.log(err);
                 });
             }
+
             doSearch(1, "");
         }).then(function (results) {
             handleParsedNew(results);
@@ -1530,7 +1531,7 @@ const bulk = (function () {
             $(".ui.checkbox").checkbox();
 
             controls.inputValue = $("#value");
-            controls.inputValue.val(EXAMPLE_BULK[rando(0, EXAMPLE_BULK.length-1)]);
+            controls.inputValue.val(EXAMPLE_BULK[rando(0, EXAMPLE_BULK.length - 1)]);
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
             controls.videosTable = $('#videosTable').DataTable({
@@ -1668,11 +1669,11 @@ const bulk = (function () {
                 bDeferRender: true
             });
             controls.offset = $("#offset");
-            controls.offset.on('change', function() {
+            controls.offset.on('change', function () {
                 loadChartData(controls.offset.val(), controls.year.val());
             });
             controls.year = $("#year");
-            controls.year.on('change', function() {
+            controls.year.on('change', function () {
                 loadChartData(controls.offset.val(), controls.year.val());
             });
             const options = {
