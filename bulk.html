@@ -72,13 +72,8 @@ script: youtube-metadata-bulk
     <ul>
         <li>about.txt - Metadata about this result.</li>
         <li>videos.json - Array of all raw video data.</li>
-        <li>videos.csv - Videos table data.</li>
-        <li>tags.csv - Tags table data.</li>
-        <li>geotags.csv - Geotags table data.</li>
-        <li>links.csv - Links table data.</li>
-        <li>frequency.csv - Upload frequency table data (UTC+0).</li>
-        <li>other.csv - Other table data.</li>
-        <li>thumbs/videoId.png - Thumbs if available.</li>
+        <li>✱.csv - Data from each table section below.</li>
+        <li>thumbs/✱.png - Thumbs if available.</li>
     </ul>
     </p>
     <p class='mb-15'>
@@ -200,6 +195,15 @@ script: youtube-metadata-bulk
         </select>
     </p>
     <div id="uploadFrequency"></div>
+</div>
+<div class="ui container" style="margin-top:1.5%">
+    <h1>Unavailable</h1>
+    <p>
+        Playlist videos that are unavailable, they may have been deleted or made private.
+    </p>
+</div>
+<div class="ui container" style="margin-top:1.5%">
+    <table id="unavailableTable" class="display" style="width:100%"></table>
 </div>
 <div class="ui container" style="margin-top:1.5%">
     <h1>Other</h1>

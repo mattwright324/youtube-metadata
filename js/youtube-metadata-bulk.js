@@ -423,10 +423,15 @@ const bulk = (function () {
                         console.log(res);
 
                         for (let i = 0; i < res.items.length; i++) {
-                            const videoId = idx(["snippet", "resourceId", "videoId"], res.items[i]);
+                            const video = res.items[i];
+                            const videoId = idx(["snippet", "resourceId", "videoId"], video);
+                            const videoOwnerChannelId = idx(["snippet", "videoOwnerChannelId"], video);
 
                             if (videoIds.indexOf(videoId) === -1) {
                                 videoIds.push(videoId);
+                            }
+                            if (!videoOwnerChannelId) {
+                                unavailableData[videoId] = {title: idx(["snippet", "title"], video)}
                             }
                         }
 
@@ -460,7 +465,7 @@ const bulk = (function () {
                 return;
             }
 
-            console.log("checking " + videoIds.length + " videoIds")
+            console.log("checking " + videoIds.length + " videoIds");
 
             function get(index, slice) {
                 if (index >= videoIds.length) {
@@ -720,6 +725,19 @@ const bulk = (function () {
             controls.year.append("<option value='" + year + "'>" + year + "  (" + yearCount[year] + " videos)</option>");
         }
         loadChartData(timezoneOffset);
+
+        console.log(unavailableData);
+        const unavailableRows = [];
+        for (let videoId in unavailableData) {
+            unavailableRows.push([
+                "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
+                String(unavailableData[videoId].title),
+                "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
+                "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive.org</a> · " +
+                "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a> "
+            ]);
+        }
+        sliceLoad(unavailableRows, controls.unavailableTable);
 
         for (let i = 0; i < otherData.length; i++) {
             const other = otherData[i];
@@ -1296,6 +1314,7 @@ const bulk = (function () {
 
     let tableRows = [csvHeaderRow.join("\t")];
     let rawVideoData = [];
+    let unavailableData = {};
     let tagsData = {};
     let geotagsData = {};
     let linksData = {};
@@ -1727,6 +1746,29 @@ const bulk = (function () {
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
             controls.uploadFrequency.render();
+            controls.unavailableTable = $("#unavailableTable").DataTable({
+                columns: [
+                    {
+                        title: "Video ID",
+                        type: "html"
+                    },
+                    {
+                        title: "Status",
+                        type: "html"
+                    },
+                    {
+                        title: "Research",
+                        type: "html"
+                    }
+                ],
+                columnDefs: [{
+                    "defaultContent": "",
+                    "targets": "_all"
+                }],
+                order: [[0, 'asc']],
+                deferRender: true,
+                bDeferRender: true
+            });
 
             controls.otherTable = $("#otherTable").DataTable({
                 columns: [
@@ -1865,6 +1907,9 @@ const bulk = (function () {
                 console.log("Creating videos.json...")
                 zip.file("videos.json", JSON.stringify(rawVideoData));
 
+                console.log("Creating unavailable.json...")
+                zip.file("unavailable.json", JSON.stringify(unavailableData));
+
                 console.log("Creating videos.csv...")
                 zip.file("videos.csv", tableRows.join("\r\n"));
 
@@ -1950,26 +1995,45 @@ const bulk = (function () {
 
                 controls.btnImport.addClass("loading").addClass("disabled");
 
-                JSZip.loadAsync(file).then(function (content) {
-                    // if you return a promise in a "then", you will chain the two promises
-                    return content.file("videos.json").async("string");
-                }).then(function (text) {
-                    internal.reset();
+                internal.reset();
+                new Promise(function (resolve) {
+                    console.log('loading unavailable.json');
+                    JSZip.loadAsync(file).then(function (content) {
+                        // if you return a promise in a "then", you will chain the two promises
+                        return content.file("unavailable.json").async("string");
+                    }).then(function (text) {
+                        unavailableData = JSON.parse(text);
 
-                    const videos = JSON.parse(text);
-                    const rows = [];
-                    for (let i = 0; i < videos.length; i++) {
-                        rows.push(loadVideo(videos[i], true));
-                    }
+                        resolve();
+                    }).catch(function (err) {
+                        console.warn('unavailable.json not in imported file');
 
-                    console.log(rows);
+                        //unavailableData = {};
+                        resolve();
+                    });
+                }).then(function () {
+                    console.log('loading videos.json')
+                    JSZip.loadAsync(file).then(function (content) {
+                        // if you return a promise in a "then", you will chain the two promises
+                        return content.file("videos.json").async("string");
+                    }).then(function (text) {
+                        const videos = JSON.parse(text);
+                        const rows = [];
+                        for (let i = 0; i < videos.length; i++) {
+                            rows.push(loadVideo(videos[i], true));
+                        }
 
-                    sliceLoad(rows, controls.videosTable);
+                        console.log(rows);
 
-                    console.log(tagsData);
+                        sliceLoad(rows, controls.videosTable);
 
-                    loadAggregateTables(function () {
-                        controls.btnImport.removeClass("loading").removeClass("disabled");
+                        console.log(tagsData);
+
+                        loadAggregateTables(function () {
+                            controls.btnImport.removeClass("loading").removeClass("disabled");
+                        });
+                    }).catch(function (err) {
+                        console.warn('videos.json not in imported file');
                     });
                 });
             });
@@ -2022,6 +2086,10 @@ const bulk = (function () {
             linksData = {};
             controls.linksTable.clear();
             controls.linksTable.draw(false);
+
+            unavailableData = {};
+            controls.unavailableTable.clear();
+            controls.unavailableTable.draw(false);
 
             controls.year.html("<option value='' selected>All years</option>")
 
