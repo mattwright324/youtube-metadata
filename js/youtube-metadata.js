@@ -107,10 +107,6 @@
                 text: "Google - \"" + data.video_id + "\""
             });
             suggestions.push({
-                url: "https://web.archive.org/web/*/https://youtu.be/" + data.video_id,
-                text: "Archive.org - https://youtu.be/" + data.video_id
-            });
-            suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + data.video_id,
                 text: "Archive.org - https://www.youtube.com/watch?v=" + data.video_id
             });
@@ -387,8 +383,13 @@
                     }
 
                     if (!partJson.hasOwnProperty("dislikeCount")) {
-                        partDiv.append("<p class='mb-15'>YouTube no longer provides the <span class='orange'>dislikeCount</span> since 2021-12-13 " +
-                            "(<a href='https://developers.google.com/youtube/v3/revision_history#november-18,-2021' target='_blank'>see more here</a>). </p>");
+                        partDiv.append(
+                            "<p class='mb-15'>YouTube no longer provides the <span class='orange'>dislikeCount</span> since 2021-12-13 " +
+                            "(<a href='https://developers.google.com/youtube/v3/revision_history#november-18,-2021' target='_blank'>see more here</a>). " +
+                            "</p>");
+                        partDiv.append("<p class='mb-15'>Want dislikes back? Check out the " +
+                            "<a href='https://returnyoutubedislike.com/' target='_blank'>return-youtube-dislike</a> project!" +
+                            "</p>")
                     }
 
                     if (!partJson.hasOwnProperty("viewCount")) {
