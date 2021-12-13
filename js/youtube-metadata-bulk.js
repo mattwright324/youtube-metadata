@@ -156,7 +156,10 @@ const bulk = (function () {
             for (let i = 0; i < videoIds.length; i++) {
                 const videoId = videoIds[i];
                 if (!unavailableData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
-                    unavailableData[videoId] = {title: "Did not come back in API."};
+                    unavailableData[videoId] = {
+                        title: "Did not come back in API.",
+                        source: ""
+                    };
                 }
             }
 
@@ -442,7 +445,10 @@ const bulk = (function () {
                                 videoIds.push(videoId);
                             }
                             if (!videoOwnerChannelId) {
-                                unavailableData[videoId] = {title: idx(["snippet", "title"], video)}
+                                unavailableData[videoId] = {
+                                    title: idx(["snippet", "title"], video),
+                                    source: playlistIds[index]
+                                }
                             }
                         }
 
@@ -740,12 +746,15 @@ const bulk = (function () {
         console.log(unavailableData);
         const unavailableRows = [];
         for (let videoId in unavailableData) {
+            const title = unavailableData[videoId].title;
+            const source = unavailableData[videoId].source;
             unavailableRows.push([
                 "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
-                String(unavailableData[videoId].title),
+                String(title),
                 "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
                 "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive.org</a> · " +
-                "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a> "
+                "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a>",
+                source ? "<a target='_blank' href='https://www.youtube.com/playlist?list=" + source + "'>" + source + "</a>" : "",
             ]);
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
@@ -1771,6 +1780,10 @@ const bulk = (function () {
                     {
                         title: "Research",
                         type: "html"
+                    },
+                    {
+                        title: "Source",
+                        type: "html"
                     }
                 ],
                 columnDefs: [{
@@ -2027,7 +2040,6 @@ const bulk = (function () {
                     }).catch(function (err) {
                         console.warn('unavailable.json not in imported file');
 
-                        //unavailableData = {};
                         resolve();
                     });
                 }).then(function () {
