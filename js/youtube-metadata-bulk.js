@@ -1579,6 +1579,7 @@ const bulk = (function () {
             controls.progress = $("#videoProgress").progress();
             controls.createdPlaylists = $("#createdPlaylists");
             controls.includeThumbs = $("#includeThumbs");
+            elements.thumbProgress = $("#thumbProgress");
 
             controls.progress.reset = function () {
             }
@@ -1877,27 +1878,33 @@ const bulk = (function () {
                 handleSearch(searchParams, maxPages)
             });
 
-            function getImageBinaryCorsProxy(fileName, imageUrl, zip) {
+            function getImageBinaryCorsProxy(fileName, imageUrl, zip, delay, imageStatuses) {
                 return new Promise(function (resolve) {
-                    // CORS proxy workaround for downloading YouTube thumbnails in client-side app
-                    // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
-                    console.log('Attempting to download image over CORS proxy: ' + imageUrl);
-                    const start = new Date();
-                    JSZipUtils.getBinaryContent("https://cors.eu.org/" + imageUrl, function (err, data) {
-                        const ms = new Date() - start;
+                    setTimeout(function() {
+                        // CORS proxy workaround for downloading YouTube thumbnails in client-side app
+                        // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
+                        console.log('Attempting to download image over CORS proxy (' + delay + ' ms start delay): ' + imageUrl);
+                        const start = new Date();
+                        JSZipUtils.getBinaryContent("https://cors.eu.org/" + imageUrl, function (err, data) {
+                            const ms = new Date() - start;
 
-                        if (err) {
-                            console.log('Failed ' + fileName + " (" + ms + "ms)");
-                            console.warn("Could not get image: " + imageUrl)
-                            console.warn(err);
-                        } else {
-                            console.log('Retrieved ' + fileName + " (" + ms + "ms)");
-                            console.log("Creating " + fileName + "...");
-                            zip.folder('thumbs').file(fileName, data, {binary: true});
-                        }
+                            if (err) {
+                                console.log('Failed ' + fileName + " (" + ms + "ms)");
+                                console.warn("Could not get image: " + imageUrl)
+                                console.warn(err);
+                                imageStatuses[false] = imageStatuses[false] + 1 || 1;
+                            } else {
+                                console.log('Retrieved ' + fileName + " (" + ms + "ms)");
+                                console.log("Creating " + fileName + "...");
+                                zip.folder('thumbs').file(fileName, data, {binary: true});
+                                imageStatuses[true] = imageStatuses[true] + 1 || 1;
+                            }
 
-                        resolve();
-                    });
+                            elements.thumbProgress.text("(" + imageStatuses[true] + " downloaded / " + imageStatuses[false] + " failed)");
+
+                            resolve();
+                        });
+                    }, delay);
                 });
             }
 
@@ -1965,6 +1972,7 @@ const bulk = (function () {
                 zip.file("other.csv", otherCsvRows.join("\r\n"));
 
                 const optionalImages = [];
+                const imageStatuses = {true: 0, false: 0};
                 if (includeThumbs) {
                     for (let i = 0; i < rawVideoData.length; i++) {
                         const video = rawVideoData[i];
@@ -1972,13 +1980,13 @@ const bulk = (function () {
                         const thumbs = idx(["snippet", "thumbnails"], video) || {};
                         const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
                         if (thumbUrl) {
-                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip));
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 100, imageStatuses));
                         }
                     }
                 }
 
                 Promise.all(optionalImages).then(function () {
-                    console.log("Saving as bulk_metadata.zip")
+                    console.log("Saving as bulk_metadata.zip");
                     zip.generateAsync({
                         type: "blob",
                         compression: "DEFLATE",
