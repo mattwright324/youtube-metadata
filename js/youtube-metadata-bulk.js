@@ -1827,17 +1827,11 @@ const bulk = (function () {
             controls.searchPages = $("#searchPages");
             controls.btnSubmitSearch = $("#submitSearch");
 
-            elements.dislikeMessage = $("#dislikeMessage");
-
             new ClipboardJS(".clipboard");
 
             internal.buildPage(true);
         },
         buildPage: function (doSetup) {
-            if (!BEFORE_DISLIKES) {
-                elements.dislikeMessage.hide();
-            }
-
             if (doSetup) {
                 internal.setupControls();
             }

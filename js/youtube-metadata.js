@@ -365,7 +365,7 @@
             },
             statistics: {
                 title: "Statistics",
-                postProcess: function (partJson) {
+                postProcess: function (partJson, fullJson) {
                     const partDiv = $("#video-section #statistics");
 
                     if (partJson.hasOwnProperty("likeCount") && partJson.hasOwnProperty("dislikeCount")) {
@@ -389,7 +389,17 @@
                             "</p>");
                         partDiv.append("<p class='mb-15'>Want dislikes back? Check out the " +
                             "<a href='https://returnyoutubedislike.com/' target='_blank'>return-youtube-dislike</a> project!" +
-                            "</p>")
+                            "</p>");
+                        // Potentially output RYD dislikes from their API.
+                        // $.ajax({
+                        //     type: "GET",
+                        //     url: "https://returnyoutubedislikeapi.com/votes?videoId=" + fullJson.id
+                        // }).then(function (res) {
+                        //     const dislikes = idx(["dislikes"], res);
+                        //     if (dislikes) {
+                        //         partDiv.append("<p class='mb-15'>RYD Estimated Dislikes: <span class='orange'>" + dislikes + "</span></p>")
+                        //     }
+                        // });
                     }
 
                     if (!partJson.hasOwnProperty("viewCount")) {
@@ -1294,8 +1304,6 @@
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            elements.dislikeMessage = $("#dislikeMessage");
-
             const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length - 1)];
             controls.inputValue.val(exampleLink);
 
@@ -1304,10 +1312,6 @@
         buildPage: function (doSetup) {
             $(".part-section").remove();
             $("#thumbnails").empty();
-
-            if (!BEFORE_DISLIKES) {
-                elements.dislikeMessage.hide();
-            }
 
             for (let part in partMap.video) {
                 const partData = partMap.video[part];
