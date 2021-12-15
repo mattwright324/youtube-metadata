@@ -379,7 +379,7 @@ const bulk = (function () {
                 console.log(id);
 
                 youtube.ajax("playlists", {
-                    part: "id",
+                    part: "id,snippet",
                     channelId: id,
                     maxResults: 50
                 }).done(function (res) {
@@ -391,6 +391,8 @@ const bulk = (function () {
 
                             const createdPlaylistId = idx(["id"], playlist);
                             console.log(createdPlaylistId);
+
+                            playlistMap[createdPlaylistId] = idx(["snippet", "title"], playlist);
 
                             if (playlistIds.indexOf(createdPlaylistId) === -1) {
                                 playlistIds.push(createdPlaylistId);
@@ -447,7 +449,10 @@ const bulk = (function () {
                             if (!videoOwnerChannelId) {
                                 unavailableData[videoId] = {
                                     title: idx(["snippet", "title"], video),
-                                    source: playlistIds[index]
+                                    source: "Playlist: " +
+                                        "<a target='_blank' href='https://www.youtube.com/playlist?list=" + playlistIds[index] + "'>" +
+                                        playlistMap[playlistIds[index]] +
+                                        "</a>"
                                 }
                             }
                         }
@@ -754,7 +759,7 @@ const bulk = (function () {
                 "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
                 "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive.org</a> · " +
                 "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a>",
-                source ? "<a target='_blank' href='https://www.youtube.com/playlist?list=" + source + "'>" + source + "</a>" : "",
+                source,
             ]);
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
@@ -1334,6 +1339,7 @@ const bulk = (function () {
 
     let tableRows = [csvHeaderRow.join("\t")];
     let rawVideoData = [];
+    let playlistMap = {}
     let unavailableData = {};
     let tagsData = {};
     let geotagsData = {};
@@ -1790,7 +1796,7 @@ const bulk = (function () {
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[0, 'asc']],
+                order: [[3, 'desc']],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1827,17 +1833,11 @@ const bulk = (function () {
             controls.searchPages = $("#searchPages");
             controls.btnSubmitSearch = $("#submitSearch");
 
-            elements.dislikeMessage = $("#dislikeMessage");
-
             new ClipboardJS(".clipboard");
 
             internal.buildPage(true);
         },
         buildPage: function (doSetup) {
-            if (!BEFORE_DISLIKES) {
-                elements.dislikeMessage.hide();
-            }
-
             if (doSetup) {
                 internal.setupControls();
             }
@@ -2119,6 +2119,7 @@ const bulk = (function () {
             controls.linksTable.draw(false);
 
             unavailableData = {};
+            playlistMap = {};
             controls.unavailableTable.clear();
             controls.unavailableTable.draw(false);
 
