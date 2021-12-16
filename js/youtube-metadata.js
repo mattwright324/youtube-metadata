@@ -11,7 +11,6 @@
 
     const elements = {};
     const controls = {};
-    const BEFORE_DISLIKES = moment().isBefore(moment('2021-12-13'));
     let exportData = {};
 
     const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
@@ -599,12 +598,11 @@
                             "</div>");
 
                         const notInList = [];
-                        for (let i = 0; i < iso3166.codes.length; i++) {
-                            const code = iso3166.codes[i].alpha2;
+                        iso3166.codes.forEach(function (code) {
                             if (codes.indexOf(code) === -1) {
                                 notInList.push(code);
                             }
-                        }
+                        });
                         let message2;
                         if (restriction.hasOwnProperty('allowed')) {
                             message2 = "These <span class='orange'>" + notInList.length + " / " + totalIsoCodes + "</span> region(s) are <span class='red'>not allowed</span> to watch the video.";
@@ -615,13 +613,12 @@
                         }
                         notInList.sort();
                         const translations2 = [];
-                        for (let i = 0; i < notInList.length; i++) {
-                            const code = notInList[i];
+                        notInList.forEach(function (code) {
                             const result = iso3166.lookup(code);
                             const name = (result ? result.name : 'ISO-3166 Could not translate')
 
-                            translations2.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>")
-                        }
+                            translations2.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>");
+                        });
                         partDiv.append(
                             "<div class='ui accordion'>" +
                             "<div class='title'>" +
@@ -637,12 +634,11 @@
 
                     const contentRating = partJson.contentRating;
                     if (!$.isEmptyObject(contentRating)) {
-                        const keys = Object.keys(contentRating);
                         const pairs = [];
 
-                        for (let i = 0; i < keys.length; i++) {
-                            pairs.push(keys[i] + "/" + contentRating[keys[i]]);
-                        }
+                        Object.keys(contentRating).forEach(function (key) {
+                            pairs.push(key + "/" + contentRating[key]);
+                        });
 
                         partDiv.append("<p class='mb-15'>This video has a content rating of <span class='orange'>" + pairs.join(", ") + "</span></p>")
                     }
@@ -653,15 +649,11 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #topicDetails");
 
-                    const categories = partJson.topicCategories;
-                    if (categories) {
-                        for (let i = 0; i < categories.length; i++) {
-                            const url = categories[i];
-                            const text = url.substr(url.lastIndexOf('/') + 1).replace(/_/g, " ");
+                    (partJson.topicCategories || []).forEach(function (categoryUrl) {
+                        const text = categoryUrl.substr(categoryUrl.lastIndexOf('/') + 1).replace(/_/g, " ");
 
-                            partDiv.append("<p class='mb-15'><a target='_blank' href='" + url + "'>" + text + "</a></p>")
-                        }
-                    }
+                        partDiv.append("<p class='mb-15'><a target='_blank' href='" + categoryUrl + "'>" + text + "</a></p>")
+                    });
                 }
             }
         },
@@ -893,15 +885,11 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #topicDetails");
 
-                    const categories = partJson.topicCategories;
-                    if (categories) {
-                        for (let i = 0; i < categories.length; i++) {
-                            const url = categories[i];
-                            const text = url.substr(url.lastIndexOf('/') + 1).replace(/_/g, " ");
+                    (partJson.topicCategories || []).forEach(function (categoryUrl) {
+                        const text = categoryUrl.substr(categoryUrl.lastIndexOf('/') + 1).replace(/_/g, " ");
 
-                            partDiv.append("<p class='mb-15'><a target='_blank' href='" + url + "'>" + text + "</a></p>")
-                        }
-                    }
+                        partDiv.append("<p class='mb-15'><a target='_blank' href='" + categoryUrl + "'>" + text + "</a></p>")
+                    });
                 }
             }
         },
@@ -1125,9 +1113,9 @@
             }
 
             const channelIds = [];
-            for (let i = 0; i < res.items.length; i++) {
+            (res.items || []).forEach(function (item) {
                 channelIds.push(res.items[i].id.channelId);
-            }
+            });
 
             youtube.ajax('channels', {
                 part: 'snippet',
@@ -1137,20 +1125,17 @@
                 console.log(res);
 
                 let match;
-                if (res.items) {
-                    for (let i = 0; i < res.items.length; i++) {
-                        const item = res.items[i];
-                        const snippet = item.snippet;
-                        if (snippet.hasOwnProperty('customUrl') && parsedInput.value.toLowerCase() === snippet.customUrl.toLowerCase()) {
-                            match = {
-                                value: item.id,
-                                type: 'channel_id',
-                                original: 'https://www.youtube.com/channel/' + item.id,
-                                mayHideOthers: true
-                            }
+                (res.items || []).forEach(function (item) {
+                    const snippet = item.snippet;
+                    if (snippet.hasOwnProperty('customUrl') && parsedInput.value.toLowerCase() === snippet.customUrl.toLowerCase()) {
+                        match = {
+                            value: item.id,
+                            type: 'channel_id',
+                            original: 'https://www.youtube.com/channel/' + item.id,
+                            mayHideOthers: true
                         }
                     }
-                }
+                });
 
                 if (match) {
                     callbackResubmit(match);

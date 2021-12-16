@@ -11,7 +11,6 @@ const bulk = (function () {
 
     const elements = {};
     const controls = {};
-    const BEFORE_DISLIKES = moment().isBefore(moment('2021-12-13'));
 
     const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
 
@@ -70,8 +69,8 @@ const bulk = (function () {
                 }, searchParams)).done(function (res) {
                     console.log(res);
 
-                    for (let i = 0; i < res.items.length; i++) {
-                        const id = idx(["items", i, "id"], res);
+                    (res.items || []).forEach(function (item) {
+                        const id = idx(["id"], item);
                         if (id.hasOwnProperty("videoId")) {
                             results.push({type: "video_id", value: id.videoId});
                         }
@@ -81,7 +80,7 @@ const bulk = (function () {
                         if (id.hasOwnProperty("playlistId")) {
                             results.push({type: "playlist_id", value: id.playlistId});
                         }
-                    }
+                    });
                     if (res.hasOwnProperty("nextPageToken") && page < maxPages) {
                         doSearch(page + 1, res.nextPageToken);
                     } else {
@@ -108,9 +107,7 @@ const bulk = (function () {
         const playlistIds = [];
         const videoIds = [];
 
-        for (let i = 0; i < parsed.length; i++) {
-            const p = parsed[i];
-
+        parsed.forEach(function (p) {
             if (p.type === 'video_id' && videoIds.indexOf(p.value) === -1) {
                 videoIds.push(p.value);
 
@@ -124,44 +121,41 @@ const bulk = (function () {
             } else if (p.type === "channel_user" && channelUsers.indexOf(p.value) === -1) {
                 channelUsers.push(p.value);
             }
-        }
+        });
 
-        // Channels condense to uploads playlist ids and channel ids
-        const channelProcess = Promise.all([
+        Promise.all([
+            // Channels condense to uploads playlist ids and channel ids
             handleChannelUsers(channelUsers, playlistIds, channelIdsCreatedPlaylists),
             handleChannelCustoms(channelCustoms, playlistIds, channelIdsCreatedPlaylists),
             handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists)
-        ]);
-        // Created playlists condense to playlist ids (when option checked)
-        const createdPlaylistProcess = channelProcess.then(function () {
+        ]).then(function () {
+            // Created playlists condense to playlist ids (when option checked)
             return handleChannelIdsCreatedPlaylists(channelIdsCreatedPlaylists, playlistIds);
-        })
-        // Playlists condense to video ids
-        const playlistProcess = createdPlaylistProcess.then(function () {
+        }).then(function () {
+            // Grab playlist names
+            return handlePlaylistNames(playlistIds)
+        }).then(function () {
+            // Playlists condense to video ids
             return handlePlaylistIds(playlistIds, videoIds)
-        });
-        // Videos are results to be displayed
-        const videosProcess = playlistProcess.then(function () {
+        }).then(function () {
+            // Videos are results to be displayed
             return handleVideoIds(videoIds)
-        });
-
-        videosProcess.then(function (res) {
+        }).then(function () {
             console.log("done");
             console.log(videoIds);
 
             const resultIds = [];
-            for (let i = 0; i < rawVideoData.length; i++) {
-                resultIds.push(rawVideoData[i].id);
-            }
-            for (let i = 0; i < videoIds.length; i++) {
-                const videoId = videoIds[i];
+            rawVideoData.forEach(function (video) {
+                resultIds.push(video.id);
+            });
+            videoIds.forEach(function (videoId) {
                 if (!unavailableData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
                     unavailableData[videoId] = {
                         title: "Did not come back in API.",
                         source: ""
                     };
                 }
-            }
+            });
 
             controls.videosTable.columns.adjust().draw(false);
 
@@ -245,11 +239,9 @@ const bulk = (function () {
                     console.log(res);
 
                     const channelIds = [];
-                    for (let i = 0; i < res.items.length; i++) {
-                        const channelId = idx(["items", i, "id", "channelId"], res);
-
-                        channelIds.push(channelId);
-                    }
+                    (res.items || []).forEach(function (channel) {
+                        channelIds.push(idx(["id", "channelId"], channel));
+                    });
 
                     youtube.ajax("channels", {
                         part: "snippet,contentDetails",
@@ -258,23 +250,23 @@ const bulk = (function () {
                     }).done(function (res2) {
                         console.log(res2);
 
-                        for (let i = 0; i < res2.items.length; i++) {
-                            const channelId = idx(["items", i, "id"], res2);
-                            const customUrl = idx(["items", i, "snippet", "customUrl"], res2);
+                        (res2.items || []).forEach(function (channel) {
+                            const channelId = idx(["id"], channel);
+                            const customUrl = idx(["snippet", "customUrl"], channel);
 
                             if (String(customUrl).toLowerCase() === String(channelCustoms[index]).toLowerCase()) {
                                 if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
                                     channelIdsCreatedPlaylists.push(channelId);
                                 }
 
-                                const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], res2.items[i]);
+                                const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
                                 console.log(uploadsPlaylistId);
 
                                 if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
                                     playlistIds.push(uploadsPlaylistId);
                                 }
                             }
-                        }
+                        });
 
                         get(index + 1);
                     }).fail(function (err) {
@@ -292,12 +284,11 @@ const bulk = (function () {
     }
 
     function handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists) {
-        for (let i = 0; i < channelIds.length; i++) {
-            const id = channelIds[i];
-            if (channelIdsCreatedPlaylists.indexOf(id) === -1) {
-                channelIdsCreatedPlaylists.push(id);
+        channelIds.forEach(function (channelId) {
+            if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
+                channelIdsCreatedPlaylists.push(channelId);
             }
-        }
+        });
         return new Promise(function (resolve) {
             if (channelIds.length === 0) {
                 console.log("no channelIds")
@@ -326,18 +317,14 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
-                    if (res.items) {
-                        for (let i = 0; i < res.items.length; i++) {
-                            const channel = res.items[i];
+                    (res.items || []).forEach(function (channel) {
+                        const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
+                        console.log(uploadsPlaylistId);
 
-                            const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
-                            console.log(uploadsPlaylistId);
-
-                            if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
-                                playlistIds.push(uploadsPlaylistId);
-                            }
+                        if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
+                            playlistIds.push(uploadsPlaylistId);
                         }
-                    }
+                    });
 
                     get(index + slice, slice);
                 }).fail(function (err) {
@@ -385,26 +372,82 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
-                    if (res.items) {
-                        for (let i = 0; i < res.items.length; i++) {
-                            const playlist = res.items[i];
+                    (res.items || []).forEach(function (playlist) {
+                        const createdPlaylistId = idx(["id"], playlist);
+                        console.log(createdPlaylistId);
 
-                            const createdPlaylistId = idx(["id"], playlist);
-                            console.log(createdPlaylistId);
+                        playlistMap[createdPlaylistId] = idx(["snippet", "title"], playlist);
 
-                            playlistMap[createdPlaylistId] = idx(["snippet", "title"], playlist);
-
-                            if (playlistIds.indexOf(createdPlaylistId) === -1) {
-                                playlistIds.push(createdPlaylistId);
-                            }
+                        if (playlistIds.indexOf(createdPlaylistId) === -1) {
+                            playlistIds.push(createdPlaylistId);
                         }
-                    }
+                    });
 
                     get(index + 1);
                 }).fail(function (err) {
                     console.error(err);
                     get(index + 1);
                 });
+            }
+
+            get(0);
+        });
+    }
+
+    function handlePlaylistNames(playlistIds) {
+        return new Promise(function (resolve) {
+            if (playlistIds.length === 0) {
+                console.log("no playlistIds")
+                resolve();
+                return;
+            }
+
+            const notYetRetrieved = [];
+            playlistIds.forEach(function (id) {
+                if (!playlistMap.hasOwnProperty(id)) {
+                    notYetRetrieved.push(id);
+                }
+            });
+            console.log(notYetRetrieved);
+
+            function get(index) {
+                if (index >= notYetRetrieved.length) {
+                    console.log("finished notYetRetrieved");
+                    resolve();
+                    return;
+                }
+
+                console.log("handlePlaylistNames.get(" + index + ")")
+
+                function paginate(pageToken) {
+                    console.log(pageToken);
+                    youtube.ajax("playlists", {
+                        part: "id,snippet",
+                        maxResults: 50,
+                        id: notYetRetrieved[index],
+                        pageToken: pageToken
+                    }).done(function (res) {
+                        console.log(res);
+
+                        (res.items || []).forEach(function (playlist) {
+                            const playlistId = idx(["id"], playlist);
+                            console.log(playlistId);
+
+                            playlistMap[playlistId] = idx(["snippet", "title"], playlist);
+                        });
+
+                        if (res.hasOwnProperty("nextPageToken")) {
+                            paginate(res.nextPageToken);
+                        } else {
+                            get(index + 1);
+                        }
+                    }).fail(function (err) {
+                        console.error(err);
+                        get(index + 1);
+                    });
+                }
+
+                paginate("");
             }
 
             get(0);
@@ -438,8 +481,7 @@ const bulk = (function () {
                     }).done(function (res) {
                         console.log(res);
 
-                        for (let i = 0; i < res.items.length; i++) {
-                            const video = res.items[i];
+                        (res.items || []).forEach(function (video) {
                             const videoId = idx(["snippet", "resourceId", "videoId"], video);
                             const videoOwnerChannelId = idx(["snippet", "videoOwnerChannelId"], video);
 
@@ -455,8 +497,7 @@ const bulk = (function () {
                                         "</a>"
                                 }
                             }
-                        }
-
+                        })
                         controls.progress.indeterminate(videoIds.length);
 
                         if (res.hasOwnProperty("nextPageToken")) {
@@ -512,9 +553,9 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
-                    for (let i = 0; i < res.items.length; i++) {
-                        loadVideo(res.items[i]);
-                    }
+                    (res.items || []).forEach(function (video) {
+                        loadVideo(video);
+                    });
 
                     processed = processed + ids.length;
                     controls.progress.processing(processed, videoIds.length);
@@ -537,36 +578,33 @@ const bulk = (function () {
         publishedAt.utc();
 
         const tags = idx(["snippet", "tags"], video);
-        if (tags) {
-            for (let j = 0; j < tags.length; j++) {
-                const tag = tags[j];
-                if (!tagsData[tag]) {
-                    tagsData[tag] = {}
-                }
+        (tags || []).forEach(function (tag) {
+            if (!tagsData[tag]) {
+                tagsData[tag] = {}
+            }
 
-                tagsData[tag].count = ++tagsData[tag].count || 1;
+            tagsData[tag].count = ++tagsData[tag].count || 1;
 
-                if (tagsData[tag].firstUsed) {
-                    if (publishedAt.isBefore(tagsData[tag].firstUsed)) {
-                        tagsData[tag].firstUsed = publishedAt;
-                        tagsData[tag].firstVideo = video.id;
-                    }
-                } else {
+            if (tagsData[tag].firstUsed) {
+                if (publishedAt.isBefore(tagsData[tag].firstUsed)) {
                     tagsData[tag].firstUsed = publishedAt;
                     tagsData[tag].firstVideo = video.id;
                 }
+            } else {
+                tagsData[tag].firstUsed = publishedAt;
+                tagsData[tag].firstVideo = video.id;
+            }
 
-                if (tagsData[tag].lastUsed) {
-                    if (publishedAt.isAfter(tagsData[tag].lastUsed)) {
-                        tagsData[tag].lastUsed = publishedAt;
-                        tagsData[tag].lastVideo = video.id;
-                    }
-                } else {
+            if (tagsData[tag].lastUsed) {
+                if (publishedAt.isAfter(tagsData[tag].lastUsed)) {
                     tagsData[tag].lastUsed = publishedAt;
                     tagsData[tag].lastVideo = video.id;
                 }
+            } else {
+                tagsData[tag].lastUsed = publishedAt;
+                tagsData[tag].lastVideo = video.id;
             }
-        }
+        });
 
         const geotag = idx(["recordingDetails"], video);
         if (geotag.location) {
@@ -595,51 +633,47 @@ const bulk = (function () {
             const URL_XREGEX = XRegExp("(\\p{L}[\\p{L}\\d\\-+.]*)?:\\/\\/[-\\p{L}0-9@:%._+~#=]{1,256}\\.[\\p{L}0-9()]{1,6}\\b([-\\p{L}0-9@:%_!+.~#?&\\/=]*)", "gi");
             const matches = XRegExp.match(description, URL_XREGEX);
             const END_CHARS = /[.()]*$/gi; // Remove periods and parenthesis on end of the link.
-            if (matches) {
-                for (let j = 0; j < matches.length; j++) {
-                    const link = matches[j].replace(END_CHARS, "");
-                    if (!linksData[link]) {
-                        linksData[link] = {}
-                    }
-                    linksData[link].count = ++linksData[link].count || 1;
+            (matches || []).forEach(function (match) {
+                const link = match.replace(END_CHARS, "");
+                if (!linksData[link]) {
+                    linksData[link] = {}
+                }
+                linksData[link].count = ++linksData[link].count || 1;
 
-                    if (linksData[link].firstUsed) {
-                        if (publishedAt.isBefore(linksData[link].firstUsed)) {
-                            linksData[link].firstUsed = publishedAt;
-                            linksData[link].firstVideo = video.id;
-                        }
-                    } else {
+                if (linksData[link].firstUsed) {
+                    if (publishedAt.isBefore(linksData[link].firstUsed)) {
                         linksData[link].firstUsed = publishedAt;
                         linksData[link].firstVideo = video.id;
                     }
+                } else {
+                    linksData[link].firstUsed = publishedAt;
+                    linksData[link].firstVideo = video.id;
+                }
 
-                    if (linksData[link].lastUsed) {
-                        if (publishedAt.isAfter(linksData[link].lastUsed)) {
-                            linksData[link].lastUsed = publishedAt;
-                            linksData[link].lastVideo = video.id;
-                        }
-                    } else {
+                if (linksData[link].lastUsed) {
+                    if (publishedAt.isAfter(linksData[link].lastUsed)) {
                         linksData[link].lastUsed = publishedAt;
                         linksData[link].lastVideo = video.id;
                     }
+                } else {
+                    linksData[link].lastUsed = publishedAt;
+                    linksData[link].lastVideo = video.id;
                 }
-            }
+            });
         }
 
-        for (let i = 0; i < otherData.length; i++) {
-            otherData[i].check(video);
-        }
+        otherData.forEach(function (row) {
+            row.check(video);
+        });
 
-        for (let j = 0; j < columns.length; j++) {
-            const column = columns[j];
-
+        columns.forEach(function (column) {
             const value = column._idx ? idx(column._idx, video) : undefined;
             const displayValue = column.hasOwnProperty("valueMod") ? column.valueMod(value, video) : value;
 
             dataRow.push(displayValue);
 
             if (column.csvSkip) {
-                continue;
+                return;
             }
 
             let csvValue = displayValue && displayValue.hasOwnProperty("display") ?
@@ -650,7 +684,7 @@ const bulk = (function () {
             }
 
             csvDataRow.push(csvValue);
-        }
+        });
 
         tableRows.push(csvDataRow.join("\t"));
         rawVideoData.push(video);
@@ -667,9 +701,7 @@ const bulk = (function () {
 
         let hasDislikes = false;
         let hasUnlisted = false;
-        for (let i = 0; i < rawVideoData.length; i++) {
-            const video = rawVideoData[i];
-
+        (rawVideoData || []).forEach(function (video) {
             const dislikes = idx(["statistics", "dislikeCount"], video);
             if (dislikes) {
                 hasDislikes = true;
@@ -679,7 +711,7 @@ const bulk = (function () {
             if (privacyStatus === "unlisted") {
                 hasUnlisted = true;
             }
-        }
+        });
         const dislikesCheck = document.getElementById("column-Dislikes");
         const privacyStatusCheck = document.getElementById("column-Privacy Status");
         console.log(hasDislikes + " " + dislikesCheck.checked + " " + hasUnlisted + " " + privacyStatusCheck.checked)
@@ -729,8 +761,7 @@ const bulk = (function () {
         const timezoneOffset = controls.offset.val();
         const years = [];
         const yearCount = {};
-        for (let i = 0; i < rawVideoData.length; i++) {
-            const video = rawVideoData[i];
+        rawVideoData.forEach(function (video) {
             const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
             const year = timestamp.format('yyyy');
             if (years.indexOf(year) === -1) {
@@ -739,13 +770,12 @@ const bulk = (function () {
             } else {
                 yearCount[year] = yearCount[year] + 1;
             }
-        }
+        });
         years.sort();
         years.reverse();
-        for (let i = 0; i < years.length; i++) {
-            const year = years[i];
+        years.forEach(function (year) {
             controls.year.append("<option value='" + year + "'>" + year + "  (" + yearCount[year] + " videos)</option>");
-        }
+        });
         loadChartData(timezoneOffset);
 
         console.log(unavailableData);
@@ -764,10 +794,9 @@ const bulk = (function () {
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
 
-        for (let i = 0; i < otherData.length; i++) {
-            const other = otherData[i];
-            controls.otherTable.row.add([other.text, Number(other.value).toLocaleString()]).draw(false);
-        }
+        otherData.forEach(function (otherRow) {
+            controls.otherTable.row.add([otherRow.text, Number(otherRow.value).toLocaleString()]).draw(false);
+        });
 
         if (callback) {
             callback();
@@ -783,15 +812,14 @@ const bulk = (function () {
 
         const days = ['Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday']
         const rawChartData = {};
-        for (let i = 0; i < days.length; i++) {
-            const dayName = days[i];
+        days.forEach(function (dayName) {
             rawChartData[dayName] = {
                 name: dayName,
                 data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             }
-        }
-        for (let i = 0; i < rawVideoData.length; i++) {
-            const video = rawVideoData[i];
+        });
+
+        rawVideoData.forEach(function (video) {
             const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
             const dayName = timestamp.format('dddd');
             const hour24 = timestamp.format('H');
@@ -800,20 +828,19 @@ const bulk = (function () {
             if (!yearFilter || yearFilter === "" || year === yearFilter) {
                 rawChartData[dayName].data[hour24] = rawChartData[dayName].data[hour24] + 1;
             }
-        }
+        });
 
         console.log(rawChartData);
 
         const newChartData = [];
-        for (let i = 0; i < days.length; i++) {
-            const dayName = days[i];
+        days.forEach(function (dayName) {
             for (let weekday in rawChartData) {
                 if (weekday === dayName) {
                     newChartData.push(rawChartData[weekday]);
                     chartData[rawChartData[weekday].name] = rawChartData[weekday].data;
                 }
             }
-        }
+        });
 
         controls.uploadFrequency.updateSeries(newChartData);
     }
@@ -1021,14 +1048,14 @@ const bulk = (function () {
         {
             title: "Dislikes",
             type: "num",
-            visible: BEFORE_DISLIKES,
+            visible: false,
             _idx: ["statistics", "dislikeCount"],
             valueMod: function (value) {
                 return value ? {
                     display: Number(value).toLocaleString(),
                     num: value
                 } : {
-                    display: BEFORE_DISLIKES ? "disabled" : "",
+                    display: "",
                     num: -1
                 };
             },
@@ -1145,12 +1172,10 @@ const bulk = (function () {
                 if (!$.isEmptyObject(value)) {
                     console.log(value);
 
-                    const keys = Object.keys(value);
                     const pairs = [];
-
-                    for (let i = 0; i < keys.length; i++) {
-                        pairs.push(keys[i] + "/" + value[keys[i]]);
-                    }
+                    Object.keys(value).forEach(function (key) {
+                        pairs.push(key + "/" + value[key]);
+                    });
 
                     return pairs.join(", ");
                 }
@@ -1859,12 +1884,9 @@ const bulk = (function () {
                 controls.shareLink.attr("disabled", false);
 
                 const parsed = [];
-                const split = value.split(",");
-
-                for (let i = 0; i < split.length; i++) {
-                    parsed.push(determineInput(split[i]));
-                }
-
+                value.split(",").forEach(function (value) {
+                    parsed.push(determineInput(value));
+                });
                 if (parsed.length === 0) {
                     return;
                 }
@@ -1893,7 +1915,7 @@ const bulk = (function () {
 
             function getImageBinaryCorsProxy(fileName, imageUrl, zip, delay, imageStatuses) {
                 return new Promise(function (resolve) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         // CORS proxy workaround for downloading YouTube thumbnails in client-side app
                         // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
                         console.log('Attempting to download image over CORS proxy (' + delay + ' ms start delay): ' + imageUrl);
@@ -1987,15 +2009,14 @@ const bulk = (function () {
                 const optionalImages = [];
                 const imageStatuses = {true: 0, false: 0};
                 if (includeThumbs) {
-                    for (let i = 0; i < rawVideoData.length; i++) {
-                        const video = rawVideoData[i];
+                    rawVideoData.forEach(function (video) {
                         const fileName = video.id + ".png";
                         const thumbs = idx(["snippet", "thumbnails"], video) || {};
                         const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
                         if (thumbUrl) {
                             optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 100, imageStatuses));
                         }
-                    }
+                    });
                 }
 
                 Promise.all(optionalImages).then(function () {
@@ -2048,11 +2069,10 @@ const bulk = (function () {
                         // if you return a promise in a "then", you will chain the two promises
                         return content.file("videos.json").async("string");
                     }).then(function (text) {
-                        const videos = JSON.parse(text);
                         const rows = [];
-                        for (let i = 0; i < videos.length; i++) {
-                            rows.push(loadVideo(videos[i], true));
-                        }
+                        (JSON.parse(text) || []).forEach(function (video) {
+                            rows.push(loadVideo(video, true));
+                        });
 
                         console.log(rows);
 
@@ -2125,9 +2145,9 @@ const bulk = (function () {
 
             controls.year.html("<option value='' selected>All years</option>")
 
-            for (let i = 0; i < otherData.length; i++) {
-                otherData[i].value = 0;
-            }
+            otherData.forEach(function (row) {
+                row.value = 0;
+            });
             controls.otherTable.clear();
             controls.otherTable.draw(false);
         }
