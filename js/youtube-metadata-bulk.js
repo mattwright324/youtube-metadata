@@ -2015,7 +2015,7 @@ const bulk = (function () {
                         const thumbs = idx(["snippet", "thumbnails"], video) || {};
                         const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
                         if (thumbUrl) {
-                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 50, imageStatuses));
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 100, imageStatuses));
                         }
                     }
                 }
