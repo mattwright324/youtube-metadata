@@ -2009,14 +2009,15 @@ const bulk = (function () {
                 const optionalImages = [];
                 const imageStatuses = {true: 0, false: 0};
                 if (includeThumbs) {
-                    rawVideoData.forEach(function (video) {
+                    for (let i = 0; i < rawVideoData.length; i++) {
+                        const video = rawVideoData[i];
                         const fileName = video.id + ".png";
                         const thumbs = idx(["snippet", "thumbnails"], video) || {};
                         const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
                         if (thumbUrl) {
-                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 100, imageStatuses));
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 50, imageStatuses));
                         }
-                    });
+                    }
                 }
 
                 Promise.all(optionalImages).then(function () {
