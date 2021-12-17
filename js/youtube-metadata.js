@@ -1114,7 +1114,7 @@
 
             const channelIds = [];
             (res.items || []).forEach(function (item) {
-                channelIds.push(res.items[i].id.channelId);
+                channelIds.push(item.id.channelId);
             });
 
             youtube.ajax('channels', {
