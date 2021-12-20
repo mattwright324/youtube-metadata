@@ -13,51 +13,6 @@
     const controls = {};
     let exportData = {};
 
-    const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
-
-    const patterns = {
-        video_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/shorts\/([\w_-]+)(?:&.*)?/i,
-            /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i
-        ],
-        playlist_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
-        ],
-        channel_user: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
-        ],
-        channel_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
-        ],
-        channel_custom: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([\w_-]+)(?:\?.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/([\w_-]+)(?:\?.*)?/i
-        ]
-    };
-
-    function determineInput(value) {
-        const parsed = {
-            type: 'unknown',
-            mayHideOthers: true,
-            original: value
-        };
-        for (let type in patterns) {
-            for (let i = 0; i < patterns[type].length; i++) {
-                const regex = patterns[type][i];
-                const result = regex.exec(value);
-
-                if (result) {
-                    parsed.type = type;
-                    parsed.value = result[1];
-
-                    return parsed;
-                }
-            }
-        }
-        return parsed;
-    }
-
     function getSuggestedHtml(parsedInput, fullJson, jsonType) {
         const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType);
         suggested.sort((a, b) => (a.text > b.text) ? 1 : -1)
@@ -76,16 +31,16 @@
         } else if (fullJson) {
             if (jsonType === "video") {
                 data["video_id"] = fullJson.id;
-                data["video_title"] = idx(["snippet", "title"], fullJson);
+                data["video_title"] = shared.idx(["snippet", "title"], fullJson);
                 data["test"] = "test";
             } else if (jsonType === "playlist") {
                 data["playlist_id"] = fullJson.id;
-                data["playlist_title"] = idx(["snippet", "title"], fullJson);
+                data["playlist_title"] = shared.idx(["snippet", "title"], fullJson);
             } else if (jsonType === "channel") {
                 data["channel_id"] = fullJson.id;
-                data["channel_title"] = idx(["snippet", "title"], fullJson);
+                data["channel_title"] = shared.idx(["snippet", "title"], fullJson);
 
-                const custom = idx(["snippet", "customUrl"], fullJson);
+                const custom = shared.idx(["snippet", "customUrl"], fullJson);
                 if (custom) {
                     data["channel_custom"] = custom;
                 }
@@ -192,31 +147,6 @@
         }
     }
 
-    function formatDuration(duration, includeMs, ignoreTime) {
-        const years = duration.years();
-        const months = duration.months();
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-        const seconds = duration.seconds();
-        const millis = duration.milliseconds();
-        const format = [
-            (years > 0 ? years + " years" : ""),
-            (months > 0 ? months + " months" : ""),
-            (days > 0 ? days + " days" : ""),
-            (!ignoreTime && hours > 0 ? hours + "h" : ""),
-            (!ignoreTime && minutes > 0 ? minutes + "m" : ""),
-            (!ignoreTime && seconds > 0 ? seconds + "s" : ""),
-            includeMs ? (millis > 0 ? millis + "ms" : "") : ""
-        ].join(" ");
-
-        if (format.trim() == "") {
-            return "0s";
-        }
-
-        return format;
-    }
-
     function formatBCP47(translation) {
         const findings = [];
 
@@ -229,28 +159,6 @@
         }
 
         return findings.join(" / ");
-    }
-
-    function sortObject(unordered, sortArrays = false) {
-        if (!unordered || typeof unordered !== 'object') {
-            return unordered;
-        }
-
-        if (Array.isArray(unordered)) {
-            const newArr = unordered.map((item) => sortObject(item, sortArrays));
-            if (sortArrays) {
-                newArr.sort();
-            }
-            return newArr;
-        }
-
-        const ordered = {};
-        Object.keys(unordered)
-            .sort()
-            .forEach((key) => {
-                ordered[key] = sortObject(unordered[key], sortArrays);
-            });
-        return ordered;
     }
 
     function processLocalizations(partDiv, partJson) {
@@ -394,7 +302,7 @@
                         //     type: "GET",
                         //     url: "https://returnyoutubedislikeapi.com/votes?videoId=" + fullJson.id
                         // }).then(function (res) {
-                        //     const dislikes = idx(["dislikes"], res);
+                        //     const dislikes = shared.idx(["dislikes"], res);
                         //     if (dislikes) {
                         //         partDiv.append("<p class='mb-15'>RYD Estimated Dislikes: <span class='orange'>" + dislikes + "</span></p>")
                         //     }
@@ -445,7 +353,7 @@
                         partDiv.append(dateHtml);
 
                         const published = moment(fullJson.snippet.publishedAt).utc();
-                        const format = formatDuration(getDuration(recordDate, published), false, true);
+                        const format = shared.formatDuration(getDuration(recordDate, published), false, true);
                         if (format === "0s") {
                             partDiv.append("<p class='mb-15'>The video was recorded <span class='orange'>same day</span> as the publish date.</p>")
                         } else if (published.isAfter(recordDate)) {
@@ -503,7 +411,7 @@
                     if (partJson.hasOwnProperty("scheduledStartTime") && !partJson.hasOwnProperty("actualStartTime")) {
                         // Stream hasn't started
                         const start = moment(partJson.scheduledStartTime).utc();
-                        const format = formatDuration(getDuration(start, now));
+                        const format = shared.formatDuration(getDuration(start, now));
 
                         if (start.isAfter(now)) {
                             partDiv.append("<p class='mb-15'>The stream hasn't started yet. It will start in <span class='orange'>" + format + "</span></p>");
@@ -515,7 +423,7 @@
                         // Stream started. Time between schedule date and actual start?
                         const start = moment(partJson.actualStartTime).utc();
                         const scheduled = moment(partJson.scheduledStartTime).utc();
-                        const format = formatDuration(getDuration(start, scheduled));
+                        const format = shared.formatDuration(getDuration(start, scheduled));
                         if (start.isAfter(scheduled)) {
                             partDiv.append("<p class='mb-15'>The stream was <span class='orange'>" + format + "</span> late to start</p>")
                         } else {
@@ -525,7 +433,7 @@
                     if (partJson.hasOwnProperty("actualStartTime") && !partJson.hasOwnProperty("actualEndTime")) {
                         // Stream started but still going. Time between start and now?
                         const start = moment(partJson.actualStartTime).utc();
-                        const format = formatDuration(getDuration(start, now));
+                        const format = shared.formatDuration(getDuration(start, now));
 
                         partDiv.append("<p class='mb-15'>The stream is still going. It has been running for <span class='orange'>" + format + "</span></p>");
                     }
@@ -533,7 +441,7 @@
                         // Stream done. Time between start and end?
                         const start = moment(partJson.actualStartTime).utc();
                         const end = moment(partJson.actualEndTime).utc();
-                        const format = formatDuration(getDuration(start, end));
+                        const format = shared.formatDuration(getDuration(start, end));
 
                         partDiv.append("<p class='mb-15'>The stream is over. It's length was <span class='orange'>" + format + "</span></p>");
                     }
@@ -553,7 +461,7 @@
                     const partDiv = $("#video-section #contentDetails");
 
                     const duration = moment.duration(partJson.duration);
-                    const format = formatDuration(duration);
+                    const format = shared.formatDuration(duration);
 
                     if (format === "0s") {
                         partDiv.append("<p class='mb-15'>A video can't be 0 seconds. This must be a livestream.</p>");
@@ -649,11 +557,14 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #topicDetails");
 
+                    const topics = [];
                     (partJson.topicCategories || []).forEach(function (categoryUrl) {
                         const text = categoryUrl.substr(categoryUrl.lastIndexOf('/') + 1).replace(/_/g, " ");
 
-                        partDiv.append("<p class='mb-15'><a target='_blank' href='" + categoryUrl + "'>" + text + "</a></p>")
+                        topics.push("<li><a target='_blank' href='" + categoryUrl + "'>" + text + "</a></li>");
                     });
+
+                    partDiv.append("<p class='mb-15'><ul>" + topics.join("") + "</ul></p>");
                 }
             }
         },
@@ -885,11 +796,14 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #topicDetails");
 
+                    const topics = [];
                     (partJson.topicCategories || []).forEach(function (categoryUrl) {
                         const text = categoryUrl.substr(categoryUrl.lastIndexOf('/') + 1).replace(/_/g, " ");
 
-                        partDiv.append("<p class='mb-15'><a target='_blank' href='" + categoryUrl + "'>" + text + "</a></p>")
+                        topics.push("<li><a target='_blank' href='" + categoryUrl + "'>" + text + "</a></li>");
                     });
+
+                    partDiv.append("<p class='mb-15'><ul>" + topics.join("") + "</ul></p>");
                 }
             }
         },
@@ -960,7 +874,7 @@
 
 
         let reasonAppend;
-        const reason = idx(["responseJSON", "error", "errors", 0, "reason"], errorJson);
+        const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], errorJson);
         if (reason === "quotaExceeded") {
             $("#quota").show();
             reasonAppend = $("#quota-reason-append");
@@ -1005,7 +919,7 @@
 
                 if (item.hasOwnProperty(part)) {
                     if (part === 'localizations') {
-                        item[part] = sortObject(item[part]);
+                        item[part] = shared.sortObject(item[part]);
                     }
 
                     section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
@@ -1032,7 +946,7 @@
     }
 
     async function parseVideo(res, input, skipGetChannel) {
-        const channelId = idx(["items", "0", "snippet", "channelId"], res)
+        const channelId = shared.idx(["items", "0", "snippet", "channelId"], res)
         if (!skipGetChannel && channelId) {
             submit({
                 type: 'channel_id',
@@ -1062,11 +976,11 @@
 
         const videoMore = $("#video-more");
         videoMore.empty();
-        videoMore.append(getSuggestedHtml(null, idx(["items", 0], res), "video"));
+        videoMore.append(getSuggestedHtml(null, shared.idx(["items", 0], res), "video"));
     }
 
     async function parsePlaylist(res, input, skipGetChannel) {
-        const channelId = idx(["items", "0", "snippet", "channelId"], res)
+        const channelId = shared.idx(["items", "0", "snippet", "channelId"], res)
         if (!skipGetChannel && channelId) {
             submit({
                 type: 'channel_id',
@@ -1079,7 +993,7 @@
 
         const playlistMore = $("#playlist-more");
         playlistMore.empty();
-        playlistMore.append(getSuggestedHtml(null, idx(["items", 0], res), "playlist"));
+        playlistMore.append(getSuggestedHtml(null, shared.idx(["items", 0], res), "playlist"));
     }
 
     async function parseChannel(res, input) {
@@ -1087,7 +1001,7 @@
 
         const channelMore = $("#channel-more");
         channelMore.empty();
-        channelMore.append(getSuggestedHtml(null, idx(["items", 0], res), "channel"));
+        channelMore.append(getSuggestedHtml(null, shared.idx(["items", 0], res), "channel"));
     }
 
     /**
@@ -1344,7 +1258,7 @@
                 controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(value) + "&submit=true");
                 controls.shareLink.attr("disabled", false);
 
-                const parsed = determineInput(value);
+                const parsed = shared.determineInput(value);
 
                 $("#video,#playlist,#channel").show();
                 $("#unknown,#quota").hide();
@@ -1467,7 +1381,7 @@
                         console.log(content);
                         parseMethod(content, {
                             type: inputType,
-                            value: idx(["items", 0, "id"], content)
+                            value: shared.idx(["items", 0, "id"], content)
                         }, true);
                     });
                 }
@@ -1481,17 +1395,7 @@
                 });
             });
 
-            function parseQuery(queryString) {
-                let query = {};
-                let pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-                for (let i = 0; i < pairs.length; i++) {
-                    let pair = pairs[i].split('=');
-                    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-                }
-                return query;
-            }
-
-            const query = parseQuery(window.location.search);
+            const query = shared.parseQuery(window.location.search);
             console.log(query);
             if (query.hasOwnProperty("url")) {
                 controls.inputValue.val(decodeURIComponent(query.url));

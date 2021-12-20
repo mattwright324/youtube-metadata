@@ -12,51 +12,6 @@ const bulk = (function () {
     const elements = {};
     const controls = {};
 
-    const idx = (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
-
-    const patterns = {
-        video_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/shorts\/([\w_-]+)(?:&.*)?/i,
-            /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i
-        ],
-        playlist_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
-        ],
-        channel_user: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
-        ],
-        channel_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
-        ],
-        channel_custom: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([\w_-]+)(?:\?.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/([\w_-]+)(?:\?.*)?/i
-        ]
-    };
-
-    function determineInput(value) {
-        const parsed = {
-            type: 'unknown',
-            mayHideOthers: true,
-            original: value
-        };
-        for (let type in patterns) {
-            for (let i = 0; i < patterns[type].length; i++) {
-                const regex = patterns[type][i];
-                const result = regex.exec(value);
-
-                if (result) {
-                    parsed.type = type;
-                    parsed.value = result[1];
-
-                    return parsed;
-                }
-            }
-        }
-        return parsed;
-    }
-
     function handleSearch(searchParams, maxPages) {
         new Promise(function (resolve) {
             const results = [];
@@ -70,7 +25,7 @@ const bulk = (function () {
                     console.log(res);
 
                     (res.items || []).forEach(function (item) {
-                        const id = idx(["id"], item);
+                        const id = shared.idx(["id"], item);
                         if (id.hasOwnProperty("videoId")) {
                             results.push({type: "video_id", value: id.videoId});
                         }
@@ -189,12 +144,12 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
-                    const channelId = idx(["items", 0, "id"], res);
+                    const channelId = shared.idx(["items", 0, "id"], res);
                     if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
                         channelIdsCreatedPlaylists.push(channelId);
                     }
 
-                    const uploadsPlaylistId = idx(["items", 0, "contentDetails", "relatedPlaylists", "uploads"], res);
+                    const uploadsPlaylistId = shared.idx(["items", 0, "contentDetails", "relatedPlaylists", "uploads"], res);
                     console.log(uploadsPlaylistId);
 
                     if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
@@ -240,7 +195,7 @@ const bulk = (function () {
 
                     const channelIds = [];
                     (res.items || []).forEach(function (channel) {
-                        channelIds.push(idx(["id", "channelId"], channel));
+                        channelIds.push(shared.idx(["id", "channelId"], channel));
                     });
 
                     youtube.ajax("channels", {
@@ -251,15 +206,15 @@ const bulk = (function () {
                         console.log(res2);
 
                         (res2.items || []).forEach(function (channel) {
-                            const channelId = idx(["id"], channel);
-                            const customUrl = idx(["snippet", "customUrl"], channel);
+                            const channelId = shared.idx(["id"], channel);
+                            const customUrl = shared.idx(["snippet", "customUrl"], channel);
 
                             if (String(customUrl).toLowerCase() === String(channelCustoms[index]).toLowerCase()) {
                                 if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
                                     channelIdsCreatedPlaylists.push(channelId);
                                 }
 
-                                const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
+                                const uploadsPlaylistId = shared.idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
                                 console.log(uploadsPlaylistId);
 
                                 if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
@@ -318,7 +273,7 @@ const bulk = (function () {
                     console.log(res);
 
                     (res.items || []).forEach(function (channel) {
-                        const uploadsPlaylistId = idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
+                        const uploadsPlaylistId = shared.idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
                         console.log(uploadsPlaylistId);
 
                         if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
@@ -373,10 +328,10 @@ const bulk = (function () {
                     console.log(res);
 
                     (res.items || []).forEach(function (playlist) {
-                        const createdPlaylistId = idx(["id"], playlist);
+                        const createdPlaylistId = shared.idx(["id"], playlist);
                         console.log(createdPlaylistId);
 
-                        playlistMap[createdPlaylistId] = idx(["snippet", "title"], playlist);
+                        playlistMap[createdPlaylistId] = shared.idx(["snippet", "title"], playlist);
 
                         if (playlistIds.indexOf(createdPlaylistId) === -1) {
                             playlistIds.push(createdPlaylistId);
@@ -430,10 +385,10 @@ const bulk = (function () {
                         console.log(res);
 
                         (res.items || []).forEach(function (playlist) {
-                            const playlistId = idx(["id"], playlist);
+                            const playlistId = shared.idx(["id"], playlist);
                             console.log(playlistId);
 
-                            playlistMap[playlistId] = idx(["snippet", "title"], playlist);
+                            playlistMap[playlistId] = shared.idx(["snippet", "title"], playlist);
                         });
 
                         if (res.hasOwnProperty("nextPageToken")) {
@@ -482,19 +437,21 @@ const bulk = (function () {
                         console.log(res);
 
                         (res.items || []).forEach(function (video) {
-                            const videoId = idx(["snippet", "resourceId", "videoId"], video);
-                            const videoOwnerChannelId = idx(["snippet", "videoOwnerChannelId"], video);
+                            const videoId = shared.idx(["snippet", "resourceId", "videoId"], video);
+                            const videoOwnerChannelId = shared.idx(["snippet", "videoOwnerChannelId"], video);
 
                             if (videoIds.indexOf(videoId) === -1) {
                                 videoIds.push(videoId);
                             }
                             if (!videoOwnerChannelId) {
+                                const dateFormat = "YYYY-MM-DD";
+                                const dateAdded = shared.idx(["snippet", "publishedAt"], video);
                                 unavailableData[videoId] = {
-                                    title: idx(["snippet", "title"], video),
+                                    title: shared.idx(["snippet", "title"], video),
                                     source: "Playlist: " +
                                         "<a target='_blank' href='https://www.youtube.com/playlist?list=" + playlistIds[index] + "'>" +
                                         playlistMap[playlistIds[index]] +
-                                        "</a>"
+                                        "</a> (added " + moment(dateAdded).format(dateFormat) + ")"
                                 }
                             }
                         })
@@ -574,10 +531,10 @@ const bulk = (function () {
     function loadVideo(video, skipAdd) {
         const dataRow = [];
         const csvDataRow = [];
-        const publishedAt = moment(idx(["snippet", "publishedAt"], video));
+        const publishedAt = moment(shared.idx(["snippet", "publishedAt"], video));
         publishedAt.utc();
 
-        const tags = idx(["snippet", "tags"], video);
+        const tags = shared.idx(["snippet", "tags"], video);
         (tags || []).forEach(function (tag) {
             if (!tagsData[tag]) {
                 tagsData[tag] = {}
@@ -606,7 +563,7 @@ const bulk = (function () {
             }
         });
 
-        const geotag = idx(["recordingDetails"], video);
+        const geotag = shared.idx(["recordingDetails"], video);
         if (geotag.location) {
             const latLng = geotag.location.latitude + "," + geotag.location.longitude;
             const name = geotag.locationDescription;
@@ -625,7 +582,7 @@ const bulk = (function () {
             }
         }
 
-        const description = idx(["snippet", "description"], video);
+        const description = shared.idx(["snippet", "description"], video);
         if (description) {
             // https://stackoverflow.com/a/3809435/2650847
             //const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9@:%_!+.~#?&/=]*)/gi;
@@ -667,7 +624,7 @@ const bulk = (function () {
         });
 
         columns.forEach(function (column) {
-            const value = column._idx ? idx(column._idx, video) : undefined;
+            const value = column._idx ? shared.idx(column._idx, video) : undefined;
             const displayValue = column.hasOwnProperty("valueMod") ? column.valueMod(value, video) : value;
 
             dataRow.push(displayValue);
@@ -702,12 +659,12 @@ const bulk = (function () {
         let hasDislikes = false;
         let hasUnlisted = false;
         (rawVideoData || []).forEach(function (video) {
-            const dislikes = idx(["statistics", "dislikeCount"], video);
+            const dislikes = shared.idx(["statistics", "dislikeCount"], video);
             if (dislikes) {
                 hasDislikes = true;
             }
 
-            const privacyStatus = idx(["status", "privacyStatus"], video);
+            const privacyStatus = shared.idx(["status", "privacyStatus"], video);
             if (privacyStatus === "unlisted") {
                 hasUnlisted = true;
             }
@@ -762,7 +719,7 @@ const bulk = (function () {
         const years = [];
         const yearCount = {};
         rawVideoData.forEach(function (video) {
-            const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
+            const timestamp = moment(shared.idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
             const year = timestamp.format('yyyy');
             if (years.indexOf(year) === -1) {
                 years.push(year);
@@ -820,7 +777,7 @@ const bulk = (function () {
         });
 
         rawVideoData.forEach(function (video) {
-            const timestamp = moment(idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
+            const timestamp = moment(shared.idx(["snippet", "publishedAt"], video)).utcOffset(String(timezoneOffset));
             const dayName = timestamp.format('dddd');
             const hour24 = timestamp.format('H');
             const year = timestamp.format('yyyy');
@@ -861,31 +818,6 @@ const bulk = (function () {
         }
 
         slice(0, 1000);
-    }
-
-    function formatDuration(duration, includeMs, ignoreTime) {
-        const years = duration.years();
-        const months = duration.months();
-        const days = duration.days();
-        const hours = duration.hours();
-        const minutes = duration.minutes();
-        const seconds = duration.seconds();
-        const millis = duration.milliseconds();
-        const format = [
-            (years > 0 ? years + " years" : ""),
-            (months > 0 ? months + " months" : ""),
-            (days > 0 ? days + " days" : ""),
-            (!ignoreTime && hours > 0 ? hours + "h" : ""),
-            (!ignoreTime && minutes > 0 ? minutes + "m" : ""),
-            (!ignoreTime && seconds > 0 ? seconds + "s" : ""),
-            includeMs ? (millis > 0 ? millis + "ms" : "") : ""
-        ].join(" ");
-
-        if (format.trim() == "") {
-            return "0s";
-        }
-
-        return format;
     }
 
     const columns = [
@@ -933,7 +865,7 @@ const bulk = (function () {
             visible: true,
             _idx: ["snippet", "channelTitle"],
             valueMod: function (value, video) {
-                const channelId = idx(["snippet", "channelId"], video);
+                const channelId = shared.idx(["snippet", "channelId"], video);
                 return "<a target='_blank' href='https://www.youtube.com/channel/" + channelId + "'>" + value + "</a>"
             }
         },
@@ -955,7 +887,7 @@ const bulk = (function () {
                     display: 'livestream',
                     num: length
                 } : {
-                    display: formatDuration(duration, false),
+                    display: shared.formatDuration(duration, false),
                     num: length
                 }
             },
@@ -1383,35 +1315,35 @@ const bulk = (function () {
             text: "Total views",
             value: 0,
             check: function (video) {
-                const views = idx(["statistics", "viewCount"], video);
+                const views = shared.idx(["statistics", "viewCount"], video);
                 this.value = this.value + (views ? Number(views) : 0);
             }
         }, {
             text: "Total likes",
             value: 0,
             check: function (video) {
-                const likes = idx(["statistics", "likeCount"], video);
+                const likes = shared.idx(["statistics", "likeCount"], video);
                 this.value = this.value + (likes ? Number(likes) : 0);
             }
         }, {
             text: "Total dislikes",
             value: 0,
             check: function (video) {
-                const dislikes = idx(["statistics", "dislikeCount"], video);
+                const dislikes = shared.idx(["statistics", "dislikeCount"], video);
                 this.value = this.value + (dislikes ? Number(dislikes) : 0);
             }
         }, {
             text: "Total comments",
             value: 0,
             check: function (video) {
-                const comments = idx(["statistics", "commentCount"], video);
+                const comments = shared.idx(["statistics", "commentCount"], video);
                 this.value = this.value + (comments ? Number(comments) : 0);
             }
         }, {
             text: "Videos with geolocation",
             value: 0,
             check: function (video) {
-                const stat = idx(["recordingDetails", "location", "latitude"], video);
+                const stat = shared.idx(["recordingDetails", "location", "latitude"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1420,7 +1352,7 @@ const bulk = (function () {
             text: "Videos with recordingDate",
             value: 0,
             check: function (video) {
-                const stat = idx(["recordingDetails", "recordingDate"], video);
+                const stat = shared.idx(["recordingDetails", "recordingDate"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1429,7 +1361,7 @@ const bulk = (function () {
             text: "Videos with tags",
             value: 0,
             check: function (video) {
-                const stat = idx(["snippet", "tags"], video);
+                const stat = shared.idx(["snippet", "tags"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1438,7 +1370,7 @@ const bulk = (function () {
             text: "Videos with language",
             value: 0,
             check: function (video) {
-                const stat = idx(["snippet", "defaultLanguage"], video);
+                const stat = shared.idx(["snippet", "defaultLanguage"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1447,7 +1379,7 @@ const bulk = (function () {
             text: "Videos with audio language",
             value: 0,
             check: function (video) {
-                const stat = idx(["snippet", "defaultAudioLanguage"], video);
+                const stat = shared.idx(["snippet", "defaultAudioLanguage"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1456,7 +1388,7 @@ const bulk = (function () {
             text: "Videos with localizations",
             value: 0,
             check: function (video) {
-                const stat = idx(["localizations"], video);
+                const stat = shared.idx(["localizations"], video);
                 if (stat) {
                     this.value = this.value + 1;
                 }
@@ -1465,7 +1397,7 @@ const bulk = (function () {
             text: "Videos with content rating(s)",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "contentRating"], video);
+                const stat = shared.idx(["contentDetails", "contentRating"], video);
                 if (!$.isEmptyObject(stat)) {
                     this.value = this.value + 1;
                 }
@@ -1474,7 +1406,7 @@ const bulk = (function () {
             text: "Videos with region restriction(s)",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "regionRestriction"], video);
+                const stat = shared.idx(["contentDetails", "regionRestriction"], video);
                 if (!$.isEmptyObject(stat)) {
                     this.value = this.value + 1;
                 }
@@ -1483,7 +1415,7 @@ const bulk = (function () {
             text: "Videos with captions",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "caption"], video);
+                const stat = shared.idx(["contentDetails", "caption"], video);
                 if (stat === "true") {
                     this.value = this.value + 1;
                 }
@@ -1492,7 +1424,7 @@ const bulk = (function () {
             text: "Videos with comments disabled",
             value: 0,
             check: function (video) {
-                const stat = idx(["statistics", "commentCount"], video);
+                const stat = shared.idx(["statistics", "commentCount"], video);
                 if (!stat) {
                     this.value = this.value + 1;
                 }
@@ -1501,7 +1433,7 @@ const bulk = (function () {
             text: "Videos with likes disabled",
             value: 0,
             check: function (video) {
-                const stat = idx(["statistics", "likeCount"], video);
+                const stat = shared.idx(["statistics", "likeCount"], video);
                 if (!stat) {
                     this.value = this.value + 1;
                 }
@@ -1510,7 +1442,7 @@ const bulk = (function () {
             text: "Videos with views disabled",
             value: 0,
             check: function (video) {
-                const stat = idx(["statistics", "viewCount"], video);
+                const stat = shared.idx(["statistics", "viewCount"], video);
                 if (!stat) {
                     this.value = this.value + 1;
                 }
@@ -1519,7 +1451,7 @@ const bulk = (function () {
             text: "Videos considered livestreams",
             value: 0,
             check: function (video) {
-                const stat = idx(["liveStreamingDetails"], video);
+                const stat = shared.idx(["liveStreamingDetails"], video);
                 if (stat !== null) {
                     this.value = this.value + 1;
                 }
@@ -1528,7 +1460,7 @@ const bulk = (function () {
             text: "Videos with license=creativeCommon",
             value: 0,
             check: function (video) {
-                const stat = idx(["status", "license"], video);
+                const stat = shared.idx(["status", "license"], video);
                 if (stat === "creativeCommon") {
                     this.value = this.value + 1;
                 }
@@ -1537,7 +1469,7 @@ const bulk = (function () {
             text: "Videos with privacyStatus=unlisted",
             value: 0,
             check: function (video) {
-                const stat = idx(["status", "privacyStatus"], video);
+                const stat = shared.idx(["status", "privacyStatus"], video);
                 if (stat === "unlisted") {
                     this.value = this.value + 1;
                 }
@@ -1546,7 +1478,7 @@ const bulk = (function () {
             text: "Videos with madeForKids=true",
             value: 0,
             check: function (video) {
-                const stat = idx(["status", "madeForKids"], video);
+                const stat = shared.idx(["status", "madeForKids"], video);
                 if (stat === true) {
                     this.value = this.value + 1;
                 }
@@ -1555,7 +1487,7 @@ const bulk = (function () {
             text: "Videos with embeddable=false",
             value: 0,
             check: function (video) {
-                const stat = idx(["status", "embeddable"], video);
+                const stat = shared.idx(["status", "embeddable"], video);
                 if (stat === false) {
                     this.value = this.value + 1;
                 }
@@ -1564,7 +1496,7 @@ const bulk = (function () {
             text: "Videos with dimension=3d",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "dimension"], video);
+                const stat = shared.idx(["contentDetails", "dimension"], video);
                 if (stat === "3d") {
                     this.value = this.value + 1;
                 }
@@ -1573,7 +1505,7 @@ const bulk = (function () {
             text: "Videos with projection=360",
             value: 0,
             check: function (video) {
-                const stat = idx(["contentDetails", "projection"], video);
+                const stat = shared.idx(["contentDetails", "projection"], video);
                 if (stat === "360") {
                     this.value = this.value + 1;
                 }
@@ -1885,7 +1817,7 @@ const bulk = (function () {
 
                 const parsed = [];
                 value.split(",").forEach(function (value) {
-                    parsed.push(determineInput(value));
+                    parsed.push(shared.determineInput(value));
                 });
                 if (parsed.length === 0) {
                     return;
@@ -2012,7 +1944,7 @@ const bulk = (function () {
                     for (let i = 0; i < rawVideoData.length; i++) {
                         const video = rawVideoData[i];
                         const fileName = video.id + ".png";
-                        const thumbs = idx(["snippet", "thumbnails"], video) || {};
+                        const thumbs = shared.idx(["snippet", "thumbnails"], video) || {};
                         const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
                         if (thumbUrl) {
                             optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 100, imageStatuses));
@@ -2090,17 +2022,7 @@ const bulk = (function () {
                 });
             });
 
-            function parseQuery(queryString) {
-                let query = {};
-                let pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-                for (let i = 0; i < pairs.length; i++) {
-                    let pair = pairs[i].split('=');
-                    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-                }
-                return query;
-            }
-
-            const query = parseQuery(window.location.search);
+            const query = shared.parseQuery(window.location.search);
             console.log(query);
             if (query.hasOwnProperty("searchMode") && String(query.searchMode).toLowerCase() === String(true)) {
                 elements.regularInput.attr("hidden", true);
