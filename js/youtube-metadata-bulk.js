@@ -444,12 +444,14 @@ const bulk = (function () {
                                 videoIds.push(videoId);
                             }
                             if (!videoOwnerChannelId) {
+                                const dateFormat = "YYYY-MM-DD";
+                                const dateAdded = shared.idx(["snippet", "publishedAt"], video);
                                 unavailableData[videoId] = {
                                     title: shared.idx(["snippet", "title"], video),
                                     source: "Playlist: " +
                                         "<a target='_blank' href='https://www.youtube.com/playlist?list=" + playlistIds[index] + "'>" +
                                         playlistMap[playlistIds[index]] +
-                                        "</a>"
+                                        "</a> (added " + moment(dateAdded).format(dateFormat) + ")"
                                 }
                             }
                         })
