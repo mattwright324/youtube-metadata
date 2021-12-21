@@ -485,15 +485,14 @@
                             restriction.blocked.sort();
                         }
 
-                        const codes = restriction.allowed || restriction.blocked;
+                        const inList = restriction.allowed || restriction.blocked;
                         const translations = [];
-                        for (let i = 0; i < codes.length; i++) {
-                            const code = codes[i];
+                        inList.forEach(function (code) {
                             const result = iso3166.lookup(code);
                             const name = (result ? result.name : 'ISO-3166 Could not translate')
 
                             translations.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>")
-                        }
+                        });
                         partDiv.append(
                             "<div class='ui accordion'>" +
                             "<div class='title'>" +
@@ -507,8 +506,8 @@
 
                         const notInList = [];
                         iso3166.codes.forEach(function (code) {
-                            if (codes.indexOf(code) === -1) {
-                                notInList.push(code);
+                            if (inList.indexOf(code.alpha2) === -1) {
+                                notInList.push(code.alpha2);
                             }
                         });
                         let message2;
