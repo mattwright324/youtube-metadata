@@ -62,7 +62,11 @@
             });
             suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + data.video_id,
-                text: "Archive.org - https://www.youtube.com/watch?v=" + data.video_id
+                text: "Archive.org (web) - https://www.youtube.com/watch?v=" + data.video_id
+            });
+            suggestions.push({
+                url: "https://web.archive.org/web/2/http://wayback-fakeurl.archive.org/yt/" + data.video_id,
+                text: "Archive.org (direct video) - " + data.video_id
             });
             suggestions.push({
                 url: "https://filmot.com/video/" + data.video_id,
@@ -871,7 +875,6 @@
     function errorState(message, funcAppend, errorJson) {
         $("#video,#playlist,#channel").hide();
 
-
         let reasonAppend;
         const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], errorJson);
         if (reason === "quotaExceeded") {
@@ -895,6 +898,72 @@
             const json = reasonAppend.find("code");
             json.text(JSON.stringify(errorJson, null, 4));
             hljs.highlightElement(json[0]);
+        }
+    }
+
+    function attemptLoadFilmot(parsedInput) {
+        $("#filmot").hide();
+
+        if (parsedInput.type === "video_id") {
+            $.ajax({
+                cache: false,
+                data: {
+                    key: "md5paNgdbaeudounjp39",
+                    id: parsedInput.value,
+                    flags: 1 // Get channel and description too,
+                },
+                dataType: "json",
+                type: "GET",
+                timeout: 5000,
+                url: "https://filmot.com/api/getvideos",
+            }).done(function (res) {
+                const reasonAppend = $("#filmot-append");
+                reasonAppend.empty();
+
+                const video = shared.idx([0], res);
+                if (!video) {
+                    reasonAppend.append("<p class='mb-15'>No archive about this video id.</p>")
+                    return;
+                }
+
+                exportData["filmot"] = video;
+
+                reasonAppend.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+                const json = reasonAppend.find("code");
+                json.text(JSON.stringify(video, null, 4));
+                hljs.highlightElement(json[0]);
+
+                $("#filmot").show();
+
+                const titleHtml = "<p class='mb-15' style='font-size: 1.25em'>" + video.title + "</p>";
+                reasonAppend.append(titleHtml);
+
+                const authorHtml =
+                    "<p class='mb-15'>Published by " +
+                    "<a href='https://www.youtube.com/channel/" + video.channelid + "' target='_blank'>" +
+                    video.channelname +
+                    "</a>" +
+                    "</p>";
+                reasonAppend.append(authorHtml);
+
+                const published = new Date(video.uploaddate);
+                const dateHtml =
+                    "<p class='mb-15'>Published on " +
+                    "<span class='orange'>" + moment(published).format("ddd, DD MMM YYYY") + "</span>" +
+                    " (" + moment(published).utc().fromNow() + ")" +
+                    "</p>";
+                reasonAppend.append(dateHtml);
+
+                const duration = moment.duration({"seconds": video.duration});
+                const format = shared.formatDuration(duration);
+                if (format === "0s") {
+                    reasonAppend.append("<p class='mb-15'>A video can't be 0 seconds. This must be a livestream.</p>");
+                } else {
+                    reasonAppend.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
+                }
+            }).fail(function (err) {
+                console.warn(err);
+            })
         }
     }
 
@@ -941,6 +1010,7 @@
                     getSuggestedHtml(parsedInput) +
                     "</p>");
             });
+            attemptLoadFilmot(parsedInput);
         }
     }
 
@@ -1260,7 +1330,7 @@
                 const parsed = shared.determineInput(value);
 
                 $("#video,#playlist,#channel").show();
-                $("#unknown,#quota").hide();
+                $("#unknown,#quota,#filmot").hide();
                 internal.buildPage(false);
                 submit(parsed);
             });
@@ -1326,6 +1396,11 @@
                     thumbLinks["channel-thumb.png"] = document.getElementById('channel-thumb').src;
                 }
 
+                if (exportData.hasOwnProperty("filmot")) {
+                    console.log("Creating filmot.json...");
+                    zip.file("filmot.json", JSON.stringify(exportData.filmot, null, 4));
+                }
+
                 const optionalImages = [];
                 for (let fileName in thumbLinks) {
                     optionalImages.push(getImageBinaryCorsProxy(fileName, thumbLinks[fileName], zip));
@@ -1364,7 +1439,7 @@
                 controls.btnImport.addClass("loading").addClass("disabled");
 
                 $("#video,#playlist,#channel").show();
-                $("#unknown,#quota").hide();
+                $("#unknown,#quota,#filmot").hide();
                 internal.buildPage(false);
 
                 function loadFile(fileName, parseMethod, inputType) {
