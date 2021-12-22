@@ -88,13 +88,13 @@ const bulk = (function () {
             return handleChannelIdsCreatedPlaylists(channelIdsCreatedPlaylists, playlistIds);
         }).then(function () {
             // Grab playlist names
-            return handlePlaylistNames(playlistIds)
+            return handlePlaylistNames(playlistIds);
         }).then(function () {
             // Playlists condense to video ids
-            return handlePlaylistIds(playlistIds, videoIds)
+            return handlePlaylistIds(playlistIds, videoIds);
         }).then(function () {
             // Videos are results to be displayed
-            return handleVideoIds(videoIds)
+            return handleVideoIds(videoIds);
         }).then(function () {
             console.log("done");
             console.log(videoIds);
@@ -113,7 +113,10 @@ const bulk = (function () {
             });
 
             controls.videosTable.columns.adjust().draw(false);
-
+        }).then(function () {
+            // Retrieve unavailable video data if any
+            return handleUnavailableVideos();
+        }).then(function () {
             setTimeout(loadAggregateTables, 200);
         }).catch(function (err) {
             console.error(err);
@@ -475,6 +478,64 @@ const bulk = (function () {
         });
     }
 
+    function handleUnavailableVideos() {
+        const videoIds = [];
+        for (let videoId in unavailableData) {
+            videoIds.push(videoId);
+        }
+
+        return new Promise(function (resolve) {
+            if (videoIds.length === 0) {
+                console.log("no videoIds")
+                resolve();
+                return;
+            }
+
+            console.log("checking " + videoIds.length + " videoIds");
+
+            function get(index, slice) {
+                if (index >= videoIds.length) {
+                    console.log("finished videoIds");
+                    resolve();
+                    return;
+                }
+
+                console.log("handleUnavailableVideos.get(" + index + ", " + (index + slice) + ")")
+
+                const ids = videoIds.slice(index, index + slice);
+
+                console.log(ids.length);
+                console.log(ids);
+
+                $.ajax({
+                    cache: false,
+                    data: {
+                        key: "md5paNgdbaeudounjp39",
+                        id: ids.join(","),
+                        flags: 1 // Get channel and description too,
+                    },
+                    dataType: "json",
+                    type: "GET",
+                    timeout: 5000,
+                    url: "https://filmot.com/api/getvideos",
+                }).done(function (res) {
+                    console.log(res);
+
+                    res.forEach(function (video) {
+                        unavailableData[video.id]["filmot"] = video;
+                    });
+
+                    get(index + slice, slice);
+                }).fail(function (err){
+                    console.error(err);
+                    get(index + slice, slice);
+                });
+            }
+
+            get(0, 50);
+        });
+    }
+
     function handleVideoIds(videoIds) {
         let processed = 0;
 
@@ -738,16 +799,23 @@ const bulk = (function () {
         console.log(unavailableData);
         const unavailableRows = [];
         for (let videoId in unavailableData) {
-            const title = unavailableData[videoId].title;
-            const source = unavailableData[videoId].source;
+            const video = unavailableData[videoId];
+            const filmotTitle = shared.idx(["filmot", "title"], video) || "<span style='color:gray'>No data</span>";
+            const filmotAuthorName = shared.idx(["filmot", "channelname"], video);
+            const filmotAuthor = filmotAuthorName ?
+                "<a target='_blank' href='https://www.youtube.com/channel/" + shared.idx(["filmot", "channelid"], video) + "'>" + shared.idx(["filmot", "channelname"], video) + "</a>" : "";
+            const filmotUploadDate = shared.idx(["filmot", "uploaddate"], video) || "";
             unavailableRows.push([
                 "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
-                String(title),
+                String(video.title),
                 "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
                 "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive Web</a> · " +
                 "<a target='_blank' href='https://web.archive.org/web/2/http://wayback-fakeurl.archive.org/yt/" + videoId + "'>Archive Video</a> · " +
                 "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a>",
-                source,
+                video.source,
+                filmotTitle,
+                filmotAuthor,
+                filmotUploadDate,
             ]);
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
@@ -1747,6 +1815,18 @@ const bulk = (function () {
                     },
                     {
                         title: "Source",
+                        type: "html"
+                    },
+                    {
+                        title: "Title (Filmot)",
+                        type: "html"
+                    },
+                    {
+                        title: "Author (Filmot)",
+                        type: "html"
+                    },
+                    {
+                        title: "Published (Filmot)",
                         type: "html"
                     }
                 ],
