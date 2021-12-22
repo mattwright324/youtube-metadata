@@ -744,7 +744,8 @@ const bulk = (function () {
                 "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
                 String(title),
                 "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
-                "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive.org</a> · " +
+                "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive Web</a> · " +
+                "<a target='_blank' href='https://web.archive.org/web/2/http://wayback-fakeurl.archive.org/yt/" + videoId + "'>Archive Video</a> · " +
                 "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a>",
                 source,
             ]);
