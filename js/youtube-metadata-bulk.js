@@ -117,6 +117,8 @@ const bulk = (function () {
             // Retrieve unavailable video data if any
             return handleUnavailableVideos();
         }).then(function () {
+            controls.unavailableTable.columns.adjust().draw(false);
+
             setTimeout(loadAggregateTables, 200);
         }).catch(function (err) {
             console.error(err);
@@ -805,6 +807,8 @@ const bulk = (function () {
             const filmotAuthor = filmotAuthorName ?
                 "<a target='_blank' href='https://www.youtube.com/channel/" + shared.idx(["filmot", "channelid"], video) + "'>" + shared.idx(["filmot", "channelname"], video) + "</a>" : "";
             const filmotUploadDate = shared.idx(["filmot", "uploaddate"], video) || "";
+            const duration = shared.idx(["filmot", "duration"], video) || -1;
+            const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
             unavailableRows.push([
                 "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
                 String(video.title),
@@ -816,6 +820,7 @@ const bulk = (function () {
                 filmotTitle,
                 filmotAuthor,
                 filmotUploadDate,
+                {"display": filmotDuration, "num": duration}
             ]);
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
@@ -1828,13 +1833,22 @@ const bulk = (function () {
                     {
                         title: "Published (Filmot)",
                         type: "html"
+                    },
+                    {
+                        title: "Length (Filmot)",
+                        type: "num",
+                        render: {
+                            _: 'display',
+                            sort: 'num'
+                        },
+                        className: "dt-nowrap"
                     }
                 ],
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[3, 'desc']],
+                order: [[3, 'asc']],
                 deferRender: true,
                 bDeferRender: true
             });
