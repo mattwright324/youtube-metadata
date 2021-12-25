@@ -1,5 +1,10 @@
 // Gathered using YouTube Geofind exports
 // Random videos from around the world.
+const EXAMPLE_VIDEO_PREFIX = [
+    "",
+    "https://youtu.be/",
+    "https://www.youtube.com/watch?v=",
+]
 const EXAMPLE_VIDEOS = [
     "_5qnwS677Eg",
     "_5vdjAYaSQo",

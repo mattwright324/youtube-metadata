@@ -67,6 +67,10 @@ h1 {
     margin-top: 1.5%;
 }
 
+.mt-0 {
+    margin-top: 0%;
+}
+
 .tag {
     background-color: lightskyblue;
     padding: 2px 5px;

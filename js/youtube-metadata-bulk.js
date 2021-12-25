@@ -692,6 +692,11 @@ const bulk = (function () {
 
             dataRow.push(displayValue);
 
+            const columnCheck = document.getElementById("column-" + column.title);
+            if (!column.visible && !columnCheck.checked && column._visibleIf && column._visibleIf(value)) {
+                columnCheck.click();
+            }
+
             if (column.csvSkip) {
                 return;
             }
@@ -718,30 +723,6 @@ const bulk = (function () {
 
     function loadAggregateTables(callback) {
         const dateFormat = "YYYY-MM-DD";
-
-        let hasDislikes = false;
-        let hasUnlisted = false;
-        (rawVideoData || []).forEach(function (video) {
-            const dislikes = shared.idx(["statistics", "dislikeCount"], video);
-            if (dislikes) {
-                hasDislikes = true;
-            }
-
-            const privacyStatus = shared.idx(["status", "privacyStatus"], video);
-            if (privacyStatus === "unlisted") {
-                hasUnlisted = true;
-            }
-        });
-        const dislikesCheck = document.getElementById("column-Dislikes");
-        const privacyStatusCheck = document.getElementById("column-Privacy Status");
-        console.log(hasDislikes + " " + dislikesCheck.checked + " " + hasUnlisted + " " + privacyStatusCheck.checked)
-        if (hasDislikes && !dislikesCheck.checked) {
-            dislikesCheck.click();
-        }
-        if (hasUnlisted && !privacyStatusCheck.checked) {
-            privacyStatusCheck.click();
-        }
-        console.log(hasDislikes + " " + dislikesCheck.checked + " " + hasUnlisted + " " + privacyStatusCheck.checked)
 
         const tagRows = [];
         for (let tag in tagsData) {
@@ -814,6 +795,7 @@ const bulk = (function () {
                 String(video.title),
                 "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
                 "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive Web</a> · " +
+                "<a target='_blank' href='https://archive.org/details/youtube-" + videoId + "'>Archive Details</a> · " +
                 "<a target='_blank' href='https://web.archive.org/web/2/http://wayback-fakeurl.archive.org/yt/" + videoId + "'>Archive Video</a> · " +
                 "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a>",
                 video.source,
@@ -1055,6 +1037,9 @@ const bulk = (function () {
             title: "Dislikes",
             type: "num",
             visible: false,
+            _visibleIf: function (value) {
+                return value;
+            },
             _idx: ["statistics", "dislikeCount"],
             valueMod: function (value) {
                 return value ? {
@@ -1122,7 +1107,10 @@ const bulk = (function () {
         {
             title: "Kids",
             type: "boolean",
-            visible: true,
+            visible: false,
+            _visibleIf: function (value) {
+                return value;
+            },
             _idx: ["status", "madeForKids"],
             className: "text-center"
         },
@@ -1168,6 +1156,9 @@ const bulk = (function () {
         {
             title: "Privacy Status",
             visible: false,
+            _visibleIf: function (value) {
+                return value && value !== "public";
+            },
             _idx: ["status", "privacyStatus"]
         },
         {
@@ -1193,11 +1184,12 @@ const bulk = (function () {
             title: "Region Restriction Count",
             type: "num",
             visible: false,
+            _visibleIf: function (value) {
+                // return !$.isEmptyObject(value) && (value.allowed || value.blocked).length > 0;
+            },
             _idx: ["contentDetails", "regionRestriction"],
             valueMod: function (value) {
                 if (!$.isEmptyObject(value)) {
-                    console.log(value);
-
                     if (value.hasOwnProperty('allowed')) {
                         return {
                             display: value.allowed.length + " (allowed)",
@@ -1283,7 +1275,10 @@ const bulk = (function () {
         {
             title: "Location Name",
             type: "html",
-            visible: true,
+            visible: false,
+            _visibleIf: function (value) {
+                return !$.isEmptyObject(value) && value.locationDescription;
+            },
             _idx: ["recordingDetails"],
             valueMod: function (value) {
                 if ($.isEmptyObject(value) || !value.locationDescription) {
@@ -1303,6 +1298,10 @@ const bulk = (function () {
             title: "Location",
             type: "html",
             visible: false,
+            _visibleIf: function (value) {
+                // Display when there are coordinates but no location name, this sometimes happens and not sure how.
+                // return !$.isEmptyObject(value) && value.location && !value.locationDescription;
+            },
             _idx: ["recordingDetails"],
             valueMod: function (value) {
                 if ($.isEmptyObject(value) || !value.location) {
@@ -1325,6 +1324,9 @@ const bulk = (function () {
             title: "Tag Count",
             type: "num",
             visible: true,
+            _visibleIf: function (value) {
+                return value > 0;
+            },
             _idx: ["snippet", "tags"],
             valueMod: function (value) {
                 return value ? value.length : 0;
@@ -1342,7 +1344,7 @@ const bulk = (function () {
         {
             title: "Localization Count",
             type: "num",
-            visible: true,
+            visible: false,
             _idx: ["localizations"],
             valueMod: function (value) {
                 return value ? Object.keys(value).length : 0;
@@ -1905,11 +1907,6 @@ const bulk = (function () {
 
                 const value = controls.inputValue.val();
 
-                const baseUrl = location.origin + location.pathname;
-                const optionalCreatedPlaylists = controls.createdPlaylists.is(":checked") ? "&createdPlaylists=true" : "";
-                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(value) + optionalCreatedPlaylists + "&submit=true");
-                controls.shareLink.attr("disabled", false);
-
                 const parsed = [];
                 value.split(",").forEach(function (value) {
                     parsed.push(shared.determineInput(value));
@@ -1917,6 +1914,19 @@ const bulk = (function () {
                 if (parsed.length === 0) {
                     return;
                 }
+
+                const baseUrl = location.origin + location.pathname;
+                const optionalCreatedPlaylists = controls.createdPlaylists.is(":checked") ? "&createdPlaylists=true" : "";
+                const minifiedInput = [];
+                parsed.forEach(function (input) {
+                    if (input.type === "video_id" || input.type === "playlist_id" || input.type === "channel_id") {
+                        minifiedInput.push(input.original);
+                    } else {
+                        minifiedInput.push(input.original);
+                    }
+                });
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(minifiedInput.join(",")) + optionalCreatedPlaylists + "&submit=true");
+                controls.shareLink.attr("disabled", false);
 
                 controls.progress.indeterminate(0);
 
@@ -2124,8 +2134,9 @@ const bulk = (function () {
                 elements.searchInput.attr("hidden", false);
                 $("#formatShare").hide();
             }
-            if (query.hasOwnProperty("url")) {
-                controls.inputValue.val(decodeURIComponent(query.url));
+            const input = query.url || query.id;
+            if (input) {
+                controls.inputValue.val(decodeURIComponent(input));
             }
             if (query.hasOwnProperty("createdPlaylists") && String(query.createdPlaylists).toLowerCase() === String(true)) {
                 controls.createdPlaylists.prop("checked", true);
