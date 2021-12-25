@@ -7,17 +7,20 @@ const shared = (function () {
     const patterns = {
         video_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:&.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/shorts\/([\w_-]+)(?:&.*)?/i,
-            /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(v|embed|shorts)\/([\w_-]+)(?:&.*)?/i,
+            /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i,
+            /^([\w-]{11})$/i
         ],
         playlist_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i,
+            /^(([\w-]{34})|((FL|UU)[\w-]{22}))$/i
         ],
         channel_user: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
         ],
         channel_id: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i,
+            /^((UC|SC)[\w-]{22})$/i
         ],
         channel_custom: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([\w_-]+)(?:\?.*)?/i,

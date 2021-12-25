@@ -65,6 +65,10 @@
                 text: "Archive.org (web) - https://www.youtube.com/watch?v=" + data.video_id
             });
             suggestions.push({
+                url: "https://archive.org/details/youtube-" + data.video_id,
+                text: "Archive.org (details) - youtube-" + data.video_id
+            });
+            suggestions.push({
                 url: "https://web.archive.org/web/2/http://wayback-fakeurl.archive.org/yt/" + data.video_id,
                 text: "Archive.org (direct video) - " + data.video_id
             });
@@ -93,6 +97,10 @@
             suggestions.push({
                 url: "https://www.google.com/search?q=\"" + data.channel_title + "\"",
                 text: "Google - \"" + data.channel_title + "\""
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=creator%3A%22" + data.channel_title + "%22",
+                text: "Archive.org (search) - creator:" + data.channel_title
             });
         }
         if (data.hasOwnProperty("channel_user")) {
@@ -922,7 +930,8 @@
 
                 const video = shared.idx([0], res);
                 if (!video) {
-                    reasonAppend.append("<p class='mb-15'>No archive about this video id.</p>")
+                    reasonAppend.append("<p class='mb-15'>No archive about this video id.</p>");
+                    $("#filmot").show();
                     return;
                 }
 
@@ -1004,7 +1013,7 @@
                 }
             }
         } else {
-            errorState("Your link looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
+            errorState("Your input looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
                 append.append("<p class='mb-15'>" +
                     "You may find more details by trying..." +
                     getSuggestedHtml(parsedInput) +
@@ -1272,7 +1281,9 @@
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            const exampleLink = "https://youtu.be/" + EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length - 1)];
+            const randomVideoPrefix = EXAMPLE_VIDEO_PREFIX[rando(0, EXAMPLE_VIDEO_PREFIX.length - 1)]
+            const randomVideoId = EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length - 1)];
+            const exampleLink = randomVideoPrefix + randomVideoId;
             controls.inputValue.val(exampleLink);
 
             internal.buildPage(true);
@@ -1471,8 +1482,9 @@
 
             const query = shared.parseQuery(window.location.search);
             console.log(query);
-            if (query.hasOwnProperty("url")) {
-                controls.inputValue.val(decodeURIComponent(query.url));
+            const input = query.url || query.id;
+            if (input) {
+                controls.inputValue.val(decodeURIComponent(input));
             }
             if (query.hasOwnProperty("submit") && String(query.submit).toLowerCase() === String(true)) {
                 setTimeout(function () {

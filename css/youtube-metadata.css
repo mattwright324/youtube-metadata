@@ -18,6 +18,10 @@ body {
     color: green;
 }
 
+.optional {
+    color: darkgray;
+}
+
 table {
     font-size: initial;
 }
@@ -65,6 +69,10 @@ h1 {
 
 .mt-15 {
     margin-top: 1.5%;
+}
+
+.mt-0 {
+    margin-top: 0%;
 }
 
 .tag {
