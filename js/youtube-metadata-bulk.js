@@ -1907,11 +1907,6 @@ const bulk = (function () {
 
                 const value = controls.inputValue.val();
 
-                const baseUrl = location.origin + location.pathname;
-                const optionalCreatedPlaylists = controls.createdPlaylists.is(":checked") ? "&createdPlaylists=true" : "";
-                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(value) + optionalCreatedPlaylists + "&submit=true");
-                controls.shareLink.attr("disabled", false);
-
                 const parsed = [];
                 value.split(",").forEach(function (value) {
                     parsed.push(shared.determineInput(value));
@@ -1919,6 +1914,19 @@ const bulk = (function () {
                 if (parsed.length === 0) {
                     return;
                 }
+
+                const baseUrl = location.origin + location.pathname;
+                const optionalCreatedPlaylists = controls.createdPlaylists.is(":checked") ? "&createdPlaylists=true" : "";
+                const minifiedInput = [];
+                parsed.forEach(function (input) {
+                    if (input.type === "video_id" || input.type === "playlist_id" || input.type === "channel_id") {
+                        minifiedInput.push(input.value);
+                    } else {
+                        minifiedInput.push(input.original);
+                    }
+                });
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(minifiedInput.join(",")) + optionalCreatedPlaylists + "&submit=true");
+                controls.shareLink.attr("disabled", false);
 
                 controls.progress.indeterminate(0);
 

@@ -1178,7 +1178,12 @@
             controls.inputValue.val(parsedInput.original);
 
             const baseUrl = location.origin + location.pathname;
-            controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.original) + "&submit=true");
+            if (parsedInput.type === "video_id" || parsedInput.type === "playlist_id" || parsedInput.type === "channel_id") {
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.value) + "&submit=true");
+            } else {
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.original) + "&submit=true");
+            }
+
             controls.shareLink.attr("disabled", false);
         }
 
