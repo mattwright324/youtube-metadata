@@ -276,7 +276,7 @@
                         partDiv.append("<p class='mb-15'>Audio language is <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
 
-                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=" + partJson.channelId + "'>" +
+                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
                         "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
                         "Inspect the metadata for the rest of this channel's videos" +
                         "</a></p>");
@@ -684,7 +684,7 @@
                     }
 
                     if (partJson.videoCount > 0) {
-                        partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=" + fullJson.id + "'>" +
+                        partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
                             "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
                             "Inspect the metadata for all of this channel's videos" +
                             "</a></p>");
@@ -851,7 +851,7 @@
                         "</p>";
                     partDiv.append(dateHtml);
 
-                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=" + fullJson.id + "'>" +
+                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
                         "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
                         "Inspect the metadata for all of this playlist's videos" +
                         "</a></p>");
@@ -1179,7 +1179,7 @@
 
             const baseUrl = location.origin + location.pathname;
             if (parsedInput.type === "video_id" || parsedInput.type === "playlist_id" || parsedInput.type === "channel_id") {
-                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.value) + "&submit=true");
+                controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.original) + "&submit=true");
             } else {
                 controls.shareLink.val(baseUrl + "?url=" + encodeURIComponent(parsedInput.original) + "&submit=true");
             }
@@ -1286,9 +1286,9 @@
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            const randomVideoPrefix = EXAMPLE_VIDEO_PREFIX[rando(0, EXAMPLE_VIDEO_PREFIX.length - 1)]
+            // const randomVideoPrefix = EXAMPLE_VIDEO_PREFIX[rando(0, EXAMPLE_VIDEO_PREFIX.length - 1)]
             const randomVideoId = EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length - 1)];
-            const exampleLink = randomVideoPrefix + randomVideoId;
+            const exampleLink = "https://youtu.be/" + randomVideoId;
             controls.inputValue.val(exampleLink);
 
             internal.buildPage(true);

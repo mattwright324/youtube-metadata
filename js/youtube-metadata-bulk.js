@@ -882,7 +882,7 @@ const bulk = (function () {
             type: "html",
             visible: true,
             valueMod: function (value, video) {
-                return "<a target='_blank' href='./?submit=true&url=" + video.id + "'>" +
+                return "<a target='_blank' href='./?submit=true&url=https://youtu.be/" + video.id + "'>" +
                     "<img src='./img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
                     "</a>"
             },
@@ -1920,7 +1920,7 @@ const bulk = (function () {
                 const minifiedInput = [];
                 parsed.forEach(function (input) {
                     if (input.type === "video_id" || input.type === "playlist_id" || input.type === "channel_id") {
-                        minifiedInput.push(input.value);
+                        minifiedInput.push(input.original);
                     } else {
                         minifiedInput.push(input.original);
                     }

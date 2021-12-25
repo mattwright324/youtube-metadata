@@ -13,14 +13,14 @@ const shared = (function () {
         ],
         playlist_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/playlist\?list=([\w_-]+)(?:&.*)?/i,
-            /^(([\w-]{34})|((FL|UU)[\w-]{22}))$/i
-        ],
-        channel_user: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
+            /^((UU|UUSH|PL|FL|SP|OLAK)[A-Za-z0-9_-]+)$/i
         ],
         channel_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i,
             /^((UC|SC)[\w-]{22})$/i
+        ],
+        channel_user: [
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
         ],
         channel_custom: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([\w_-]+)(?:\?.*)?/i,
