@@ -79,11 +79,14 @@ const bulk = (function () {
         });
 
         Promise.all([
-            // Channels condense to uploads playlist ids and channel ids
-            handleChannelUsers(channelUsers, playlistIds, channelIdsCreatedPlaylists),
-            handleChannelCustoms(channelCustoms, playlistIds, channelIdsCreatedPlaylists),
-            handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists)
+            handleChannelCustoms(channelCustoms, channelIds)
         ]).then(function () {
+            return Promise.all([
+                // Channels condense to uploads playlist ids and channel ids
+                handleChannelUsers(channelUsers, playlistIds, channelIdsCreatedPlaylists),
+                handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists)
+            ]);
+        }).then(function () {
             // Created playlists condense to playlist ids (when option checked)
             return handleChannelIdsCreatedPlaylists(channelIdsCreatedPlaylists, playlistIds);
         }).then(function () {
@@ -149,7 +152,15 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
-                    const channelId = shared.idx(["items", 0, "id"], res);
+                    const channel = shared.idx(["items", 0], res);
+                    if (!channel) {
+                        get(index + 1);
+                        return;
+                    }
+
+                    const channelId = shared.idx(["id"], channel);
+                    rawChannelMap[channelId] = channel;
+
                     if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
                         channelIdsCreatedPlaylists.push(channelId);
                     }
@@ -172,7 +183,7 @@ const bulk = (function () {
         });
     }
 
-    function handleChannelCustoms(channelCustoms, playlistIds, channelIdsCreatedPlaylists) {
+    function handleChannelCustoms(channelCustoms, channelIds) {
         return new Promise(function (resolve) {
             if (channelCustoms.length === 0) {
                 console.log("no channelCustoms")
@@ -198,14 +209,14 @@ const bulk = (function () {
                 }).done(function (res) {
                     console.log(res);
 
-                    const channelIds = [];
+                    const ids = [];
                     (res.items || []).forEach(function (channel) {
-                        channelIds.push(shared.idx(["id", "channelId"], channel));
+                        ids.push(shared.idx(["id", "channelId"], channel));
                     });
 
                     youtube.ajax("channels", {
-                        part: "snippet,contentDetails",
-                        id: channelIds.join(","),
+                        part: "snippet",
+                        id: ids.join(","),
                         maxResults: 50
                     }).done(function (res2) {
                         console.log(res2);
@@ -215,16 +226,7 @@ const bulk = (function () {
                             const customUrl = shared.idx(["snippet", "customUrl"], channel);
 
                             if (String(customUrl).toLowerCase() === String(channelCustoms[index]).toLowerCase()) {
-                                if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
-                                    channelIdsCreatedPlaylists.push(channelId);
-                                }
-
-                                const uploadsPlaylistId = shared.idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
-                                console.log(uploadsPlaylistId);
-
-                                if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
-                                    playlistIds.push(uploadsPlaylistId);
-                                }
+                                channelIds.push(channelId);
                             }
                         });
 
@@ -271,13 +273,16 @@ const bulk = (function () {
                 console.log(ids);
 
                 youtube.ajax("channels", {
-                    part: "contentDetails",
+                    part: "snippet,statistics,brandingSettings,contentDetails,localizations,status,topicDetails",
                     id: ids.join(","),
                     maxResults: 50
                 }).done(function (res) {
                     console.log(res);
 
                     (res.items || []).forEach(function (channel) {
+                        const channelId = shared.idx(["id"], channel);
+                        rawChannelMap[channelId] = channel;
+
                         const uploadsPlaylistId = shared.idx(["contentDetails", "relatedPlaylists", "uploads"], channel);
                         console.log(uploadsPlaylistId);
 
@@ -326,7 +331,7 @@ const bulk = (function () {
                 console.log(id);
 
                 youtube.ajax("playlists", {
-                    part: "id,snippet",
+                    part: "snippet,status,localizations,contentDetails",
                     channelId: id,
                     maxResults: 50
                 }).done(function (res) {
@@ -335,6 +340,8 @@ const bulk = (function () {
                     (res.items || []).forEach(function (playlist) {
                         const createdPlaylistId = shared.idx(["id"], playlist);
                         console.log(createdPlaylistId);
+
+                        rawPlaylistMap[createdPlaylistId] = playlist;
 
                         playlistMap[createdPlaylistId] = shared.idx(["snippet", "title"], playlist);
 
@@ -382,7 +389,7 @@ const bulk = (function () {
                 function paginate(pageToken) {
                     console.log(pageToken);
                     youtube.ajax("playlists", {
-                        part: "id,snippet",
+                        part: "snippet,status,localizations,contentDetails",
                         maxResults: 50,
                         id: notYetRetrieved[index],
                         pageToken: pageToken
@@ -393,6 +400,7 @@ const bulk = (function () {
                             const playlistId = shared.idx(["id"], playlist);
                             console.log(playlistId);
 
+                            rawPlaylistMap[playlistId] = playlist;
                             playlistMap[playlistId] = shared.idx(["snippet", "title"], playlist);
                         });
 
@@ -1372,6 +1380,8 @@ const bulk = (function () {
 
     let tableRows = [csvHeaderRow.join("\t")];
     let rawVideoData = [];
+    let rawChannelMap = {};
+    let rawPlaylistMap = {};
     let playlistMap = {}
     let unavailableData = {};
     let tagsData = {};
@@ -1997,6 +2007,20 @@ const bulk = (function () {
                 console.log("Creating videos.json...")
                 zip.file("videos.json", JSON.stringify(rawVideoData));
 
+                console.log("Creating channels.json...")
+                const rawChannelData = [];
+                for (let id in rawChannelMap) {
+                    rawChannelData.push(rawChannelMap[id]);
+                }
+                zip.file("channels.json", JSON.stringify(rawChannelData));
+
+                console.log("Creating playlists.json...")
+                const rawPlaylistData = [];
+                for (let id in rawPlaylistMap) {
+                    rawPlaylistData.push(rawPlaylistMap[id]);
+                }
+                zip.file("playlists.json", JSON.stringify(rawPlaylistData));
+
                 console.log("Creating unavailable.json...")
                 zip.file("unavailable.json", JSON.stringify(unavailableData));
 
@@ -2046,14 +2070,44 @@ const bulk = (function () {
                 const optionalImages = [];
                 const imageStatuses = {true: 0, false: 0};
                 if (includeThumbs) {
+                    let delay = 0;
                     for (let i = 0; i < rawVideoData.length; i++) {
                         const video = rawVideoData[i];
                         const fileName = video.id + ".png";
                         const thumbs = shared.idx(["snippet", "thumbnails"], video) || {};
                         const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
                         if (thumbUrl) {
-                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, i * 100, imageStatuses));
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, delay * 100, imageStatuses));
                         }
+                        delay++;
+                    }
+                    for (let id in rawPlaylistMap) {
+                        console.log(id);
+                        const playlist = rawPlaylistMap[id];
+                        const fileName = id + ".png";
+                        const thumbs = shared.idx(["snippet", "thumbnails"], playlist) || {};
+                        const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
+                        if (thumbUrl) {
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, delay * 100, imageStatuses));
+                        }
+                        delay++;
+                    }
+                    for (let id in rawChannelMap) {
+                        console.log(id);
+                        const channel = rawChannelMap[id];
+                        const fileName = id + ".png";
+                        const thumbs = shared.idx(["snippet", "thumbnails"], channel) || {};
+                        const thumbUrl = (thumbs.maxres || thumbs.high || thumbs.medium || thumbs.default || {url: null}).url;
+                        if (thumbUrl) {
+                            optionalImages.push(getImageBinaryCorsProxy(fileName, thumbUrl, zip, delay * 100, imageStatuses));
+                        }
+                        delay++;
+                        const bannerFileName = id +  "-banner.png";
+                        const bannerUrl = shared.idx(["brandingSettings", "image", "bannerExternalUrl"], channel);
+                        if (bannerUrl) {
+                            optionalImages.push(getImageBinaryCorsProxy(bannerFileName, bannerUrl, zip, delay * 100, imageStatuses));
+                        }
+                        delay++;
                     }
                 }
 
@@ -2129,7 +2183,7 @@ const bulk = (function () {
 
             const query = shared.parseQuery(window.location.search);
             console.log(query);
-            if (query.hasOwnProperty("searchMode") && String(query.searchMode).toLowerCase() === String(true)) {
+            if (String(query["searchMode"]).toLowerCase() === "true") {
                 elements.regularInput.attr("hidden", true);
                 elements.searchInput.attr("hidden", false);
                 $("#formatShare").hide();
@@ -2138,12 +2192,12 @@ const bulk = (function () {
             if (input) {
                 controls.inputValue.val(decodeURIComponent(input));
             }
-            if (query.hasOwnProperty("createdPlaylists") && String(query.createdPlaylists).toLowerCase() === String(true)) {
+            if (String(query["createdPlaylists"]).toLowerCase() === "true") {
                 controls.createdPlaylists.prop("checked", true);
             } else {
                 controls.createdPlaylists.prop("checked", false);
             }
-            if (query.hasOwnProperty("submit") && String(query.submit).toLowerCase() === String(true)) {
+            if (String(query["submit"]).toLowerCase() === "true") {
                 setTimeout(function () {
                     controls.btnSubmit.click();
                 }, 500);
@@ -2152,6 +2206,8 @@ const bulk = (function () {
         reset: function () {
             tableRows = [csvHeaderRow.join("\t")];
             rawVideoData = [];
+            rawChannelMap = {};
+            rawPlaylistMap = {};
             controls.videosTable.clear();
             controls.videosTable.draw(false);
 
