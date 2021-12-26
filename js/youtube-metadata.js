@@ -702,6 +702,11 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#channel-section #brandingSettings");
 
+                    const bannerImage = shared.idx(["image", "bannerExternalUrl"], partJson);
+                    if (bannerImage) {
+                        partDiv.append("<img id='channel-banner' src='" + bannerImage + "' class='mb-15'>");
+                    }
+
                     if (partJson.channel.hasOwnProperty("trackingAnalyticsAccountId")) {
                         partDiv.append("<p class='mb-15'>This channel is tracking and measuring traffic with Google Analytics <span class='orange'>" + partJson.channel.trackingAnalyticsAccountId + "</span></p>")
                     }
@@ -1414,6 +1419,9 @@
                     zip.file("channel.json", JSON.stringify(exportData.channel, null, 4));
 
                     thumbLinks["channel-thumb.png"] = document.getElementById('channel-thumb').src;
+                    if (document.getElementById('channel-banner')) {
+                        thumbLinks["channel-banner.png"] = document.getElementById('channel-banner').src;
+                    }
                 }
 
                 if (exportData.hasOwnProperty("filmot")) {
