@@ -910,7 +910,7 @@
             }
         }
         if (errorJson) {
-            reasonAppend.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+            reasonAppend.append("<pre><code class='prettyprint language-json'></code></pre>");
 
             const json = reasonAppend.find("code");
             json.text(JSON.stringify(errorJson, null, 4));
@@ -946,7 +946,7 @@
 
                 exportData["filmot"] = video;
 
-                reasonAppend.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+                reasonAppend.append("<pre><code class='prettyprint language-json'></code></pre>");
                 const json = reasonAppend.find("code");
                 json.text(JSON.stringify(video, null, 4));
                 hljs.highlightElement(json[0]);
@@ -1008,7 +1008,7 @@
                         item[part] = shared.sortObject(item[part]);
                     }
 
-                    section.append("<pre><code class=\"prettyprint json-lang\"></code></pre>");
+                    section.append("<pre><code class='prettyprint language-json'></code></pre>");
 
                     const json = section.find("code");
                     json.text(JSON.stringify(item[part], null, 4));
