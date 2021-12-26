@@ -48,10 +48,14 @@
         }
         console.log(data);
 
+        function encode(text) {
+            return encodeURIComponent(text).replace(/'/g, "%27");
+        }
+
         const suggestions = [];
         if (data.hasOwnProperty("video_title")) {
             suggestions.push({
-                url: "https://www.google.com/search?q=\"" + data.video_title + "\"",
+                url: "https://www.google.com/search?q=\"" + encode(data.video_title) + "\"",
                 text: "Google - \"" + data.video_title + "\""
             });
         }
@@ -79,7 +83,7 @@
         }
         if (data.hasOwnProperty("playlist_title")) {
             suggestions.push({
-                url: "https://www.google.com/search?q=\"" + data.playlist_title + "\"",
+                url: "https://www.google.com/search?q=\"" + encode(data.playlist_title) + "\"",
                 text: "Google - \"" + data.playlist_title + "\""
             });
         }
@@ -95,11 +99,11 @@
         }
         if (data.hasOwnProperty("channel_title")) {
             suggestions.push({
-                url: "https://www.google.com/search?q=\"" + data.channel_title + "\"",
+                url: "https://www.google.com/search?q=\"" + encode(data.channel_title) + "\"",
                 text: "Google - \"" + data.channel_title + "\""
             });
             suggestions.push({
-                url: "https://archive.org/search.php?query=creator%3A%22" + data.channel_title + "%22",
+                url: "https://archive.org/search.php?query=creator%3A%22" + encode(data.channel_title) + "%22",
                 text: "Archive.org (search) - creator:" + data.channel_title
             });
         }
