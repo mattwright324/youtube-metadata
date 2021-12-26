@@ -19,9 +19,7 @@ const bulk = (function () {
             function doSearch(page, token) {
                 console.log("page " + page);
 
-                youtube.ajax("search", $.extend({
-                    pageToken: token
-                }, searchParams)).done(function (res) {
+                youtube.ajax("search", $.extend({pageToken: token}, searchParams)).done(function (res) {
                     console.log(res);
 
                     (res.items || []).forEach(function (item) {
@@ -147,7 +145,7 @@ const bulk = (function () {
                 console.log(channelUsers[index])
 
                 youtube.ajax("channels", {
-                    part: "contentDetails",
+                    part: "snippet,statistics,brandingSettings,contentDetails,localizations,status,topicDetails",
                     forUsername: channelUsers[index]
                 }).done(function (res) {
                     console.log(res);
