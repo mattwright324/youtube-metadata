@@ -46,11 +46,11 @@ const bulk = (function () {
 
             doSearch(1, "");
         }).then(function (results) {
-            handleParsedNew(results);
+            processFromParsed(results);
         });
     }
 
-    function handleParsedNew(parsed) {
+    function processFromParsed(parsed) {
         console.log(parsed);
 
         const channelUsers = [];
@@ -96,6 +96,16 @@ const bulk = (function () {
         }).then(function () {
             // Videos are results to be displayed
             return handleVideoIds(videoIds);
+        }).then(function () {
+            // Ids for channels not in the original request, likely from playlists
+            const newChannelIds = [];
+            rawVideoData.forEach(function (video) {
+                const channelId = shared.idx(["snippet", "channelId"], video);
+                if (!rawChannelMap.hasOwnProperty(channelId)) {
+                    newChannelIds.push(channelId);
+                }
+            });
+            return handleChannelIds(newChannelIds, [], []);
         }).then(function () {
             console.log("done");
             console.log(videoIds);
@@ -1938,7 +1948,7 @@ const bulk = (function () {
 
                 controls.progress.indeterminate(0);
 
-                handleParsedNew(parsed);
+                processFromParsed(parsed);
             });
             controls.btnSubmitSearch.on('click', function () {
                 internal.reset();
