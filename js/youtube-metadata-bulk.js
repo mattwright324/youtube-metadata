@@ -1818,9 +1818,24 @@ const bulk = (function () {
                     enabled: false
                 },
                 colors: ["#008FFB"],
+                // colors: [
+                //     "#3e0853", "#3e0853", "#3e0853", "#3e0853",
+                //     "#3e0853", "#33a186", "#33a186", "#f2e541",
+                //     "#f2e541", "#f2e541", "#f2e541", "#f2e541",
+                //     "#f2e541", "#f2e541", "#f2e541", "#f2e541",
+                //     "#f2e541", "#33a186", "#33a186", "#3e0853",
+                //     "#3e0853", "#3e0853", "#3e0853", "#3e0853",
+                // ],
+                // plotOptions: {
+                //     heatmap: {
+                //         colorScale: {
+                //             inverse: true
+                //         }
+                //     }
+                // },
                 title: {
                     text: 'Day and Time Frequency'
-                },
+                }
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
             controls.uploadFrequency.render();
