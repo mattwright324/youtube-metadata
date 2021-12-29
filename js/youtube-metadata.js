@@ -1478,7 +1478,7 @@
                     } else if (exportData.hasOwnProperty("channel")) {
                         hint = " (channel-" + shared.idx(["items", 0, "snippet", "title"], exportData.channel).substr(0, 15) + ")";
                     } else if (exportData.hasOwnProperty("filmot")) {
-                        hint = " (video-" + exportData.filmot.title.substr(0, 15);
+                        hint = " (filmot-" + exportData.filmot.title.substr(0, 15);
                     }
 
                     const fileName = shared.safeFileName("metadata" + hint + ".zip");
