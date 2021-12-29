@@ -1470,8 +1470,19 @@
                 }
 
                 Promise.all(optionalImages).then(function () {
-                    console.log("Saving as metadata.zip");
+                    let hint = '';
+                    if (exportData.hasOwnProperty("video")) {
+                        hint = " (video-" + shared.idx(["items", 0, "snippet", "title"], exportData.video).substr(0, 15) + ")";
+                    } else if (exportData.hasOwnProperty("playlist")) {
+                        hint = " (playlist-" + shared.idx(["items", 0, "snippet", "title"], exportData.playlist).substr(0, 15) + ")";
+                    } else if (exportData.hasOwnProperty("channel")) {
+                        hint = " (channel-" + shared.idx(["items", 0, "snippet", "title"], exportData.channel).substr(0, 15) + ")";
+                    } else if (exportData.hasOwnProperty("filmot")) {
+                        hint = " (video-" + exportData.filmot.title.substr(0, 15);
+                    }
 
+                    const fileName = shared.safeFileName("metadata" + hint + ".zip");
+                    console.log("Saving as " + fileName);
                     zip.generateAsync({
                         type: "blob",
                         compression: "DEFLATE",
@@ -1479,7 +1490,7 @@
                             level: 9
                         }
                     }).then(function (content) {
-                        saveAs(content, "metadata.zip");
+                        saveAs(content, fileName);
 
                         controls.btnExport.removeClass("loading").removeClass("disabled");
                     });

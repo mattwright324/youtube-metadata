@@ -110,6 +110,10 @@ const shared = (function () {
                     ordered[key] = this.sortObject(unordered[key], sortArrays);
                 });
             return ordered;
+        },
+
+        safeFileName: function (fileName) {
+            return fileName.replace(/[<>:"\/\\|?*]+/g, '');
         }
     }
 })();

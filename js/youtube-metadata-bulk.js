@@ -2200,7 +2200,7 @@ const bulk = (function () {
                         hint = ' (' + channelTitles[0].substr(0, 15) + " and " + channelTitles.length - 1 + " more)"
                     }
 
-                    const fileName = "bulk_metadata" + hint + ".zip";
+                    const fileName = shared.safeFileName("bulk_metadata" + hint + ".zip");
 
                     console.log("Saving as " + fileName);
                     zip.generateAsync({
