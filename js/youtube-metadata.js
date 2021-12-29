@@ -302,7 +302,15 @@
                             "</p>";
                         partDiv.append(html);
                     } else if (!partJson.hasOwnProperty("likeCount")) {
-                        partDiv.append("<p class='mb-15'>This video has likes disabled.</p>");
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>likes disabled.</span></p>");
+                    }
+
+                    if (!partJson.hasOwnProperty("viewCount")) {
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>view counts disabled.</span></p>")
+                    }
+
+                    if (!partJson.hasOwnProperty("commentCount")) {
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>comments disabled.</span></p>")
                     }
 
                     if (!partJson.hasOwnProperty("dislikeCount")) {
@@ -324,15 +332,6 @@
                         //     }
                         // });
                     }
-
-                    if (!partJson.hasOwnProperty("viewCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>view counts disabled.</span></p>")
-                    }
-
-                    if (!partJson.hasOwnProperty("commentCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>comments disabled.</span></p>")
-                    }
-
                 }
             },
             recordingDetails: {
@@ -1487,6 +1486,19 @@
                 });
             });
 
+            // Drag & Drop listener
+            document.addEventListener("dragover", function(event) {event.preventDefault();});
+            document.documentElement.addEventListener('drop', async function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                let file = e.dataTransfer.files[0];
+                console.log("Loading file");
+                console.log(file);
+
+                importFile(file);
+            });
+
             controls.importFileChooser.on('change', function (event) {
                 console.log(event);
 
@@ -1498,6 +1510,10 @@
                     return;
                 }
 
+                importFile(file);
+            });
+
+            function importFile(file) {
                 console.log("Importing from file " + file.name);
 
                 controls.btnImport.addClass("loading").addClass("disabled");
@@ -1531,7 +1547,7 @@
                         })
                     });
                 });
-            });
+            }
 
             const query = shared.parseQuery(window.location.search);
             console.log(query);
