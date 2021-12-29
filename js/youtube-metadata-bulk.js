@@ -2191,13 +2191,14 @@ const bulk = (function () {
                         }
                     });
 
+                    console.log(channelTitles)
                     let hint = '';
                     if (channelTitles.length === 0) {
                         hint = ' (none)'
                     } else if (channelTitles.length === 1) {
                         hint = ' (' + channelTitles[0].substr(0, 15) + ")"
                     } else {
-                        hint = ' (' + channelTitles[0].substr(0, 15) + " and " + channelTitles.length - 1 + " more)"
+                        hint = ' (' + channelTitles[0].substr(0, 15) + " and " + (channelTitles.length - 1) + " others)"
                     }
 
                     const fileName = shared.safeFileName("bulk_metadata" + hint + ".zip");
