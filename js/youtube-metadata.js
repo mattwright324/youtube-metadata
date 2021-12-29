@@ -302,7 +302,15 @@
                             "</p>";
                         partDiv.append(html);
                     } else if (!partJson.hasOwnProperty("likeCount")) {
-                        partDiv.append("<p class='mb-15'>This video has likes disabled.</p>");
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>likes disabled.</span></p>");
+                    }
+
+                    if (!partJson.hasOwnProperty("viewCount")) {
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>view counts disabled.</span></p>")
+                    }
+
+                    if (!partJson.hasOwnProperty("commentCount")) {
+                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>comments disabled.</span></p>")
                     }
 
                     if (!partJson.hasOwnProperty("dislikeCount")) {
@@ -324,15 +332,6 @@
                         //     }
                         // });
                     }
-
-                    if (!partJson.hasOwnProperty("viewCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>view counts disabled.</span></p>")
-                    }
-
-                    if (!partJson.hasOwnProperty("commentCount")) {
-                        partDiv.append("<p class='mb-15'>This video has <span class='orange'>comments disabled.</span></p>")
-                    }
-
                 }
             },
             recordingDetails: {
@@ -1092,9 +1091,56 @@
     }
 
     /**
-     * Attempt to resolve the custom URL as there is no direct API method. Unreliable and may not always work.
+     * Attempt to resolve the custom URL via CORS workaround. Grab webpage content and extract og:url.
      */
-    async function resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page) {
+    async function resolveCustomChannelCORS(parsedInput, callbackResubmit) {
+        console.log('Attempting to resolve custom channel via CORS')
+
+        $.ajax({
+            url: "https://cors.eu.org/https://www.youtube.com/" + parsedInput.value,
+            dataType: 'html'
+        }).then(function (res) {
+            const pageHtml = $("<div>").html(res);
+            const ogUrl = pageHtml.find("meta[property='og:url']").attr('content');
+            console.log('Retrieved og:url ' + ogUrl);
+
+            const newParsed = shared.determineInput(ogUrl);
+            if (newParsed.type !== "unknown") {
+                callbackResubmit(newParsed);
+            } else {
+                errorState("Could not resolve Custom Channel URL", function (append) {
+                    append.append("<p class='mb-15'>" +
+                        "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
+                        "</p>");
+                    append.append("<p class='mb-15'>" +
+                        "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
+                        "</p>");
+                    append.append("<p class='mb-15'>" +
+                        "More detail about the issue and what you can do can be found here at " +
+                        "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
+                        "</p>");
+                })
+            }
+        }).fail(function (err) {
+            errorState("Could not resolve Custom Channel URL", function (append) {
+                append.append("<p class='mb-15'>" +
+                    "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
+                    "</p>");
+                append.append("<p class='mb-15'>" +
+                    "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
+                    "</p>");
+                append.append("<p class='mb-15'>" +
+                    "More detail about the issue and what you can do can be found here at " +
+                    "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
+                    "</p>");
+            })
+        });
+    }
+
+    /**
+     * Attempt to resolve the custom URL via API. Using workaround as no direct method in API.
+     */
+    async function resolveCustomChannelAPI(parsedInput, callbackResubmit, nextPageToken, page) {
         console.log("Attempting to resolve custom channel URL. Search page #" + page);
 
         youtube.ajax("search", {
@@ -1141,20 +1187,9 @@
                 if (match) {
                     callbackResubmit(match);
                 } else if (page < 3 && !$.isEmptyObject(nextPageToken)) {
-                    resolveCustomChannel(parsedInput, callbackResubmit, nextPageToken, page + 1)
+                    resolveCustomChannelAPI(parsedInput, callbackResubmit, nextPageToken, page + 1)
                 } else {
-                    errorState("Could not resolve Custom Channel URL", function (append) {
-                        append.append("<p class='mb-15'>" +
-                            "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
-                            "</p>");
-                        append.append("<p class='mb-15'>" +
-                            "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
-                            "</p>");
-                        append.append("<p class='mb-15'>" +
-                            "More detail about the issue and what you can do can be found here at " +
-                            "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
-                            "</p>");
-                    })
+                    resolveCustomChannelCORS(parsedInput, callbackResubmit);
                 }
             }).fail(function (err) {
                 errorState("Could not resolve Custom Channel URL", function (append) {
@@ -1199,7 +1234,7 @@
         if (parsedInput.type === 'unknown') {
             errorState("Your link did not follow an accepted format.");
         } else if (parsedInput.type === 'channel_custom') {
-            resolveCustomChannel(parsedInput, submit, '', 1);
+            resolveCustomChannelAPI(parsedInput, submit, '', 1);
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 
@@ -1435,8 +1470,19 @@
                 }
 
                 Promise.all(optionalImages).then(function () {
-                    console.log("Saving as metadata.zip");
+                    let hint = '';
+                    if (exportData.hasOwnProperty("video")) {
+                        hint = " (video-" + shared.idx(["items", 0, "snippet", "title"], exportData.video).substr(0, 15) + ")";
+                    } else if (exportData.hasOwnProperty("playlist")) {
+                        hint = " (playlist-" + shared.idx(["items", 0, "snippet", "title"], exportData.playlist).substr(0, 15) + ")";
+                    } else if (exportData.hasOwnProperty("channel")) {
+                        hint = " (channel-" + shared.idx(["items", 0, "snippet", "title"], exportData.channel).substr(0, 15) + ")";
+                    } else if (exportData.hasOwnProperty("filmot")) {
+                        hint = " (video-" + exportData.filmot.title.substr(0, 15);
+                    }
 
+                    const fileName = shared.safeFileName("metadata" + hint + ".zip");
+                    console.log("Saving as " + fileName);
                     zip.generateAsync({
                         type: "blob",
                         compression: "DEFLATE",
@@ -1444,11 +1490,24 @@
                             level: 9
                         }
                     }).then(function (content) {
-                        saveAs(content, "metadata.zip");
+                        saveAs(content, fileName);
 
                         controls.btnExport.removeClass("loading").removeClass("disabled");
                     });
                 });
+            });
+
+            // Drag & Drop listener
+            document.addEventListener("dragover", function(event) {event.preventDefault();});
+            document.documentElement.addEventListener('drop', async function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                let file = e.dataTransfer.files[0];
+                console.log("Loading file");
+                console.log(file);
+
+                importFile(file);
             });
 
             controls.importFileChooser.on('change', function (event) {
@@ -1462,6 +1521,10 @@
                     return;
                 }
 
+                importFile(file);
+            });
+
+            function importFile(file) {
                 console.log("Importing from file " + file.name);
 
                 controls.btnImport.addClass("loading").addClass("disabled");
@@ -1495,7 +1558,7 @@
                         })
                     });
                 });
-            });
+            }
 
             const query = shared.parseQuery(window.location.search);
             console.log(query);
