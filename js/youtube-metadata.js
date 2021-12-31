@@ -280,8 +280,8 @@
                         partDiv.append("<p class='mb-15'>Audio language is <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
 
-                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
-                        "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
+                    partDiv.append("<p class='mb-15'><a style='display:inline;vertical-align:middle' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
+                        "<img src='./img/metadata.png' style='margin-left:4px;width:20px;height:20px;;margin-right:5px;' alt='youtube metadata icon' >" +
                         "Inspect the metadata for the rest of this channel's videos" +
                         "</a></p>");
                 }
@@ -687,8 +687,8 @@
                     }
 
                     if (partJson.videoCount > 0) {
-                        partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
-                            "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
+                        partDiv.append("<p class='mb-15'><a style='display:inline;vertical-align:middle' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
+                            "<img src='./img/metadata.png' style='margin-left:4px;width:20px;height:20px;;margin-right:5px;' alt='youtube metadata icon' >" +
                             "Inspect the metadata for all of this channel's videos" +
                             "</a></p>");
                     } else {
@@ -859,8 +859,8 @@
                         "</p>";
                     partDiv.append(dateHtml);
 
-                    partDiv.append("<p class='mb-15'><a style='display:flex' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
-                        "<img src='./img/metadata.png' style='margin-left:4px;width:20px;margin-right:5px;' alt='youtube metadata icon' >" +
+                    partDiv.append("<p class='mb-15'><a style='display:inline;vertical-align:middle' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
+                        "<img src='./img/metadata.png' style='margin-left:4px;width:20px;height:20px;margin-right:5px;' alt='youtube metadata icon' >" +
                         "Inspect the metadata for all of this playlist's videos" +
                         "</a></p>");
                 }
@@ -996,10 +996,10 @@
 
                 if (item.hasOwnProperty(part) && !$.isEmptyObject(item[part])) {
                     sectionHeader.removeClass("unknown").addClass("good");
-                    sectionHeader.find("i").removeClass("question").addClass("check");
+                    sectionHeader.find("i").removeClass("bi-question-circle-fill").addClass("bi-check-circle-fill");
                 } else {
                     sectionHeader.removeClass("unknown").addClass("bad");
-                    sectionHeader.find("i").removeClass("question").addClass("minus");
+                    sectionHeader.find("i").removeClass("bi-question-circle-fill").addClass("bi-dash-circle-fill");
                 }
 
                 if (item.hasOwnProperty(part)) {
@@ -1316,6 +1316,8 @@
 
     const internal = {
         init: function () {
+            elements.hljsTheme = $("#highlightjs-theme");
+            controls.darkMode = $("#darkMode");
             controls.inputValue = $("#value");
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
@@ -1345,7 +1347,7 @@
                 const partData = partMap.video[part];
                 const html =
                     "<div id='" + part + "' class='part-section'>" +
-                    "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "<div class='section-header unknown'><i class='bi bi-question-circle-fill'></i><span>" + partData.title + "</span></div>" +
                     "</div>";
                 elements.videoSection.append(html);
             }
@@ -1354,7 +1356,7 @@
                 const partData = partMap.channel[part];
                 const html =
                     "<div id='" + part + "' class='part-section'>" +
-                    "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "<div class='section-header unknown'><i class='bi bi-question-circle-fill'></i><span>" + partData.title + "</span></div>" +
                     "</div>";
                 elements.channelSection.append(html);
             }
@@ -1363,7 +1365,7 @@
                 const partData = partMap.playlist[part];
                 const html =
                     "<div id='" + part + "' class='part-section'>" +
-                    "<div class='section-header unknown'><i class='question circle icon'></i><span>" + partData.title + "</span></div>" +
+                    "<div class='section-header unknown'><i class='bi bi-question-circle-fill'></i></i><span>" + partData.title + "</span></div>" +
                     "</div>";
                 elements.playlistSection.append(html);
             }
@@ -1373,6 +1375,18 @@
             }
         },
         setupControls: function () {
+            function checkTheme() {
+                if (DarkMode.getColorScheme() === "dark") {
+                    elements.hljsTheme.attr("href", "//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.3.1/build/styles/stackoverflow-dark.min.css");
+                } else {
+                    elements.hljsTheme.attr("href", "//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.3.1/build/styles/stackoverflow-light.min.css")
+                }
+            }
+            controls.darkMode.change(function () {
+                checkTheme();
+            });
+            checkTheme();
+
             controls.inputValue.on('keypress', function (e) {
                 if (e.originalEvent.code === "Enter") {
                     controls.btnSubmit.click();

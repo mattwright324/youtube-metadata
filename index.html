@@ -3,117 +3,105 @@ layout: default
 title: YouTube Metadata
 script: youtube-metadata
 ---
-<div class="ui container" style="margin-top:3%">
-    {% include nav.html title=page.title %}
-
-    <p>YouTube Metadata normal grabs singular details about a video and its uploader, playlist and its creator, or
-        channel.</p>
-    <p>Submit a link to a video, playlist, or channel</p>
-    <div class="ui four column">
-        <div class="ui fluid action input">
-            <input id="value" type="text" placeholder="https://youtu.be/dQw4w9WgXcQ" value="">
-            <div id="submit" class="ui button">Submit</div>
-        </div>
+<div class="container">
+    <p>
+        YouTube Metadata normal grabs singular details about a video and its uploader, playlist and its creator, or channel.
+    </p>
+    <p>
+        Submit a link to a video, playlist, or channel
+    </p>
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="https://youtu.be/dQw4w9WgXcQ" autocomplete="off"
+               aria-label="https://youtu.be/dQw4w9WgXcQ" aria-describedby="submit" id="value">
+        <button class="btn btn-primary" type="button" id="submit">Submit</button>
     </div>
 </div>
 {% include format_share.html %}
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Export</h1>
-    <p>Save this result as a zip file or load from a previous export.</p>
-    <p>
-    <div id="export" class="ui button">
-        <i class="download icon"></i> Export
-    </div>
-    <div id="import" class="ui button" onclick="document.getElementById('importFileChooser').click()">
-        <i class="upload icon"></i> Import
-        <input id="importFileChooser" type="file" hidden/>
-    </div>
-    </p>
-    <p>Contains file(s)
+<div class="container mb-15">
+    <h2>Export</h2>
+    <p>Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
+    <button class="btn btn-secondary" id="export">
+        <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
+        <span class="text"><i class="bi bi-download"></i>&nbsp;&nbsp;Export</span>
+    </button>&nbsp;
+    <button class="btn btn-secondary" id="import">
+        <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
+        <span class="text"><i class="bi bi-upload"></i>&nbsp;&nbsp;Import</span>
+    </button>
+    <p></p>
+    <p>Contains file(s)</p>
     <ul>
         <li>about.txt - Metadata about this result.</li>
-        <li>video.json - Raw video data.</li>
-        <li>playlist.json - Raw playlist data.</li>
-        <li>channel.json - Raw channel data.</li>
-        <li>filmot.json - Archive data if retrieved.</li>
-        <li>✱-thumb.png - Thumbs if available.</li>
+        <li>videos.json - Array of all raw video data.</li>
+        <li>channels.json - Array of all raw channel data.</li>
+        <li>playlists.json - Array of all raw playlist data.</li>
+        <li>unavailable.json - Basic data for unavailable videos.</li>
+        <li>✱.csv - Data from each table section below.</li>
+        <li>thumbs/✱.png - Thumbs if available.</li>
     </ul>
-    </p>
+    <p></p>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <div id="video" class="ui section">
-        <h1>Video</h1>
-        <p>
-            The video submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/videos#properties" target="_blank">here</a>
-            to see detailed property descriptions.
-        </p>
-        <div id="video-section"></div>
-        <div class='section-header unknown'><i class='question circle icon'></i><span>Thumbnails</span></div>
-        <p>Reverse image search all four thumbnail images.</p>
-        <div class="ui four column stackable grid">
-            <div id="thumbnails" class="row"></div>
-        </div>
+<div class="container mb-15" id="video">
+    <h2>Video</h2>
+    <p>The video author, playlist creator, or channel submitted.
+        Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties" target="_blank">here</a>
+        to see detailed property descriptions.
+    </p>
+    <div id="video-section"></div>
 
-        <div class='section-header unknown'><i class='question circle icon'></i><span>More</span></div>
-        <p>Check other resources for details or archival.</p>
-        <div class="ui four column stackable grid">
-            <div id="video-more" class="row" style="padding-top:0"></div>
-        </div>
-    </div>
+    <div class='section-header unknown'><i class='bi bi-question-circle-fill'></i><span>Thumbnails</span></div>
+    <p>Reverse image search all four thumbnail images.</p>
+    <div id="thumbnails" class="row row-cols-4"></div>
 
-    <div id="playlist" class="ui section">
-        <h1>Playlist</h1>
-        <p>The playlist submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/playlists#properties"
-                     target="_blank">here</a> to see detailed property descriptions.
-        </p>
-        <div id="playlist-section"></div>
+    <div class='section-header unknown'><i class='bi bi-question-circle-fill'></i><span>More</span></div>
+    <p>Check other resources for details or archival.</p>
+    <div id="video-more" style="padding-top:0"></div>
+</div>
+<div class="container mb-15" id="playlist">
+    <h2>Playlist</h2>
+    <p>The playlist submitted.
+        Click <a href="https://developers.google.com/youtube/v3/docs/playlists#properties"
+                 target="_blank">here</a> to see detailed property descriptions.
+    </p>
+    <div id="playlist-section"></div>
 
-        <div class='section-header unknown'><i class='question circle icon'></i><span>More</span></div>
-        <p>Check other resources for details or archival.</p>
-        <div class="ui four column stackable grid">
-            <div id="playlist-more" class="row" style="padding-top:0"></div>
-        </div>
-    </div>
+    <div class='section-header unknown'><i class='bi bi-question-circle-fill'></i><span>More</span></div>
+    <p>Check other resources for details or archival.</p>
+    <div id="playlist-more" style="padding-top:0"></div>
+</div>
+<div class="container mb-15" id="channel">
+    <h2>Channel</h2>
+    <p>The video author, playlist creator, or channel submitted.
+        Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties" target="_blank">here</a>
+        to see detailed property descriptions.
+    </p>
+    <div id="channel-section"></div>
 
-    <div id="channel" class="ui section">
-        <h1>Channel</h1>
-        <p>The video author, playlist creator, or channel submitted.
-            Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties" target="_blank">here</a>
-            to see detailed property descriptions.
-        </p>
-        <div id="channel-section"></div>
-
-        <div class='section-header unknown'><i class='question circle icon'></i><span>More</span></div>
-        <p>Check other resources for details or archival.</p>
-        <div class="ui four column stackable grid">
-            <div id="channel-more" class="row" style="padding-top:0"></div>
-        </div>
-    </div>
-
-    <div id="unknown" class="ui section" style="display: none">
-        <h1>Unknown</h1>
-        <p id="reason" class="mb-15"></p>
-        <div id="reason-append"></div>
-    </div>
-    <div id="quota" class="ui section" style="display: none">
-        <h1>Quota Exceeded</h1>
-        <p class="mb-15">
-            The daily API quota of 1,000,000 units has been reached for this application.
-            This quota resets at midnight Pacific Time (PT) as per the Google Developers Console.
-        </p>
-        <p class="mb-15">
-            See more detail here with
-            <a href="https://github.com/mattwright324/youtube-metadata/issues/3" target="_blank">issue #3</a>.
-        </p>
-        <div id="quota-reason-append"></div>
-    </div>
-    <div id="filmot" class="ui section" style="display: none">
-        <h1>Filmot Archive</h1>
-        <p class="mb-15">
-            Data retrieved from Filmot about this unavailable video.
-        </p>
-        <div id="filmot-append"></div>
-    </div>
+    <div class='section-header unknown'><i class='bi bi-question-circle-fill'></i><span>More</span></div>
+    <p>Check other resources for details or archival.</p>
+    <div id="channel-more" style="padding-top:0"></div>
+</div>
+<div class="container mb-15" id="unknown" style="display: none">
+    <h2>Unknown</h2>
+    <p id="reason" class="mb-15"></p>
+    <div id="reason-append"></div>
+</div>
+<div class="container mb-15" id="quota" style="display: none">
+    <h2>Quota Exceeded</h2>
+    <p class="mb-15">
+        The daily API quota of 1,000,000 units has been reached for this application.
+        This quota resets at midnight Pacific Time (PT) as per the Google Developers Console.
+    </p>
+    <p class="mb-15">
+        See more detail here with
+        <a href="https://github.com/mattwright324/youtube-metadata/issues/3" target="_blank">issue #3</a>.
+    </p>
+    <div id="quota-reason-append"></div>
+</div>
+<div class="container mb-15" id="filmot" style="display: none">
+    <h2>Filmot Archive</h2>
+    <p class="mb-15">
+        Data retrieved from Filmot about this unavailable video.
+    </p>
+    <div id="filmot-append"></div>
 </div>

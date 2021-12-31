@@ -1,41 +1,31 @@
-<div id="formatShare" class="ui container" style="margin-top:0.5%">
-    <div class="ui accordion mb-15">
-        <div class="title active">
-            <i class="dropdown icon"></i>
-            Accepted formats
-        </div>
-        <div class="content active">
-            <ul class="mt-0">
-                <li><span class="optional">https://www.</span>youtube.com/watch?v=<span class="orange">video_id</span></li>
-                <li><span class="optional">https://www.</span>youtube.com/v/<span class="orange">video_id</span></li>
-                <li><span class="optional">https://www.</span>youtube.com/embed/<span class="orange">video_id</span></li>
-                <li><span class="optional">https://</span>youtube.com/shorts/<span class="orange">video_id</span></li>
-                <li><span class="optional">https://</span>youtu.be/<span class="orange">video_id</span></li>
-                <li><span class="optional">https://www.</span>youtube.com/playlist?list=<span class="orange">playlist_id</span></li>
-                <li><span class="optional">https://www.</span>youtube.com/user/<span class="orange">username</span></li>
-                <li><span class="optional">https://www.</span>youtube.com/channel/<span class="orange">channel_id</span></li>
-                <li><span class="optional">https://www.</span>youtube.com/c/<span class="orange">custom_url</span> (may not work, <a
-                        href="https://github.com/mattwright324/youtube-metadata/issues/1">see here</a>)
-                </li>
-                <li><span class="optional">https://www.</span>youtube.com/<span class="orange">custom_url</span> (may not work, <a
-                        href="https://github.com/mattwright324/youtube-metadata/issues/1">see here</a>)
-                </li>
-                <li>
-                    Also accepts direct ids:
-                    <span class="orange">video_id</span>,
-                    <span class="orange">playlist_id</span>,
-                    <span class="orange">channel_id</span>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <script>$('.ui.accordion').accordion();</script>
+<div class="container mb-15" style="margin-top: 1.25%">
+    <span>Accepted formats</span>
+    <ul id="formats" class="collapse show" style="padding-top:7px">
+        <li><span class="optional">https://www.</span>youtube.com/watch?v=<span class="orange">video_id</span></li>
+        <li><span class="optional">https://www.</span>youtube.com/embed/<span class="orange">video_id</span></li>
+        <li><span class="optional">https://www.</span>youtube.com/v/<span class="orange">video_id</span></li>
+        <li><span class="optional">https://</span>youtube.com/shorts/<span class="orange">video_id</span></li>
+        <li><span class="optional">https://</span>youtu.be/<span class="orange">video_id</span></li>
+        <li><span class="optional">https://www.</span>youtube.com/playlist?list=<span class="orange">playlist_id</span></li>
+        <li><span class="optional">https://www.</span>youtube.com/channel/<span class="orange">channel_id</span></li>
+        <li><span class="optional">https://www.</span>youtube.com/user/<span class="orange">username</span></li>
+        <li><span class="optional">https://www.</span>youtube.com/c/<span class="orange">custom_url</span>
+            (may not work, <a href="https://github.com/mattwright324/youtube-metadata/issues/1" target="_blank">see here</a>)
+        </li>
+        <li><span class="optional">https://www.</span>youtube.com/<span class="orange">custom_url</span>
+            (may not work, <a href="https://github.com/mattwright324/youtube-metadata/issues/1" target="_blank">see here</a>)
+        </li>
+        <li>
+            Also accepts direct ids:
+            <span class="orange">video_id</span>,
+            <span class="orange">playlist_id</span>,
+            <span class="orange">channel_id</span>
+        </li>
+    </ul>
 
     <p>Share this result:</p>
-    <div class="ui action input">
-        <input type="text" id="shareLink" disabled>
-        <button class="ui teal right icon button clipboard" title="Copy" data-clipboard-target="#shareLink">
-            <i class="copy icon"></i>
-        </button>
+    <div class="input-group" style="max-width: 226px;">
+        <input type="text" class="form-control" aria-describedby="copy" id="shareLink" autocomplete="off">
+        <button class="btn btn-primary clipboard" type="button"  data-clipboard-target="#shareLink"><i class="bi bi-clipboard"></i></button>
     </div>
 </div>
