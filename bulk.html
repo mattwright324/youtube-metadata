@@ -3,75 +3,45 @@ layout: default
 title: YouTube Metadata Bulk
 script: youtube-metadata-bulk
 ---
-<div class="ui container" style="margin-top:3%">
-    {% include nav.html title=page.title %}
-
-    <p>YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.</p>
-    <div id="regularInput">
-        <p>Submit a comma separated list of multiple videos, playlists, or channels</p>
-        <div class="ui four column">
-            <div class="ui fluid action input">
-                <input id="value" type="text" placeholder="https://www.youtube.com/user/oceanexplorergov">
-                <div id="submit" class="ui button">Submit</div>
-            </div>
-            <br>
-            <div class="ui checkbox">
-                <input id="createdPlaylists" type="checkbox">
-                <label>Inspect videos in created playlists to find unlisted videos (channels only)</label>
-            </div>
-        </div>
+<div class="container">
+    <p>
+        YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.
+    </p>
+    <p>
+        Submit a comma separated list of multiple videos, playlists, or channels
+    </p>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+               aria-label="https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw" aria-describedby="submit" id="value" autocomplete="off">
+        <button class="btn btn-primary" type="button" id="submit">Submit</button>
     </div>
-    <div id="searchInput" hidden>
-        <!-- Hidden as not intended to be available yet -->
-        <p>Submit inputs to inspect videos from the search function.</p>
-        <div class="ui two column">
-            <div class="ui fluid action input">
-                <input id="searchQuery" type="text" placeholder="Search">
-                <select id="searchType" class="ui dropdown">
-                    <option value="">Any type</option>
-                    <option value="video" selected>Videos only</option>
-                    <option value="channel">Channels only</option>
-                    <option value="playlist">Playlists only</option>
-                </select>
-                <select id="searchOrder" class="ui dropdown">
-                    <option value="date">Date order</option>
-                    <option value="rating">Rating order</option>
-                    <option value="relevance">Relevance order</option>
-                    <option value="viewCount">View count order</option>
-                </select>
-                <select id="searchPages" class="ui dropdown">
-                    <option value="1">1 page</option>
-                    <option value="2">2 pages</option>
-                    <option value="3" selected>3 pages</option>
-                    <option value="4">4 pages</option>
-                    <option value="5">5 pages</option>
-                </select>
-                <div id="submitSearch" class="ui button">Submit</div>
-            </div>
-        </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="createdPlaylists" autocomplete="off">
+        <label class="form-check-label" for="createdPlaylists">
+            Inspect videos in created playlists to find unlisted videos (channels only)
+        </label>
     </div>
 </div>
 {% include format_share.html %}
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Export</h1>
-    <p>Save this result as a zip file or load from a previous export.</p>
-    <p>
-    <div id="export" class="ui button">
-        <i class="download icon"></i> Export
-    </div>
-    <div id="import" class="ui button" onclick="document.getElementById('importFileChooser').click()">
-        <i class="upload icon"></i> Import
-        <input id="importFileChooser" type="file" hidden/>
-    </div>
-    </p>
-    <div class="ui checkbox" style="margin-bottom: 1em">
-        <input id="includeThumbs" type="checkbox">
-        <label>
+<div class="container mb-15">
+    <h2>Export</h2>
+    <p>Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
+    <button class="btn btn-secondary" id="export">
+        <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
+        <span class="text"><i class="bi bi-download"></i>&nbsp;&nbsp;Export</span>
+    </button>&nbsp;
+    <button class="btn btn-secondary" id="import">
+        <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
+        <span class="text"><i class="bi bi-upload"></i>&nbsp;&nbsp;Import</span>
+    </button>
+    <div class="form-check" style="margin:10px 0">
+        <input class="form-check-input" type="checkbox" value="" id="includeThumbs" autocomplete="off">
+        <label class="form-check-label" for="includeThumbs">
             Include thumbnails on export (this may take a long time)
             <span id="thumbProgress" class="orange"></span>
         </label>
     </div>
-    <p>Contains file(s)
+    <p>Contains file(s)</p>
     <ul>
         <li>about.txt - Metadata about this result.</li>
         <li>videos.json - Array of all raw video data.</li>
@@ -81,74 +51,72 @@ script: youtube-metadata-bulk
         <li>✱.csv - Data from each table section below.</li>
         <li>thumbs/✱.png - Thumbs if available.</li>
     </ul>
-    </p>
+    <p></p>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Videos</h1>
+<div class="container mb-15">
+    <h2>Videos</h2>
     <p>
         List of all videos, playlist videos, or channel public uploads.
         Customize columns to show more or less data as needed.
     </p>
-    <div id="videoProgress" class="ui blue progress">
-        <div class="bar">
-            <div class="centered progress"></div>
-        </div>
-        <div class="label"></div>
-    </div>
-    <div class="ui compact menu" style="margin-bottom: 15px">
-        <div class="ui simple dropdown item">
-            Select Columns
-            <i class="dropdown icon"></i>
-            <div id="column-options" class="menu">
-            </div>
+    <div class="progress" style="margin-bottom:5px">
+        <div id="progressBar" class="progress-bar" role="progressbar" style="" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="label"></div>
         </div>
     </div>
+    <div id="progressText" style="width: 100%;text-align: center;">Idle</div>
+    <br>
+    <label for="column-options">Select column(s)</label>
+    <select id="column-options" multiple="multiple" hidden></select>
 </div>
-<div class="ui container" style="margin: 0 1.5% 1.5%; width:auto;">
-    <table id="videosTable" class="display" style="width:100%"></table>
+<div class="container-fluid mb-15">
+    <table id="videosTable" class="table table-striped table-hover" style="width:100%"></table>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Tags</h1>
-    <p>
-        Aggregate total tag counts on found videos.
-    </p>
+<div class="container mb-15">
+    <h2>Tags</h2>
+    <p>Aggregate total tag counts on found videos.</p>
+    <table id="tagsTable" class="table table-striped table-hover" style="width:100%"></table>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <table id="tagsTable" class="display" style="width:100%"></table>
+<div class="container mb-15">
+    <h2>Geotags</h2>
+    <p>Aggregate total geotag counts on found videos.</p>
+    <table id="geotagsTable" class="table table-striped table-hover" style="width:100%"></table>
+    <div hidden>
+        <!-- TODO: Update YouTube Geofind to support importing data -->
+        <br>
+        <p>
+            Want to visualize this data in a map? Export this result and import the zip into
+            <a href="https://mattw.io/youtube-geofind/location" target="_blank">YouTube Geofind</a>!
+        </p>
+    </div>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Geotags</h1>
-    <p>
-        Aggregate total geotag counts on found videos.
-    </p>
-</div>
-<div class="ui container" style="margin-top:1.5%">
-    <table id="geotagsTable" class="display" style="width:100%"></table>
-</div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Links</h1>
+<div class="container mb-15">
+    <h2>Links</h2>
     <p>
         Aggregate total link counts in found video descriptions.
         Be careful visiting what may show up here, by default results will not be hyperlinked for safety.
     </p>
-    <div class="ui checkbox">
-        <input id="makeHyperlinks" type="checkbox" onchange="bulk.toggleLinksColumn(0);bulk.toggleLinksColumn(1)">
-        <label>Make them hyperlinks anyways</label>
+    <div class="form-check mb-15">
+        <input class="form-check-input" type="checkbox" value="" id="makeHyperlinks" autocomplete="off"
+               onchange="bulk.toggleLinksColumn(0);bulk.toggleLinksColumn(1)">
+        <label class="form-check-label" for="makeHyperlinks">
+            Make them hyperlinks anyways
+        </label>
     </div>
+    <table id="linksTable" class="table table-striped table-hover" style="width:100%"></table>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <table id="linksTable" class="display" style="width:100%"></table>
-</div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Upload Frequency</h1>
+<div class="container mb-15">
+    <h2>Upload Frequency</h2>
     <p>
         Aggregate uploads frequency by hour and day.
-        Transformable to any timezone and filterable by year when activity occurred.
+        Transformable to any timezone
+        (<a target="_blank" href="https://upload.wikimedia.org/wikipedia/commons/8/88/World_Time_Zones_Map.png">map</a>)
+        and filterable by year when activity occurred.
+        Guesstimate region using typical sleep patterns, see change in behavior over time,
+        or see typical upload times in your own timezone.
     </p>
-</div>
-<div class="ui container" style="margin-top:1.5%">
-    <p>
-        <select id="offset" class="ui dropdown">
+    <div class="row" style="margin: 0 0 1.5em 0">
+        <select id="offset" class="form-select" style="width:auto;margin-right:10px" autocomplete="off">
             <option value="-1200">UTC −12:00</option>
             <option value="-1100">UTC −11:00</option>
             <option value="-1000">UTC −10:00</option>
@@ -186,29 +154,26 @@ script: youtube-metadata-bulk
             <option value="+1200">UTC +12:00</option>
             <option value="+1245">UTC +12:45</option>
             <option value="+1300">UTC +13:00</option>
+            <option value="+1345">UTC +13:45</option>
             <option value="+1400">UTC +14:00</option>
         </select>
-        <select id="year" class="ui dropdown">
+        <select id="year" class="form-select" style="width:auto" autocomplete="off">
             <option value="" selected>All years</option>
         </select>
-    </p>
+    </div>
     <div id="uploadFrequency"></div>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Unavailable</h1>
+<div class="container mb-15">
+    <h2>Unavailable</h2>
     <p>
         Videos that are unavailable from channels (created playlists on), playlists, or videos. They are either deleted or made private.
     </p>
 </div>
-<div class="ui container" style="margin: 0 1.5% 1.5%; width:auto;">
-    <table id="unavailableTable" class="display" style="width:100%"></table>
+<div class="container-fluid mb-15">
+    <table id="unavailableTable" class="table table-striped table-hover" style="width:100%"></table>
 </div>
-<div class="ui container" style="margin-top:1.5%">
-    <h1>Other</h1>
-    <p>
-        Other potentially useful aggregate data on found videos.
-    </p>
-</div>
-<div class="ui container" style="margin-top:1.5%">
-    <table id="otherTable" class="display" style="width:100%"></table>
+<div class="container mb-15">
+    <h2>Other</h2>
+    <p>Other potentially useful aggregate data on found videos.</p>
+    <table id="otherTable" class="table table-striped table-hover" style="width:100%"></table>
 </div>

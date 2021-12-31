@@ -64,7 +64,9 @@ const bulk = (function () {
             if (p.type === 'video_id' && videoIds.indexOf(p.value) === -1) {
                 videoIds.push(p.value);
 
-                controls.progress.indeterminate(videoIds.length);
+                controls.progress.update({
+                    text: videoIds.length
+                });
             } else if (p.type === "playlist_id" && playlistIds.indexOf(p.value) === -1) {
                 playlistIds.push(p.value);
             } else if (p.type === "channel_id" && channelIds.indexOf(p.value) === -1) {
@@ -74,6 +76,10 @@ const bulk = (function () {
             } else if (p.type === "channel_user" && channelUsers.indexOf(p.value) === -1) {
                 channelUsers.push(p.value);
             }
+        });
+
+        controls.progress.update({
+            subtext: 'Grabbing unique video ids'
         });
 
         Promise.all([
@@ -94,9 +100,17 @@ const bulk = (function () {
             // Playlists condense to video ids
             return handlePlaylistIds(playlistIds, videoIds);
         }).then(function () {
+            controls.progress.update({
+                subtext: 'Processing video ids'
+            });
+
             // Videos are results to be displayed
             return handleVideoIds(videoIds);
         }).then(function () {
+            controls.progress.update({
+                subtext: 'Processing channel ids'
+            });
+
             // Ids for channels not in the original request, likely from playlists
             const newChannelIds = [];
             rawVideoData.forEach(function (video) {
@@ -107,7 +121,9 @@ const bulk = (function () {
             });
             return handleChannelIds(newChannelIds, [], []);
         }).then(function () {
-            console.log("done");
+            controls.progress.update({
+                subtext: 'Done'
+            });
             console.log(videoIds);
 
             const resultIds = [];
@@ -476,7 +492,9 @@ const bulk = (function () {
                                 }
                             }
                         })
-                        controls.progress.indeterminate(videoIds.length);
+                        controls.progress.update({
+                            text: videoIds.length
+                        })
 
                         if (res.hasOwnProperty("nextPageToken")) {
                             paginate(res.nextPageToken);
@@ -594,7 +612,11 @@ const bulk = (function () {
                     });
 
                     processed = processed + ids.length;
-                    controls.progress.processing(processed, videoIds.length);
+                    controls.progress.update({
+                        value: processed,
+                        max: videoIds.length,
+                        text: processed + " / " + videoIds.length
+                    })
 
                     get(index + slice, slice);
                 }).fail(function (err) {
@@ -708,8 +730,8 @@ const bulk = (function () {
 
             dataRow.push(displayValue);
 
-            const columnCheck = document.getElementById("column-" + column.title);
-            if (!column.visible && !columnCheck.checked && column._visibleIf && column._visibleIf(value)) {
+            const columnCheck = document.querySelector("button[title='" + column.title + "']");
+            if (!column.visible && $(columnCheck).hasClass("active") && column._visibleIf && column._visibleIf(value)) {
                 columnCheck.click();
             }
 
@@ -1658,21 +1680,14 @@ const bulk = (function () {
     for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
 
-        columnOptionsHtml.push("<div class='item ui checkbox'>" +
-            "<input id='column-" + column.title + "' " +
-            "type='checkbox' " +
-            "name='" + column.title + "' " +
-            (column.visible ? "checked" : "") + " " +
-            "onclick='bulk.toggleResultsColumn(" + i + ")'" +
-            ">" +
-            "<label for='column-" + column.title + "'>" + column.title + "</label>" +
-            "</div>")
+        columnOptionsHtml.push("<option value='" + i + "'" + (column.visible ? " selected" : "") + ">" +
+            column.title +
+            "</option>")
     }
 
     const internal = {
         init: function () {
-            $(".ui.checkbox").checkbox();
-
+            controls.darkMode = $("#darkMode");
             controls.inputValue = $("#value");
             controls.inputValue.val(EXAMPLE_BULK[rando(0, EXAMPLE_BULK.length - 1)]);
             controls.btnSubmit = $("#submit");
@@ -1684,47 +1699,65 @@ const bulk = (function () {
                     "targets": "_all"
                 }],
                 order: [[8, 'desc']],
+                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
-                bDeferRender: true
+                bDeferRender: true,
+
             });
             controls.columnOptions = $("#column-options");
             controls.columnOptions.html(columnOptionsHtml.join(""));
-            controls.progress = $("#videoProgress").progress();
+            controls.columnOptions.multiselect({
+                buttonClass: 'form-select',
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-bs-toggle="dropdown"><span class="multiselect-selected-text"></span></button>',
+                },
+                onChange: function (option, checked, select) {
+                    external.toggleResultsColumn($(option).val())
+                }
+            });
+            controls.progress = $("#progressBar");
+            elements.progressText = $("#progressText")
+            controls.progress.progressData = {
+                min: 0,
+                value: 0,
+                max: 100
+            }
+            controls.progress.update = function (options) {
+                console.log(options)
+                if (String(options["reset"]).toLowerCase() === "true") {
+                    console.log('reset')
+                    this.update({
+                        min: 0,
+                        value: 0,
+                        max: 100,
+                        text: "",
+                        subtext: 'Idle'
+                    });
+                    return;
+                }
+                if (options.hasOwnProperty("subtext")) {
+                    elements.progressText.text(options.subtext);
+                }
+                if (options.hasOwnProperty("text")) {
+                    this.find('.label').text(options.text);
+                }
+                if (options.hasOwnProperty("min")) {
+                    this.progressData.min = options.min;
+                }
+                if (options.hasOwnProperty("value")) {
+                    this.progressData.value = options.value;
+                }
+                if (options.hasOwnProperty("max")) {
+                    this.progressData.max = options.max;
+                }
+
+                const data = this.progressData;
+                const percent = 100 * ((data.value - data.min) / (data.max - data.min));
+                this.css('width', percent + "%");
+            }
             controls.createdPlaylists = $("#createdPlaylists");
             controls.includeThumbs = $("#includeThumbs");
             elements.thumbProgress = $("#thumbProgress");
-
-            controls.progress.reset = function () {
-            }
-            controls.progress.indeterminate = function (total) {
-                console.log("indeterminate(" + total + ") = " + (value / total))
-                this.addClass('indeterminate');
-                this.progress({
-                    label: 'percent',
-                    total: total,
-                    value: total,
-                    autoSuccess: false,
-                    text: {
-                        active: 'Grabbing unique video ids',
-                        percent: '0 / {total}'
-                    }
-                });
-            }
-            controls.progress.processing = function (value, total) {
-                console.log("processing(" + value + " / " + total + ") = " + (value / total))
-                this.removeClass('indeterminate');
-                this.progress({
-                    label: 'ratio',
-                    total: total,
-                    value: value,
-                    autoSuccess: true,
-                    text: {
-                        active: 'Processing video ids',
-                        success: 'Done',
-                        ratio: value + ' / ' + total
-                    }
-                })
-            }
 
             controls.tagsTable = $("#tagsTable").DataTable({
                 columns: [
@@ -1753,6 +1786,7 @@ const bulk = (function () {
                     "targets": 0
                 }],
                 order: [[3, 'desc'], [0, 'asc']],
+                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1771,6 +1805,7 @@ const bulk = (function () {
                     "targets": "_all"
                 }],
                 order: [[2, 'desc'], [0, 'asc']],
+                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1809,6 +1844,7 @@ const bulk = (function () {
                     "targets": [0, 1]
                 }],
                 order: [[4, 'desc'], [0, 'asc']],
+                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1865,23 +1901,14 @@ const bulk = (function () {
                     enabled: false
                 },
                 colors: ["#008FFB"],
-                // colors: [
-                //     "#3e0853", "#3e0853", "#3e0853", "#3e0853",
-                //     "#3e0853", "#33a186", "#33a186", "#f2e541",
-                //     "#f2e541", "#f2e541", "#f2e541", "#f2e541",
-                //     "#f2e541", "#f2e541", "#f2e541", "#f2e541",
-                //     "#f2e541", "#33a186", "#33a186", "#3e0853",
-                //     "#3e0853", "#3e0853", "#3e0853", "#3e0853",
-                // ],
-                // plotOptions: {
-                //     heatmap: {
-                //         colorScale: {
-                //             inverse: true
-                //         }
-                //     }
-                // },
                 title: {
                     text: 'Day and Time Frequency'
+                },
+                stroke: {
+                    show: false
+                },
+                grid: {
+                    show: false
                 }
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
@@ -1931,6 +1958,7 @@ const bulk = (function () {
                     "targets": "_all"
                 }],
                 order: [[3, 'asc']],
+                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
             });
@@ -1948,9 +1976,10 @@ const bulk = (function () {
                     "targets": "_all"
                 }],
                 order: [],
+                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true,
-                pageLength: 100
+                pageLength: -1
             });
 
             controls.btnExport = $("#export");
@@ -1976,6 +2005,28 @@ const bulk = (function () {
             }
         },
         setupControls: function () {
+            function checkTheme() {
+                if (DarkMode.getColorScheme() === "dark") {
+                    controls.uploadFrequency.updateOptions({
+                        theme: {
+                            mode: 'dark'
+                        }
+                    });
+                } else {
+                    controls.uploadFrequency.updateOptions({
+                        theme: {
+                            mode: 'light'
+                        }
+                    });
+                }
+            }
+            controls.darkMode.change(function () {
+                checkTheme();
+            });
+            checkTheme();
+
+            controls.progress.update({reset: true});
+
             controls.inputValue.on('keypress', function (e) {
                 if (e.originalEvent.code === "Enter") {
                     controls.btnSubmit.click();
@@ -2006,7 +2057,11 @@ const bulk = (function () {
                 controls.shareLink.val(location.origin + location.pathname + "?url=" + encodeURIComponent(minifiedInput.join(",")) + optionalCreatedPlaylists + "&submit=true");
                 controls.shareLink.attr("disabled", false);
 
-                controls.progress.indeterminate(0);
+                controls.progress.update({
+                    text: 'Indeterminate',
+                    value: 100,
+                    max: 100
+                })
 
                 processFromParsed(parsed);
             });
@@ -2255,6 +2310,12 @@ const bulk = (function () {
                 controls.btnImport.addClass("loading").addClass("disabled");
 
                 internal.reset();
+                controls.progress.update({
+                    text: '',
+                    subtext: 'Importing file',
+                    value: 0
+                });
+
                 new Promise(function (resolve) {
                     console.log('loading unavailable.json');
                     JSZip.loadAsync(file).then(function (content) {
@@ -2267,7 +2328,6 @@ const bulk = (function () {
                     }).catch(function (err) {
                         console.warn(err);
                         console.warn('unavailable.json not in imported file');
-
                         resolve();
                     });
                 }).then(function () {
@@ -2289,10 +2349,19 @@ const bulk = (function () {
 
                         loadAggregateTables(function () {
                             controls.btnImport.removeClass("loading").removeClass("disabled");
+                            controls.progress.update({
+                                subtext: 'Import done',
+                                value: 1,
+                                max: 1,
+                                text: rows.length + " / " + rows.length
+                            });
                         });
                     }).catch(function (err) {
                         console.warn(err);
                         console.warn('videos.json not in imported file');
+
+                        controls.btnImport.removeClass("loading").removeClass("disabled");
+                        controls.progress.update({subtext: 'Import failed (no videos.json)'});
                     });
                 });
             }
@@ -2320,6 +2389,8 @@ const bulk = (function () {
             }
         },
         reset: function () {
+            controls.progress.update({reset: true});
+
             tableRows = [csvHeaderRow.join("\t")];
             rawVideoData = [];
             rawChannelMap = {};
@@ -2361,7 +2432,7 @@ const bulk = (function () {
 
     $(document).ready(internal.init);
 
-    return {
+    const external = {
         toggleResultsColumn(index) {
             const column = controls.videosTable.column(index);
 
@@ -2374,4 +2445,5 @@ const bulk = (function () {
             column.visible(!column.visible());
         }
     }
+    return external;
 }());

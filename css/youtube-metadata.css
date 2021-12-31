@@ -1,9 +1,38 @@
 body {
-    font-weight: 400;
-    font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
-    color: #222;
-    background-image: url("https://mattw.io/img/noise.png");
     background-repeat: repeat;
+    font-weight: 350 !important;
+}
+
+a[href] {
+    text-decoration: none;
+}
+
+ul {
+    line-height: 20px;
+}
+
+code {
+    max-height: 180px;
+}
+
+.mb-15 {
+    margin-bottom: 1.5%;
+}
+
+p.mb-15 {
+    margin-bottom: 0.75%;
+}
+
+.mt-15 {
+    margin-top: 1.5%;
+}
+
+.navbar-brand {
+    font-size: 1.75rem!important;
+}
+
+.navbar {
+    font-size: 1.5rem!important;
 }
 
 .orange {
@@ -16,74 +45,6 @@ body {
 
 .green {
     color: green;
-}
-
-table {
-    font-size: initial;
-}
-
-.wrap {
-    word-wrap: break-word;
-    word-break: break-all;
-}
-
-code {
-    max-height: 180px;
-}
-
-img {
-    width: 100%;
-    max-width: 500px;
-    height: auto;
-}
-
-.header-img {
-    width: 45px !important;
-    height: 45px !important;
-}
-
-h1 {
-    font-weight: 100 !important;
-}
-
-.profile {
-    width: 100px;
-    height: 100px;
-}
-
-.section {
-    margin-bottom: 15px;
-}
-
-.part-section {
-    margin-bottom: 1.5%;
-}
-
-.mb-15 {
-    margin-bottom: 1.5%;
-}
-
-.mt-15 {
-    margin-top: 1.5%;
-}
-
-.mt-0 {
-    margin-top: 0%;
-}
-
-.tag {
-    background-color: lightskyblue;
-    padding: 2px 5px;
-    border-radius: 5px;
-    margin-right: 4px;
-    margin-bottom: 3px;
-    display: inline-block;
-}
-
-.comma {
-    color: transparent;
-    width: 0;
-    display: inline-block;
 }
 
 .section-header {
@@ -103,18 +64,79 @@ h1 {
     color: lightgray;
 }
 
-.text-right {
-    text-align: right;
+.profile {
+    width: 100px;
+    height: 100px;
 }
 
-.text-center {
-    text-align: center;
+img {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
 }
 
-.text-left {
-    text-align: left;
+.navbar-brand img {
+    width: 40px !important;
+    height: 40px !important;
 }
 
-.exclamation.triangle {
-    color: orange;
+.section-header span {
+    margin-left: 8px;
+}
+
+#export, #import {
+    width: 100px;
+}
+
+button .spinner {
+    display: none;
+}
+
+button.loading .spinner {
+    display: initial;
+}
+
+button.loading .text {
+    display: none;
+}
+
+.dropdown-toggle::after {
+    content: none
+}
+
+.progress {
+    height: 2em;
+}
+
+.tag {
+    background-color: lightskyblue;
+    padding: 2px 5px;
+    border-radius: 5px;
+    margin-right: 4px;
+    margin-bottom: 3px;
+    display: inline-block;
+}
+
+.comma {
+    color: transparent;
+    width: 0;
+    display: inline-block;
+}
+
+/* Dark mode tweaks */
+html.dark .tag {
+    background-color: royalblue;
+}
+
+html.dark .btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+html.dark a {
+    color: lightskyblue;
+}
+
+html.dark .progress-bar {
+    color: #fff;
 }
