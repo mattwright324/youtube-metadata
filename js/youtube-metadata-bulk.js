@@ -2310,6 +2310,12 @@ const bulk = (function () {
                 controls.btnImport.addClass("loading").addClass("disabled");
 
                 internal.reset();
+                controls.progress.update({
+                    text: '',
+                    subtext: 'Importing file',
+                    value: 0
+                });
+
                 new Promise(function (resolve) {
                     console.log('loading unavailable.json');
                     JSZip.loadAsync(file).then(function (content) {
@@ -2322,7 +2328,6 @@ const bulk = (function () {
                     }).catch(function (err) {
                         console.warn(err);
                         console.warn('unavailable.json not in imported file');
-
                         resolve();
                     });
                 }).then(function () {
@@ -2344,10 +2349,19 @@ const bulk = (function () {
 
                         loadAggregateTables(function () {
                             controls.btnImport.removeClass("loading").removeClass("disabled");
+                            controls.progress.update({
+                                subtext: 'Import done',
+                                value: 1,
+                                max: 1,
+                                text: rows.length + " / " + rows.length
+                            });
                         });
                     }).catch(function (err) {
                         console.warn(err);
                         console.warn('videos.json not in imported file');
+
+                        controls.btnImport.removeClass("loading").removeClass("disabled");
+                        controls.progress.update({subtext: 'Import failed (no videos.json)'});
                     });
                 });
             }
