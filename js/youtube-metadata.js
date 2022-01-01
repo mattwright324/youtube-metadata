@@ -509,14 +509,9 @@
                             translations.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>")
                         });
                         partDiv.append(
-                            "<div class='ui accordion'>" +
-                            "<div class='title'>" +
-                            "<i class='dropdown icon'></i>" +
-                            message +
-                            "</div>" +
-                            "<div class='content'>" +
+                            "<p class='mb-15'><a data-bs-toggle='collapse' href='#restriction-list-1'>" + message + "</a></p>" +
+                            "<div id='restriction-list-1' class='collapse'>" +
                             "<ul>" + translations.join("") + "</ul>" +
-                            "</div>" +
                             "</div>");
 
                         const notInList = [];
@@ -542,16 +537,10 @@
                             translations2.push("<li><span class='orange'>" + String(code).toUpperCase() + "</span> which is <span class='orange'>" + name + "</span></li>");
                         });
                         partDiv.append(
-                            "<div class='ui accordion'>" +
-                            "<div class='title'>" +
-                            "<i class='dropdown icon'></i>" +
-                            message2 +
-                            "</div>" +
-                            "<div class='content'>" +
+                            "<p class='mb-15'><a data-bs-toggle='collapse' href='#restriction-list-2'>" + message2 + "</a></p>" +
+                            "<div id='restriction-list-2' class='collapse'>" +
                             "<ul>" + translations2.join("") + "</ul>" +
-                            "</div>" +
                             "</div>");
-                        $('.ui.accordion').accordion();
                     }
 
                     const contentRating = partJson.contentRating;
