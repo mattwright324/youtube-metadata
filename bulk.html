@@ -30,9 +30,10 @@ script: youtube-metadata-bulk
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-download"></i>&nbsp;&nbsp;Export</span>
     </button>&nbsp;
-    <button class="btn btn-secondary" id="import">
+    <button class="btn btn-secondary" id="import" onclick="document.getElementById('importFileChooser').click()">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-upload"></i>&nbsp;&nbsp;Import</span>
+        <input id="importFileChooser" type="file" hidden/>
     </button>
     <div class="form-check" style="margin:10px 0">
         <input class="form-check-input" type="checkbox" value="" id="includeThumbs" autocomplete="off">

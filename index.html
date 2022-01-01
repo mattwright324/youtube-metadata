@@ -24,9 +24,10 @@ script: youtube-metadata
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-download"></i>&nbsp;&nbsp;Export</span>
     </button>&nbsp;
-    <button class="btn btn-secondary" id="import">
+    <button class="btn btn-secondary" id="import" onclick="document.getElementById('importFileChooser').click()">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-upload"></i>&nbsp;&nbsp;Import</span>
+        <input id="importFileChooser" type="file" hidden/>
     </button>
     <p></p>
     <p>Contains file(s)</p>
