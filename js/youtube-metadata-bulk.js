@@ -731,7 +731,7 @@ const bulk = (function () {
             dataRow.push(displayValue);
 
             const columnCheck = document.querySelector("button[title='" + column.title + "']");
-            if (!column.visible && $(columnCheck).hasClass("active") && column._visibleIf && column._visibleIf(value)) {
+            if (!column.visible && !$(columnCheck).hasClass("active") && column._visibleIf && column._visibleIf(value)) {
                 columnCheck.click();
             }
 
