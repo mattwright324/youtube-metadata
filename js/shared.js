@@ -20,11 +20,11 @@ const shared = (function () {
             /^((UC|SC)[\w-]{22})$/i
         ],
         channel_user: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/(.+)(?:\?.*)?/i
         ],
         channel_custom: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([\w_-]+)(?:\?.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/([\w_-]+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/(.+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(.+)(?:\?.*)?/i
         ]
     };
 
@@ -35,6 +35,7 @@ const shared = (function () {
         idx: (p, o) => p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o),
 
         determineInput: function (value) {
+            value = decodeURIComponent(value);
             const parsed = {
                 type: 'unknown',
                 mayHideOthers: true,
