@@ -20,11 +20,11 @@ const shared = (function () {
             /^((UC|SC)[\w-]{22})$/i
         ],
         channel_user: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/(.+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
         ],
         channel_custom: [
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/(.+)(?:\?.*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(.+)(?:\?.*)?/i
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([^\/?]+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/([^\/?]+)(?:\?.*)?/i
         ]
     };
 
