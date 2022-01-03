@@ -13,8 +13,8 @@
     const controls = {};
     let exportData = {};
 
-    function getSuggestedHtml(parsedInput, fullJson, jsonType) {
-        const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType);
+    function getSuggestedHtml(parsedInput, fullJson, jsonType, filmot) {
+        const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType, filmot);
         suggested.sort((a, b) => (a.text > b.text) ? 1 : -1)
         const html = [];
         for (let i = 0; i < suggested.length; i++) {
@@ -24,7 +24,7 @@
         return "<ul>" + html.join("") + "</ul>";
     }
 
-    function getSuggestedLinks(parsedInput, fullJson, jsonType) {
+    function getSuggestedLinks(parsedInput, fullJson, jsonType, filmot) {
         const data = {}
         if (parsedInput) {
             data[parsedInput.type] = parsedInput.value;
@@ -45,6 +45,9 @@
                     data["channel_custom"] = custom;
                 }
             }
+        } else if (filmot) {
+            data["video_title"] = filmot.title;
+            data["channel_title"] = filmot.channelname;
         }
         console.log(data);
 
@@ -57,6 +60,10 @@
             suggestions.push({
                 url: "https://www.google.com/search?q=\"" + encode(data.video_title) + "\"",
                 text: "Google - \"" + data.video_title + "\""
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=" + encode(data.video_title),
+                text: "Archive.org (search) - " + data.video_title
             });
         }
         if (data.hasOwnProperty("video_id")) {
@@ -104,7 +111,11 @@
             });
             suggestions.push({
                 url: "https://archive.org/search.php?query=creator%3A%22" + encode(data.channel_title) + "%22",
-                text: "Archive.org (search) - creator:" + data.channel_title
+                text: "Archive.org (search) - creator:\"" + data.channel_title + "\""
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=" + encode(data.channel_title),
+                text: "Archive.org (search) - " + data.channel_title
             });
         }
         if (data.hasOwnProperty("channel_user")) {
@@ -116,6 +127,10 @@
             suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/user/" + data.channel_user,
                 text: "Archive.org - https://www.youtube.com/user/" + data.channel_user
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=" + data.channel_user,
+                text: "Archive.org (search) - " + data.channel_user
             });
         }
         if (data.hasOwnProperty("channel_custom")) {
@@ -132,6 +147,10 @@
                 url: "https://web.archive.org/web/*/https://www.youtube.com/" + data.channel_custom,
                 text: "Archive.org - https://www.youtube.com/" + data.channel_custom
             });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=" + data.channel_custom,
+                text: "Archive.org (search) - " + data.channel_custom
+            });
         }
         if (data.hasOwnProperty("channel_id")) {
             suggestions.push({
@@ -141,6 +160,10 @@
             suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/channel/" + data.channel_id,
                 text: "Archive.org - https://www.youtube.com/channel/" + data.channel_id
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=" + data.channel_id,
+                text: "Archive.org (search) - " + data.channel_id
             });
             suggestions.push({
                 url: "https://socialblade.com/youtube/channel/" + data.channel_id,
@@ -967,6 +990,8 @@
                 } else {
                     reasonAppend.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
                 }
+
+                reasonAppend.append(getSuggestedHtml(null, null, null, video));
             }).fail(function (err) {
                 console.warn(err);
             })
