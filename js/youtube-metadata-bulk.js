@@ -822,6 +822,7 @@ const bulk = (function () {
         for (let videoId in unavailableData) {
             const video = unavailableData[videoId];
             const filmotTitle = shared.idx(["filmot", "title"], video) || "<span style='color:gray'>No data</span>";
+            const filmotDesc = shared.idx(["filmot", "description"], video) || "";
             const filmotAuthorName = shared.idx(["filmot", "channelname"], video);
             const filmotAuthor = filmotAuthorName ?
                 "<a target='_blank' href='https://www.youtube.com/channel/" + shared.idx(["filmot", "channelid"], video) + "'>" + shared.idx(["filmot", "channelname"], video) + "</a>" : "";
@@ -840,7 +841,8 @@ const bulk = (function () {
                 filmotTitle,
                 filmotAuthor,
                 filmotUploadDate,
-                {"display": filmotDuration, "num": duration}
+                {"display": filmotDuration, "num": duration},
+                filmotDesc
             ]);
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
@@ -1913,46 +1915,68 @@ const bulk = (function () {
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
             controls.uploadFrequency.render();
+            const unavailableColumns = [
+                {
+                    title: "Video ID",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Status",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Research",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Source",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Title (Filmot)",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Author (Filmot)",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Published (Filmot)",
+                    type: "html",
+                    visible: true
+                },
+                {
+                    title: "Length (Filmot)",
+                    type: "num",
+                    visible: true,
+                    render: {
+                        _: 'display',
+                        sort: 'num'
+                    },
+                    className: "dt-nowrap"
+                },
+                {
+                    title: "Description (Filmot)",
+                    type: "html",
+                    visible: false
+                }
+            ];
+            const unavailableColumnsHtml = [];
+            for (let i = 0; i < unavailableColumns.length; i++) {
+                const column = unavailableColumns[i];
+
+                unavailableColumnsHtml.push("<option value='" + i + "'" + (column.visible ? " selected" : "") + ">" +
+                    column.title +
+                    "</option>")
+            }
             controls.unavailableTable = $("#unavailableTable").DataTable({
-                columns: [
-                    {
-                        title: "Video ID",
-                        type: "html"
-                    },
-                    {
-                        title: "Status",
-                        type: "html"
-                    },
-                    {
-                        title: "Research",
-                        type: "html"
-                    },
-                    {
-                        title: "Source",
-                        type: "html"
-                    },
-                    {
-                        title: "Title (Filmot)",
-                        type: "html"
-                    },
-                    {
-                        title: "Author (Filmot)",
-                        type: "html"
-                    },
-                    {
-                        title: "Published (Filmot)",
-                        type: "html"
-                    },
-                    {
-                        title: "Length (Filmot)",
-                        type: "num",
-                        render: {
-                            _: 'display',
-                            sort: 'num'
-                        },
-                        className: "dt-nowrap"
-                    }
-                ],
+                columns: unavailableColumns,
                 columnDefs: [{
                     "defaultContent": "",
                     "targets": "_all"
@@ -1961,6 +1985,17 @@ const bulk = (function () {
                 lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
+            });
+            controls.unavailableColumns = $("#unavailable-columns");
+            controls.unavailableColumns.html(unavailableColumnsHtml.join(""));
+            controls.unavailableColumns.multiselect({
+                buttonClass: 'form-select',
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-bs-toggle="dropdown"><span class="multiselect-selected-text"></span></button>',
+                },
+                onChange: function (option, checked, select) {
+                    external.toggleUnavailableColumn($(option).val())
+                }
             });
 
             controls.otherTable = $("#otherTable").DataTable({
@@ -2441,6 +2476,11 @@ const bulk = (function () {
         toggleLinksColumn(index) {
             console.log('toggle links ' + index)
             const column = controls.linksTable.column(index);
+
+            column.visible(!column.visible());
+        },
+        toggleUnavailableColumn(index) {
+            const column = controls.unavailableTable.column(index);
 
             column.visible(!column.visible());
         }
