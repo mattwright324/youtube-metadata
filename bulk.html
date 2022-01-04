@@ -169,8 +169,11 @@ script: youtube-metadata-bulk
     <p>
         Videos that are unavailable from channels (created playlists on), playlists, or videos.
         They are either deleted or made private.
-        Consider searching for user-made playlists to find more hidden videos.
+        Consider searching for user-made playlists to find more unavailable videos.
     </p>
+    <br>
+    <label for="unavailable-columns">Select column(s)</label>
+    <select id="unavailable-columns" multiple="multiple" hidden></select>
 </div>
 <div class="container-fluid mb-15">
     <table id="unavailableTable" class="table table-striped table-hover" style="width:100%"></table>
