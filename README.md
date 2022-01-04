@@ -21,7 +21,11 @@ What's unique about this tool? How can you use it?
    - Interpretation and display of meaningful fields
    - Reverse image search thumbnails
    - Archive video and channel data that may disappear
-5. Export and import
+5. Assist in finding private, deleted, and unlisted videos
+   - Option to inspect videos in a channel's created playlists to find unlisted videos
+   - Link to various resources with prefilled parameters: Archive.org, Filmot, SocialBlade, and Google
+   - Queries Filmot to see if it has data for private and deleted videos
+6. Export and import
    - Save data as a zip
    - Import zip to view in app again later
    - Both raw json data from the api and csv from the tables
