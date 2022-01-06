@@ -121,9 +121,6 @@ const bulk = (function () {
             });
             return handleChannelIds(newChannelIds, [], []);
         }).then(function () {
-            controls.progress.update({
-                subtext: 'Done'
-            });
             console.log(videoIds);
 
             const resultIds = [];
@@ -141,9 +138,17 @@ const bulk = (function () {
 
             controls.videosTable.columns.adjust().draw(false);
         }).then(function () {
+            controls.progress.update({
+                subtext: 'Processing unavailable ids'
+            });
+
             // Retrieve unavailable video data if any
             return handleUnavailableVideos();
         }).then(function () {
+            controls.progress.update({
+                subtext: 'Done'
+            });
+
             controls.unavailableTable.columns.adjust().draw(false);
 
             setTimeout(loadAggregateTables, 200);
