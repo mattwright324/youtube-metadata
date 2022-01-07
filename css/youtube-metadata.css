@@ -27,6 +27,10 @@ p.mb-15 {
     margin-top: 1.5%;
 }
 
+.pt-15 {
+    padding-top: 1.5%;
+}
+
 .navbar-brand {
     font-size: 1.75rem!important;
 }
