@@ -50,6 +50,23 @@ const bulk = (function () {
         });
     }
 
+    function doneProgressMessage() {
+        const about = [];
+        if (rawVideoData.length) {
+            about.push(rawVideoData.length + " video(s)");
+        }
+        if (Object.keys(unavailableData).length) {
+            about.push(Object.keys(unavailableData).length + " unavailable");
+        }
+        if (Object.keys(rawChannelMap).length) {
+            about.push(Object.keys(rawChannelMap).length + " channel(s)");
+        }
+        if (Object.keys(rawPlaylistMap).length) {
+            about.push(Object.keys(rawPlaylistMap).length + " playlist(s)");
+        }
+        return about.join(", ")
+    }
+
     function processFromParsed(parsed) {
         console.log(parsed);
 
@@ -107,6 +124,10 @@ const bulk = (function () {
             // Videos are results to be displayed
             return handleVideoIds(videoIds);
         }).then(function () {
+            return new Promise(function (resolve) {
+                sliceLoad(rows, controls.videosTable, resolve);
+            });
+        }).then(function () {
             controls.progress.update({
                 subtext: 'Processing channel ids'
             });
@@ -115,10 +136,11 @@ const bulk = (function () {
             const newChannelIds = [];
             rawVideoData.forEach(function (video) {
                 const channelId = shared.idx(["snippet", "channelId"], video);
-                if (!rawChannelMap.hasOwnProperty(channelId)) {
+                if (!rawChannelMap.hasOwnProperty(channelId) && newChannelIds.indexOf(channelId) === -1) {
                     newChannelIds.push(channelId);
                 }
             });
+
             return handleChannelIds(newChannelIds, [], []);
         }).then(function () {
             console.log(videoIds);
@@ -139,6 +161,7 @@ const bulk = (function () {
             controls.videosTable.columns.adjust().draw(false);
         }).then(function () {
             controls.progress.update({
+                text: '',
                 subtext: 'Processing unavailable ids'
             });
 
@@ -146,6 +169,7 @@ const bulk = (function () {
             return handleUnavailableVideos();
         }).then(function () {
             controls.progress.update({
+                text: doneProgressMessage(),
                 subtext: 'Done'
             });
 
@@ -275,6 +299,7 @@ const bulk = (function () {
     }
 
     function handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists) {
+        let processed = 0;
         channelIds.forEach(function (channelId) {
             if (channelIdsCreatedPlaylists.indexOf(channelId) === -1) {
                 channelIdsCreatedPlaylists.push(channelId);
@@ -287,6 +312,12 @@ const bulk = (function () {
                 return;
             }
 
+            controls.progress.update({
+                value: 0,
+                max: channelIds.length,
+                text: "0 / " + channelIds.length
+            });
+
             function get(index, slice) {
                 if (index >= channelIds.length) {
                     console.log("finished channelIds");
@@ -297,9 +328,6 @@ const bulk = (function () {
                 console.log("handleChannelIds.get(" + index + ", " + slice + ")")
 
                 const ids = channelIds.slice(index, index + slice);
-
-                console.log(ids.length);
-                console.log(ids);
 
                 youtube.ajax("channels", {
                     part: "snippet,statistics,brandingSettings,contentDetails,localizations,status,topicDetails",
@@ -318,6 +346,13 @@ const bulk = (function () {
                         if (playlistIds.indexOf(uploadsPlaylistId) === -1) {
                             playlistIds.push(uploadsPlaylistId);
                         }
+                    });
+
+                    processed = processed + ids.length;
+
+                    controls.progress.update({
+                        value: processed,
+                        text: processed + " / " + channelIds.length
                     });
 
                     get(index + slice, slice);
@@ -613,10 +648,11 @@ const bulk = (function () {
                     console.log(res);
 
                     (res.items || []).forEach(function (video) {
-                        loadVideo(video);
+                        loadVideo(video, true);
                     });
 
                     processed = processed + ids.length;
+
                     controls.progress.update({
                         value: processed,
                         max: videoIds.length,
@@ -755,6 +791,7 @@ const bulk = (function () {
         });
 
         tableRows.push(csvDataRow.join("\t"));
+        rows.push(dataRow);
         rawVideoData.push(video);
 
         if (skipAdd) {
@@ -908,10 +945,13 @@ const bulk = (function () {
         controls.uploadFrequency.updateSeries(newChartData);
     }
 
-    function sliceLoad(data, table) {
+    function sliceLoad(data, table, callback) {
         function slice(index, size) {
             const toAdd = data.slice(index, index + size);
             if (toAdd.length === 0) {
+                if (callback) {
+                    callback();
+                }
                 return;
             }
 
@@ -1421,10 +1461,11 @@ const bulk = (function () {
     }
 
     let tableRows = [csvHeaderRow.join("\t")];
+    let rows = [];
     let rawVideoData = [];
     let rawChannelMap = {};
     let rawPlaylistMap = {};
-    let playlistMap = {}
+    let playlistMap = {};
     let unavailableData = {};
     let tagsData = {};
     let geotagsData = {};
@@ -2353,57 +2394,79 @@ const bulk = (function () {
                 controls.progress.update({
                     text: '',
                     subtext: 'Importing file',
-                    value: 0
+                    value: 2,
+                    max: 5
                 });
 
-                new Promise(function (resolve) {
-                    console.log('loading unavailable.json');
-                    JSZip.loadAsync(file).then(function (content) {
-                        // if you return a promise in a "then", you will chain the two promises
-                        return content.file("unavailable.json").async("string");
-                    }).then(function (text) {
-                        unavailableData = JSON.parse(text);
+                function loadZipFile(fileName, process, onfail) {
+                    return new Promise(function (resolve, reject) {
+                        console.log('loading ' + fileName);
 
-                        resolve();
-                    }).catch(function (err) {
-                        console.warn(err);
-                        console.warn('unavailable.json not in imported file');
-                        resolve();
-                    });
-                }).then(function () {
-                    console.log('loading videos.json')
-                    JSZip.loadAsync(file).then(function (content) {
-                        // if you return a promise in a "then", you will chain the two promises
-                        return content.file("videos.json").async("string");
-                    }).then(function (text) {
+                        JSZip.loadAsync(file).then(function (content) {
+                            // if you return a promise in a "then", you will chain the two promises
+                            return content.file(fileName).async("string");
+                        }).then(function (text) {
+                            process(text);
+
+                            resolve();
+                        }).catch(function (err) {
+                            console.warn(err);
+                            console.warn(fileName + ' not in imported file');
+                            if (onfail) {
+                                onfail()
+                                reject()
+                            } else {
+                                resolve()
+                            }
+                        });
+                    })
+                }
+
+                Promise.all([
+                    loadZipFile('unavailable.json', function (text) {
+                        unavailableData = JSON.parse(text);
+                    }),
+                    loadZipFile('playlists.json', function (text) {
+                        rawPlaylistMap = JSON.parse(text);
+                    }),
+                    loadZipFile('channels.json', function (text) {
+                        rawChannelMap = JSON.parse(text);
+                    }),
+                    loadZipFile('videos.json', function (text) {
                         const rows = [];
                         (JSON.parse(text) || []).forEach(function (video) {
                             rows.push(loadVideo(video, true));
                         });
 
-                        console.log(rows);
-
                         sliceLoad(rows, controls.videosTable);
-
-                        console.log(tagsData);
-
-                        loadAggregateTables(function () {
-                            controls.btnImport.removeClass("loading").removeClass("disabled");
-                            controls.progress.update({
-                                subtext: 'Import done',
-                                value: 1,
-                                max: 1,
-                                text: rows.length + " / " + rows.length
-                            });
+                    }, function () {
+                        controls.progress.update({
+                            value: 0,
+                            max: 5,
+                            subtext: 'Import failed (no videos.json)'
                         });
-                    }).catch(function (err) {
-                        console.warn(err);
-                        console.warn('videos.json not in imported file');
-
+                    })
+                ]).then(function() {
+                    loadAggregateTables(function () {
                         controls.btnImport.removeClass("loading").removeClass("disabled");
-                        controls.progress.update({subtext: 'Import failed (no videos.json)'});
+                        controls.progress.update({
+                            value: 5,
+                            max: 5,
+                            text: rows.length + " / " + rows.length
+                        });
                     });
-                });
+
+                    controls.progress.update({
+                        value: 5,
+                        max: 5,
+                        text: doneProgressMessage(),
+                        subtext: 'Import done'
+                    });
+
+                    controls.btnImport.removeClass("loading").removeClass("disabled");
+                }).catch(function () {
+                    controls.btnImport.removeClass("loading").removeClass("disabled");
+                })
             }
 
             const query = shared.parseQuery(window.location.search);
@@ -2431,6 +2494,7 @@ const bulk = (function () {
         reset: function () {
             controls.progress.update({reset: true});
 
+            rows = [];
             tableRows = [csvHeaderRow.join("\t")];
             rawVideoData = [];
             rawChannelMap = {};
