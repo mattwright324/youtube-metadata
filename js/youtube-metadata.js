@@ -47,6 +47,7 @@
             }
         } else if (filmot) {
             data["video_title"] = filmot.title;
+            data["channel_id"] = filmot.channelid;
             data["channel_title"] = filmot.channelname;
         }
         console.log(data);
