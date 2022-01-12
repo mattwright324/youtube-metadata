@@ -162,7 +162,9 @@ const bulk = (function () {
         }).then(function () {
             controls.progress.update({
                 text: '',
-                subtext: 'Processing unavailable ids'
+                subtext: 'Processing unavailable ids',
+                value: 0,
+                max: Object.keys(unavailableData).length
             });
 
             // Retrieve unavailable video data if any
@@ -391,34 +393,41 @@ const bulk = (function () {
                 console.log("handleChannelIdsCreatedPlaylists.get(" + index + ")")
 
                 const id = channelIds[index];
-
                 console.log(id);
 
-                youtube.ajax("playlists", {
-                    part: "snippet,status,localizations,contentDetails",
-                    channelId: id,
-                    maxResults: 50
-                }).done(function (res) {
-                    console.log(res);
+                function paginate(pageToken) {
+                    youtube.ajax("playlists", {
+                        part: "snippet,status,localizations,contentDetails",
+                        channelId: id,
+                        maxResults: 50,
+                        pageToken: pageToken
+                    }).done(function (res) {
+                        console.log(res);
 
-                    (res.items || []).forEach(function (playlist) {
-                        const createdPlaylistId = shared.idx(["id"], playlist);
-                        console.log(createdPlaylistId);
+                        (res.items || []).forEach(function (playlist) {
+                            const createdPlaylistId = shared.idx(["id"], playlist);
+                            console.log(createdPlaylistId);
 
-                        rawPlaylistMap[createdPlaylistId] = playlist;
+                            rawPlaylistMap[createdPlaylistId] = playlist;
 
-                        playlistMap[createdPlaylistId] = shared.idx(["snippet", "title"], playlist);
+                            playlistMap[createdPlaylistId] = shared.idx(["snippet", "title"], playlist);
 
-                        if (playlistIds.indexOf(createdPlaylistId) === -1) {
-                            playlistIds.push(createdPlaylistId);
+                            if (playlistIds.indexOf(createdPlaylistId) === -1) {
+                                playlistIds.push(createdPlaylistId);
+                            }
+                        });
+
+                        if (res.hasOwnProperty("nextPageToken")) {
+                            paginate(res.nextPageToken);
+                        } else {
+                            get(index + 1);
                         }
+                    }).fail(function (err) {
+                        console.error(err);
+                        get(index + 1);
                     });
-
-                    get(index + 1);
-                }).fail(function (err) {
-                    console.error(err);
-                    get(index + 1);
-                });
+                }
+                paginate("");
             }
 
             get(0);
@@ -501,10 +510,9 @@ const bulk = (function () {
                     return;
                 }
 
-                console.log("handlePlaylistIds.get(" + index + ")")
-
                 function paginate(pageToken) {
-                    console.log(pageToken);
+                    console.log("handlePlaylistIds.get(" + index + ")")
+
                     youtube.ajax("playlistItems", {
                         part: "snippet",
                         maxResults: 50,
@@ -531,7 +539,8 @@ const bulk = (function () {
                                         "</a> (added " + moment(dateAdded).format(dateFormat) + ")"
                                 }
                             }
-                        })
+                        });
+
                         controls.progress.update({
                             text: videoIds.length
                         })
@@ -560,6 +569,7 @@ const bulk = (function () {
             videoIds.push(videoId);
         }
 
+        let processed = 0;
         return new Promise(function (resolve) {
             if (videoIds.length === 0) {
                 console.log("no videoIds")
@@ -580,9 +590,6 @@ const bulk = (function () {
 
                 const ids = videoIds.slice(index, index + slice);
 
-                console.log(ids.length);
-                console.log(ids);
-
                 $.ajax({
                     cache: false,
                     data: {
@@ -600,6 +607,14 @@ const bulk = (function () {
                     res.forEach(function (video) {
                         unavailableData[video.id]["filmot"] = video;
                     });
+
+                    processed = processed + ids.length;
+
+                    controls.progress.update({
+                        value: processed,
+                        max: videoIds.length,
+                        text: processed + " / " + videoIds.length
+                    })
 
                     get(index + slice, slice);
                 }).fail(function (err) {
