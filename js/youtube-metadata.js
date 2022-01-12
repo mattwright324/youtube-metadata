@@ -304,6 +304,8 @@
                         partDiv.append("<p class='mb-15'>Audio language is <span class='orange'>" + code + "</span> which means <span class='orange'>" + formatBCP47(translated) + "</span></p>")
                     }
 
+                    partDiv.append("<p class='mb-15'>The video id is <span class='orange'>" + fullJson.id + "</span></p>");
+
                     partDiv.append("<p class='mb-15'><a style='display:inline;vertical-align:middle' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
                         "<img src='./img/metadata.png' style='margin-left:4px;width:20px;height:20px;;margin-right:5px;' alt='youtube metadata icon' >" +
                         "Inspect the metadata for the rest of this channel's videos" +
@@ -635,6 +637,8 @@
 
                         partDiv.append("<p class='mb-15'>The channel has a custom url of value '<a target='_blank' href='" + customUrl + "'>" + partJson.customUrl + "</a>'</p>");
                     }
+
+                    partDiv.append("<p class='mb-15'>The channel id is <span class='orange'>" + fullJson.id + "</span></p>");
                 }
             },
             statistics: {
@@ -871,6 +875,8 @@
                         " (" + moment(published).utc().fromNow() + ")" +
                         "</p>";
                     partDiv.append(dateHtml);
+
+                    partDiv.append("<p class='mb-15'>The playlist id is <span class='orange'>" + fullJson.id + "</span></p>");
 
                     partDiv.append("<p class='mb-15'><a style='display:inline;vertical-align:middle' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + fullJson.id + "'>" +
                         "<img src='./img/metadata.png' style='margin-left:4px;width:20px;height:20px;margin-right:5px;' alt='youtube metadata icon' >" +
