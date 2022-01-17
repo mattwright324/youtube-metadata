@@ -524,13 +524,20 @@ const bulk = (function () {
                         (res.items || []).forEach(function (video) {
                             const videoId = shared.idx(["snippet", "resourceId", "videoId"], video);
                             const videoOwnerChannelId = shared.idx(["snippet", "videoOwnerChannelId"], video);
+                            const dateFormat = "YYYY-MM-DD";
+                            const dateAdded = shared.idx(["snippet", "publishedAt"], video);
 
                             if (videoIds.indexOf(videoId) === -1) {
                                 videoIds.push(videoId);
+
+                                availableData[videoId] = {
+                                    source: "Playlist: " +
+                                        "<a target='_blank' href='https://www.youtube.com/playlist?list=" + playlistIds[index] + "'>" +
+                                        playlistMap[playlistIds[index]] +
+                                        "</a> (added " + moment(dateAdded).format(dateFormat) + ")"
+                                }
                             }
                             if (!videoOwnerChannelId) {
-                                const dateFormat = "YYYY-MM-DD";
-                                const dateAdded = shared.idx(["snippet", "publishedAt"], video);
                                 unavailableData[videoId] = {
                                     title: shared.idx(["snippet", "title"], video),
                                     source: "Playlist: " +
@@ -623,7 +630,7 @@ const bulk = (function () {
                 });
             }
 
-            get(0, 50);
+            get(0, 100);
         });
     }
 
@@ -1210,6 +1217,18 @@ const bulk = (function () {
             className: "text-right dt-nowrap"
         },
         {
+            title: "Source",
+            type: "html",
+            visible: false,
+            valueMod: function (value, video) {
+                if (availableData.hasOwnProperty(video.id)) {
+                    return availableData[video.id].source;
+                } else {
+                    return ""
+                }
+            }
+        },
+        {
             title: "Kids",
             type: "boolean",
             visible: false,
@@ -1478,6 +1497,7 @@ const bulk = (function () {
     let tableRows = [csvHeaderRow.join("\t")];
     let rows = [];
     let rawVideoData = [];
+    let availableData = {};
     let rawChannelMap = {};
     let rawPlaylistMap = {};
     let playlistMap = {};
@@ -2226,6 +2246,9 @@ const bulk = (function () {
                 console.log("Creating videos.json...")
                 zip.file("videos.json", JSON.stringify(rawVideoData));
 
+                console.log("Creating available.json...")
+                zip.file("available.json", JSON.stringify(availableData));
+
                 console.log("Creating channels.json...")
                 const rawChannelData = [];
                 for (let id in rawChannelMap) {
@@ -2437,31 +2460,35 @@ const bulk = (function () {
                     })
                 }
 
-                Promise.all([
-                    loadZipFile('unavailable.json', function (text) {
-                        unavailableData = JSON.parse(text);
-                    }),
-                    loadZipFile('playlists.json', function (text) {
-                        rawPlaylistMap = JSON.parse(text);
-                    }),
-                    loadZipFile('channels.json', function (text) {
-                        rawChannelMap = JSON.parse(text);
-                    }),
-                    loadZipFile('videos.json', function (text) {
-                        const rows = [];
-                        (JSON.parse(text) || []).forEach(function (video) {
-                            rows.push(loadVideo(video, true));
-                        });
+                loadZipFile('available.json', function (text) {
+                    availableData = JSON.parse(text);
+                }).then(function () {
+                    return Promise.all([
+                        loadZipFile('unavailable.json', function (text) {
+                            unavailableData = JSON.parse(text);
+                        }),
+                        loadZipFile('playlists.json', function (text) {
+                            rawPlaylistMap = JSON.parse(text);
+                        }),
+                        loadZipFile('channels.json', function (text) {
+                            rawChannelMap = JSON.parse(text);
+                        }),
+                        loadZipFile('videos.json', function (text) {
+                            const rows = [];
+                            (JSON.parse(text) || []).forEach(function (video) {
+                                rows.push(loadVideo(video, true));
+                            });
 
-                        sliceLoad(rows, controls.videosTable);
-                    }, function () {
-                        controls.progress.update({
-                            value: 0,
-                            max: 5,
-                            subtext: 'Import failed (no videos.json)'
-                        });
-                    })
-                ]).then(function() {
+                            sliceLoad(rows, controls.videosTable);
+                        }, function () {
+                            controls.progress.update({
+                                value: 0,
+                                max: 5,
+                                subtext: 'Import failed (no videos.json)'
+                            });
+                        })
+                    ]);
+                }).then(function() {
                     loadAggregateTables(function () {
                         controls.btnImport.removeClass("loading").removeClass("disabled");
                         controls.progress.update({
@@ -2512,6 +2539,7 @@ const bulk = (function () {
             rows = [];
             tableRows = [csvHeaderRow.join("\t")];
             rawVideoData = [];
+            availableData = {};
             rawChannelMap = {};
             rawPlaylistMap = {};
             controls.videosTable.clear();
