@@ -92,14 +92,6 @@ img {
     width: 100px;
 }
 
-button .spinner {
-    display: none;
-}
-
-button.loading .spinner {
-    display: initial;
-}
-
 button.loading .text {
     display: none;
 }
@@ -125,6 +117,14 @@ button.loading .text {
     color: transparent;
     width: 0;
     display: inline-block;
+}
+
+button .countdown, button .spinner {
+    display: none;
+}
+
+button.loading .countdown, button.loading .spinner {
+    display: initial;
 }
 
 /* Dark mode tweaks */
