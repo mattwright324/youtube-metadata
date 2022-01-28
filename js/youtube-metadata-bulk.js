@@ -2151,6 +2151,22 @@ const bulk = (function () {
             controls.btnSubmit.on('click', function () {
                 internal.reset();
 
+                $("#submit").addClass("loading").addClass("disabled")
+                function countdown(count) {
+                    console.log(count);
+
+                    $("#submit .countdown").text(count);
+
+                    setTimeout(function () {
+                        if (count === 1) {
+                            $("#submit").removeClass("loading").removeClass("disabled")
+                        } else {
+                            countdown(count - 1);
+                        }
+                    }, 1000);
+                }
+                countdown(3);
+
                 const value = controls.inputValue.val();
 
                 const parsed = [];
@@ -2471,7 +2487,14 @@ const bulk = (function () {
                             rawPlaylistMap = JSON.parse(text);
                         }),
                         loadZipFile('channels.json', function (text) {
-                            rawChannelMap = JSON.parse(text);
+                            const channels = JSON.parse(text);
+                            if (Array.isArray(channels)) {
+                                channels.forEach(function (channel) {
+                                    rawChannelMap[channel.id] = channel;
+                                })
+                            } else {
+                                rawChannelMap = channels;
+                            }
                         }),
                         loadZipFile('videos.json', function (text) {
                             const rows = [];

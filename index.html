@@ -13,12 +13,15 @@ script: youtube-metadata
     <div class="input-group">
         <input type="text" class="form-control" placeholder="https://youtu.be/dQw4w9WgXcQ" autocomplete="off"
                aria-label="https://youtu.be/dQw4w9WgXcQ" aria-describedby="submit" id="value">
-        <button class="btn btn-primary" type="button" id="submit">Submit</button>
+        <button class="btn btn-primary" type="button" id="submit">
+            <span id="text">Submit</span>
+            <span class="countdown"></span>
+        </button>
     </div>
 </div>
 {% include format_share.html %}
 <div class="container mb-15">
-    <h2>Export</h2>
+    <h2>Export & Share</h2>
     <p>Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
     <button class="btn btn-secondary" id="export">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
@@ -40,11 +43,16 @@ script: youtube-metadata
         <li>✱-thumb.png - Thumbs if available.</li>
     </ul>
     <p></p>
+    <p>Share this result:</p>
+    <div class="input-group" style="max-width: 226px;">
+        <input type="text" class="form-control" aria-describedby="copy" id="shareLink" autocomplete="off">
+        <button class="btn btn-primary clipboard" type="button"  data-clipboard-target="#shareLink"><i class="bi bi-clipboard"></i></button>
+    </div>
 </div>
 <div class="container mb-15" id="video">
     <h2>Video</h2>
-    <p>The video author, playlist creator, or channel submitted.
-        Click <a href="https://developers.google.com/youtube/v3/docs/channels#properties" target="_blank">here</a>
+    <p>The video submitted.
+        Click <a href="https://developers.google.com/youtube/v3/docs/videos#properties" target="_blank">here</a>
         to see detailed property descriptions.
     </p>
     <div id="video-section"></div>

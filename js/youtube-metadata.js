@@ -457,7 +457,7 @@
                         if (start.isAfter(now)) {
                             partDiv.append("<p class='mb-15'>The stream hasn't started yet. It will start in <span class='orange'>" + format + "</span></p>");
                         } else {
-                            partDiv.append("<p class='mb-15'>The stream is over. It was supposed to start <span class='orange'>" + format + "</span> ago</p>");
+                            partDiv.append("<p class='mb-15'>The stream hasn't started yet. It was supposed to start <span class='orange'>" + format + "</span> ago</p>");
                         }
                     }
                     if (partJson.hasOwnProperty("actualStartTime") && partJson.hasOwnProperty("scheduledStartTime")) {
@@ -1415,6 +1415,22 @@
             });
             controls.btnSubmit.on('click', function () {
                 exportData = {};
+
+                $("#submit").addClass("loading").addClass("disabled")
+                function countdown(count) {
+                    console.log(count);
+
+                    $("#submit .countdown").text(count);
+
+                    setTimeout(function () {
+                        if (count === 1) {
+                            $("#submit").removeClass("loading").removeClass("disabled")
+                        } else {
+                            countdown(count - 1);
+                        }
+                    }, 1000);
+                }
+                countdown(3);
 
                 const value = controls.inputValue.val();
 
