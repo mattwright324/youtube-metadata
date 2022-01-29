@@ -1,5 +1,5 @@
 /**
- * YouTube Metadata
+ * YouTube Metadata a
  *
  * Grab everything publicly available from the YouTube API.
  *
