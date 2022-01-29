@@ -793,9 +793,10 @@ const bulk = (function () {
 
             dataRow.push(displayValue);
 
-            const columnCheck = document.querySelector("button[title='" + column.title + "']");
-            if (!column.visible && !$(columnCheck).hasClass("active") && column._visibleIf && column._visibleIf(value)) {
-                columnCheck.click();
+            const button = document.querySelector("button[title='" + column.title + "']");
+            const input = document.querySelector("button[title='" + column.title + "'] input");
+            if (!$(button).hasClass("active") && input.indeterminate === true && column._visibleIf && column._visibleIf(value)) {
+                button.click();
             }
 
             if (column.csvSkip) {
@@ -1308,8 +1309,9 @@ const bulk = (function () {
             title: "Region Restriction Count",
             type: "num",
             visible: false,
+            indeterminate: true,
             _visibleIf: function (value) {
-                // return !$.isEmptyObject(value) && (value.allowed || value.blocked).length > 0;
+                return !$.isEmptyObject(value) && (value.allowed || value.blocked).length > 0;
             },
             _idx: ["contentDetails", "regionRestriction"],
             valueMod: function (value) {
@@ -1448,9 +1450,6 @@ const bulk = (function () {
             title: "Tag Count",
             type: "num",
             visible: true,
-            _visibleIf: function (value) {
-                return value > 0;
-            },
             _idx: ["snippet", "tags"],
             valueMod: function (value) {
                 return value ? value.length : 0;
@@ -1763,7 +1762,7 @@ const bulk = (function () {
     for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
 
-        columnOptionsHtml.push("<option value='" + i + "'" + (column.visible ? " selected" : "") + ">" +
+        columnOptionsHtml.push("<option value='" + i + "'" + (column.visible ? " selected" : "") + " title='" + column.title + "'>" +
             column.title +
             "</option>")
     }
@@ -1798,6 +1797,11 @@ const bulk = (function () {
                     external.toggleResultsColumn($(option).val())
                 }
             });
+            columns.forEach(function (column) {
+                if (column.hasOwnProperty("_visibleIf")) {
+                    document.querySelector("button[title='" + column.title + "'] input").indeterminate = true;
+                }
+            })
             controls.progress = $("#progressBar");
             elements.progressText = $("#progressText")
             controls.progress.progressData = {
@@ -2567,6 +2571,16 @@ const bulk = (function () {
             rawPlaylistMap = {};
             controls.videosTable.clear();
             controls.videosTable.draw(false);
+
+            columns.forEach(function (column) {
+                const button = document.querySelector("button[title='" + column.title + "']");
+                const input = document.querySelector("button[title='" + column.title + "'] input");
+
+                // Reset still-indeterminate columns
+                if (input.indeterminate === true && button.className.indexOf('active') !== -1) {
+                    button.click();
+                }
+            })
 
             tagsData = {};
             controls.tagsTable.clear();
