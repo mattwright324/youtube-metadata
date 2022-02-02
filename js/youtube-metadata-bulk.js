@@ -2174,8 +2174,8 @@ const bulk = (function () {
                 const value = controls.inputValue.val();
 
                 const parsed = [];
-                value.split(",").forEach(function (value) {
-                    parsed.push(shared.determineInput(value));
+                value.split(",").forEach(function (valuePart) {
+                    parsed.push(shared.determineInput(valuePart.trim()));
                 });
                 if (parsed.length === 0) {
                     return;
