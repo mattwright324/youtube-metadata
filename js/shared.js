@@ -9,6 +9,7 @@ const shared = (function () {
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:[\/&].*)?/i,
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video)\/([\w_-]+)(?:[\/&].*)?/i,
             /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?filmot.com\/video\/([\w_-]+)(?:\?.*)?/i,
             /^([\w-]{11})$/i
         ],
         playlist_id: [
@@ -17,6 +18,7 @@ const shared = (function () {
         ],
         channel_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?filmot.com\/channel\/([\w_-]+)(?:\?.*)?/i,
             /^((UC|SC)[\w-]{22})$/i
         ],
         channel_user: [
@@ -115,6 +117,14 @@ const shared = (function () {
 
         safeFileName: function (fileName) {
             return fileName.replace(/[<>:"\/\\|?*]+/g, '');
+        },
+
+        randomFromList(list) {
+            let index = 0;
+            for (let i = 0; i < 5; i++) {
+                index = rando(0, list.length - 1);
+            }
+            return list[index];
         }
     }
 })();
