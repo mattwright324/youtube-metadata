@@ -115,6 +115,10 @@
                 text: "Archive.org (search) - creator:\"" + data.channel_title + "\""
             });
             suggestions.push({
+                url: "https://archive.org/search.php?query=subject%3A%22" + encode(data.channel_title) + "%22",
+                text: "Archive.org (search) - subject:\"" + data.channel_title + "\""
+            });
+            suggestions.push({
                 url: "https://archive.org/search.php?query=" + encode(data.channel_title),
                 text: "Archive.org (search) - " + data.channel_title
             });
@@ -128,6 +132,10 @@
             suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/user/" + data.channel_user,
                 text: "Archive.org - https://www.youtube.com/user/" + data.channel_user
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=subject%3A%22" + encode(data.channel_user) + "%22",
+                text: "Archive.org (search) - subject:\"" + data.channel_user + "\""
             });
             suggestions.push({
                 url: "https://archive.org/search.php?query=" + data.channel_user,
@@ -161,6 +169,10 @@
             suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/channel/" + data.channel_id,
                 text: "Archive.org - https://www.youtube.com/channel/" + data.channel_id
+            });
+            suggestions.push({
+                url: "https://archive.org/search.php?query=subject%3A%22" + encode(data.channel_id) + "%22",
+                text: "Archive.org (search) - subject:\"" + data.channel_id + "\""
             });
             suggestions.push({
                 url: "https://archive.org/search.php?query=" + data.channel_id,
@@ -1255,7 +1267,7 @@
         if (parsedInput.type === 'unknown') {
             errorState("Your link did not follow an accepted format.");
         } else if (parsedInput.type === 'channel_custom') {
-            resolveCustomChannelAPI(parsedInput, submit, '', 1);
+            resolveCustomChannelCORS(parsedInput, submit);
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 
@@ -1353,8 +1365,7 @@
             elements.channelSection = $("#channel-section");
             elements.playlistSection = $("#playlist-section");
 
-            // const randomVideoPrefix = EXAMPLE_VIDEO_PREFIX[rando(0, EXAMPLE_VIDEO_PREFIX.length - 1)]
-            const randomVideoId = EXAMPLE_VIDEOS[rando(0, EXAMPLE_VIDEOS.length - 1)];
+            const randomVideoId = shared.randomFromList(EXAMPLE_VIDEOS);
             const exampleLink = "https://youtu.be/" + randomVideoId;
             controls.inputValue.val(exampleLink);
 

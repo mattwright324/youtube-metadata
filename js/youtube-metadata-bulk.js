@@ -255,44 +255,28 @@ const bulk = (function () {
 
                 console.log("handleChannelCustoms.get(" + index + ")")
 
-                youtube.ajax("search", {
-                    part: "snippet",
-                    maxResults: 50,
-                    q: channelCustoms[index],
-                    type: 'channel',
-                    order: 'relevance'
-                }).done(function (res) {
-                    console.log(res);
+                $.ajax({
+                    url: "https://cors.eu.org/https://www.youtube.com/c/" + channelCustoms[index],
+                    dataType: 'html'
+                }).then(function (res) {
+                    const pageHtml = $("<div>").html(res);
+                    const ogUrl = pageHtml.find("meta[property='og:url']").attr('content');
+                    console.log('Retrieved og:url ' + ogUrl);
 
-                    const ids = [];
-                    (res.items || []).forEach(function (channel) {
-                        ids.push(shared.idx(["id", "channelId"], channel));
-                    });
+                    const newParsed = shared.determineInput(ogUrl);
+                    if (newParsed.type === "channel_id") {
+                        channelIds.push(newParsed.value);
+                        setTimeout(function () {get(index + 1);}, 100);
+                    } else {
+                        console.log('Could not resolve custom url');
+                        console.warn(newParsed);
 
-                    youtube.ajax("channels", {
-                        part: "snippet",
-                        id: ids.join(","),
-                        maxResults: 50
-                    }).done(function (res2) {
-                        console.log(res2);
-
-                        (res2.items || []).forEach(function (channel) {
-                            const channelId = shared.idx(["id"], channel);
-                            const customUrl = shared.idx(["snippet", "customUrl"], channel);
-
-                            if (String(customUrl).toLowerCase() === String(channelCustoms[index]).toLowerCase()) {
-                                channelIds.push(channelId);
-                            }
-                        });
-
-                        get(index + 1);
-                    }).fail(function (err) {
-                        console.error(err);
-                        get(index + 1);
-                    });
+                        setTimeout(function () {get(index + 1);}, 100);
+                    }
                 }).fail(function (err) {
-                    console.error(err);
-                    get(index + 1);
+                    console.warn(err);
+
+                    setTimeout(function () {get(index + 1);}, 100);
                 });
             }
 
@@ -1771,7 +1755,7 @@ const bulk = (function () {
         init: function () {
             controls.darkMode = $("#darkMode");
             controls.inputValue = $("#value");
-            controls.inputValue.val(EXAMPLE_BULK[rando(0, EXAMPLE_BULK.length - 1)]);
+            controls.inputValue.val(shared.randomFromList(EXAMPLE_BULK));
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
             controls.videosTable = $('#videosTable').DataTable({
