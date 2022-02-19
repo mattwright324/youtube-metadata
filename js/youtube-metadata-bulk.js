@@ -256,7 +256,7 @@ const bulk = (function () {
                 console.log("handleChannelCustoms.get(" + index + ")")
 
                 $.ajax({
-                    url: "https://cors.eu.org/https://www.youtube.com/c/" + channelCustoms[index],
+                    url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/c/" + channelCustoms[index],
                     dataType: 'html'
                 }).then(function (res) {
                     const pageHtml = $("<div>").html(res);
@@ -2210,7 +2210,7 @@ const bulk = (function () {
                         // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
                         console.log('Attempting to download image over CORS proxy (' + delay + ' ms start delay): ' + imageUrl);
                         const start = new Date();
-                        JSZipUtils.getBinaryContent("https://cors.eu.org/" + imageUrl, function (err, data) {
+                        JSZipUtils.getBinaryContent("https://cors-proxy-mw324.herokuapp.com/" + imageUrl, function (err, data) {
                             const ms = new Date() - start;
 
                             if (err) {

@@ -1130,7 +1130,7 @@
         console.log('Attempting to resolve custom channel via CORS')
 
         $.ajax({
-            url: "https://cors.eu.org/https://www.youtube.com/" + parsedInput.value,
+            url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + parsedInput.value,
             dataType: 'html'
         }).then(function (res) {
             const pageHtml = $("<div>").html(res);
@@ -1463,7 +1463,7 @@
                     // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
                     console.log('Attempting to download image over CORS proxy: ' + imageUrl);
                     const start = new Date();
-                    JSZipUtils.getBinaryContent("https://cors.eu.org/" + imageUrl, function (err, data) {
+                    JSZipUtils.getBinaryContent("https://cors-proxy-mw324.herokuapp.com/" + imageUrl, function (err, data) {
                         const ms = new Date() - start;
 
                         if (err) {
