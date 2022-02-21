@@ -256,7 +256,7 @@ const bulk = (function () {
                 console.log("handleChannelCustoms.get(" + index + ")")
 
                 $.ajax({
-                    url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/c/" + channelCustoms[index],
+                    url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + channelCustoms[index],
                     dataType: 'html'
                 }).then(function (res) {
                     const pageHtml = $("<div>").html(res);
