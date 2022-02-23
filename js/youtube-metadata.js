@@ -952,6 +952,8 @@
         $("#filmot").hide();
 
         if (parsedInput.type === "video_id") {
+            // Note: Filmot has limited resources. Do not misuse, please contact about usage first.
+            // https://filmot.com/contactus
             $.ajax({
                 cache: false,
                 data: {
