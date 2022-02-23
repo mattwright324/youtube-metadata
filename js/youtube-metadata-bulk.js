@@ -59,7 +59,7 @@ const bulk = (function () {
             about.push(Object.keys(unavailableData).length + " unavailable");
         }
         if (Object.keys(failedData).length) {
-            about.push(Object.keys(unavailableData).length + " failed");
+            about.push(Object.keys(failedData).length + " failed");
         }
         if (Object.keys(rawChannelMap).length) {
             about.push(Object.keys(rawChannelMap).length + " channel(s)");
@@ -175,8 +175,10 @@ const bulk = (function () {
         }).then(function () {
             controls.progress.update({
                 text: doneProgressMessage(),
-                subtext: 'Done'
+                subtext: 'Done' + (Object.keys(failedData).length ? ' (with errors)' : '')
             });
+
+            console.log(failedData)
 
             controls.unavailableTable.columns.adjust().draw(false);
 
@@ -672,7 +674,7 @@ const bulk = (function () {
 
                     get(index + slice, slice);
                 }).fail(function (err) {
-                    const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], errorJson);
+                    const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], err);
                     for (let i = 0; i < ids.length; i++) {
                         const id = ids[i];
                         failedData[id] = {
