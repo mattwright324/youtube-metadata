@@ -58,6 +58,9 @@ const bulk = (function () {
         if (Object.keys(unavailableData).length) {
             about.push(Object.keys(unavailableData).length + " unavailable");
         }
+        if (Object.keys(failedData).length) {
+            about.push(Object.keys(unavailableData).length + " failed");
+        }
         if (Object.keys(rawChannelMap).length) {
             about.push(Object.keys(rawChannelMap).length + " channel(s)");
         }
@@ -150,7 +153,7 @@ const bulk = (function () {
                 resultIds.push(video.id);
             });
             videoIds.forEach(function (videoId) {
-                if (!unavailableData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
+                if (!unavailableData.hasOwnProperty(videoId) && !failedData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
                     unavailableData[videoId] = {
                         title: "Did not come back in API.",
                         source: ""
@@ -669,7 +672,13 @@ const bulk = (function () {
 
                     get(index + slice, slice);
                 }).fail(function (err) {
-                    console.error(err);
+                    const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], errorJson);
+                    for (let i = 0; i < ids.length; i++) {
+                        const id = ids[i];
+                        failedData[id] = {
+                            reason: reason
+                        }
+                    }
                     get(index + slice, slice);
                 });
             }
@@ -1487,6 +1496,7 @@ const bulk = (function () {
     let rawPlaylistMap = {};
     let playlistMap = {};
     let unavailableData = {};
+    let failedData = {}; // google requests failed, don't send to filmot
     let tagsData = {};
     let geotagsData = {};
     let linksData = {};
@@ -2555,6 +2565,7 @@ const bulk = (function () {
             availableData = {};
             rawChannelMap = {};
             rawPlaylistMap = {};
+            failedData = {};
             controls.videosTable.clear();
             controls.videosTable.draw(false);
 
