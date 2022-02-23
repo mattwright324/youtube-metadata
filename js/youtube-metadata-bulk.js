@@ -164,7 +164,7 @@ const bulk = (function () {
             controls.videosTable.columns.adjust().draw(false);
         }).then(function () {
             controls.progress.update({
-                text: '',
+                text: '0 / ' + Object.keys(unavailableData).length,
                 subtext: 'Processing unavailable ids',
                 value: 0,
                 max: Object.keys(unavailableData).length
@@ -614,10 +614,14 @@ const bulk = (function () {
                         text: processed + " / " + videoIds.length
                     })
 
-                    get(index + slice, slice);
+                    setTimeout(function () {
+                        get(index + slice, slice);
+                    }, 1000);
                 }).fail(function (err) {
                     console.error(err);
-                    get(index + slice, slice);
+                    setTimeout(function () {
+                        get(index + slice, slice);
+                    }, 1000);
                 });
             }
 
@@ -651,38 +655,55 @@ const bulk = (function () {
                 console.log(ids.length);
                 console.log(ids);
 
-                youtube.ajax("videos", {
-                    part: "snippet,statistics,recordingDetails," +
-                        "status,liveStreamingDetails,localizations," +
-                        "contentDetails,topicDetails",
-                    maxResults: 50,
-                    id: ids.join(",")
-                }).done(function (res) {
-                    console.log(res);
+                try {
+                    youtube.ajax("videos", {
+                        part: "snippet,statistics,recordingDetails," +
+                            "status,liveStreamingDetails,localizations," +
+                            "contentDetails,topicDetails",
+                        maxResults: 50,
+                        id: ids.join(",")
+                    }).done(function (res) {
+                        try {
+                            console.log(res);
 
-                    (res.items || []).forEach(function (video) {
-                        loadVideo(video, true);
-                    });
+                            (res.items || []).forEach(function (video) {
+                                loadVideo(video, true);
+                            });
 
-                    processed = processed + ids.length;
+                            processed = processed + ids.length;
 
-                    controls.progress.update({
-                        value: processed,
-                        max: videoIds.length,
-                        text: processed + " / " + videoIds.length
-                    })
+                            controls.progress.update({
+                                value: processed,
+                                max: videoIds.length,
+                                text: processed + " / " + videoIds.length
+                            });
 
-                    get(index + slice, slice);
-                }).fail(function (err) {
-                    const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], err);
-                    for (let i = 0; i < ids.length; i++) {
-                        const id = ids[i];
-                        failedData[id] = {
-                            reason: reason
+                            get(index + slice, slice);
+                        } catch (error) {
+                            console.error(error);
+                            const reason = JSON.stringify(error, null, 0);
+                            for (let i = 0; i < ids.length; i++) {
+                                failedData[ids[i]] = {reason: reason}
+                            }
+                            get(index + slice, slice);
                         }
+                    }).fail(function (err) {
+                        console.warn(err)
+                        const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], err) ||
+                            JSON.stringify(err, null, 0);
+                        for (let i = 0; i < ids.length; i++) {
+                            failedData[ids[i]] = {reason: reason}
+                        }
+                        get(index + slice, slice);
+                    });
+                } catch (error) {
+                    console.error(error);
+                    const reason = JSON.stringify(error, null, 0);
+                    for (let i = 0; i < ids.length; i++) {
+                        failedData[ids[i]] = {reason: reason}
                     }
                     get(index + slice, slice);
-                });
+                }
             }
 
             get(0, 50);
