@@ -581,6 +581,8 @@ const bulk = (function () {
 
                 const ids = videoIds.slice(index, index + slice);
 
+                // Note: Filmot has limited resources. Do not misuse, please contact about usage first.
+                // https://filmot.com/contactus
                 $.ajax({
                     cache: false,
                     data: {
