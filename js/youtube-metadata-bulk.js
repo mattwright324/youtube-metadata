@@ -175,7 +175,7 @@ const bulk = (function () {
         }).then(function () {
             controls.progress.update({
                 text: doneProgressMessage(),
-                subtext: 'Done' + (Object.keys(failedData).length ? ' (with errors)' : '')
+                subtext: 'Done' + (Object.keys(failedData).length ? ' (with errors). Check browser console.' : '')
             });
 
             console.log(failedData)
@@ -680,6 +680,7 @@ const bulk = (function () {
 
                             get(index + slice, slice);
                         } catch (error) {
+                            controls.progress.addClass('error');
                             console.error(error);
                             const reason = JSON.stringify(error, null, 0);
                             for (let i = 0; i < ids.length; i++) {
@@ -688,6 +689,7 @@ const bulk = (function () {
                             get(index + slice, slice);
                         }
                     }).fail(function (err) {
+                        controls.progress.addClass('error');
                         console.warn(err)
                         const reason = shared.idx(["responseJSON", "error", "errors", 0, "reason"], err) ||
                             JSON.stringify(err, null, 0);
@@ -697,6 +699,7 @@ const bulk = (function () {
                         get(index + slice, slice);
                     });
                 } catch (error) {
+                    controls.progress.addClass('error');
                     console.error(error);
                     const reason = JSON.stringify(error, null, 0);
                     for (let i = 0; i < ids.length; i++) {
@@ -2171,24 +2174,32 @@ const bulk = (function () {
                     controls.btnSubmit.click();
                 }
             });
+            const submitKey = 'last-submit-metadata-bulk-date';
+            let canSubmit = true;
             controls.btnSubmit.on('click', function () {
+                const lastSubmit = localStorage.getItem(submitKey);
+                if (!canSubmit || (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < 5000)) {
+                    return;
+                }
+                canSubmit = false;
+                localStorage.setItem(submitKey, moment())
+
                 internal.reset();
 
                 $("#submit").addClass("loading").addClass("disabled")
                 function countdown(count) {
-                    console.log(count);
-
                     $("#submit .countdown").text(count);
 
                     setTimeout(function () {
                         if (count === 1) {
-                            $("#submit").removeClass("loading").removeClass("disabled")
+                            $("#submit").removeClass("loading").removeClass("disabled");
+                            canSubmit = true;
                         } else {
                             countdown(count - 1);
                         }
                     }, 1000);
                 }
-                countdown(3);
+                countdown(5);
 
                 const value = controls.inputValue.val();
 
@@ -2581,6 +2592,7 @@ const bulk = (function () {
         },
         reset: function () {
             controls.progress.update({reset: true});
+            controls.progress.removeClass('error');
 
             rows = [];
             tableRows = [csvHeaderRow.join("\t")];

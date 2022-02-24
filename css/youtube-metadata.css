@@ -127,6 +127,14 @@ button.loading .countdown, button.loading .spinner {
     display: initial;
 }
 
+.progress-bar.error {
+    background-color:  #e67e22;
+}
+
+html.dark .progress-bar.error {
+    background-color:  #ca6f1e;
+}
+
 /* Dark mode tweaks */
 html.dark .tag {
     background-color: royalblue;

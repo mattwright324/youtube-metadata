@@ -1426,18 +1426,23 @@
                     controls.btnSubmit.click();
                 }
             });
+            let canSubmit = true;
             controls.btnSubmit.on('click', function () {
+                if (!canSubmit) {
+                    return;
+                }
+                canSubmit = false;
+
                 exportData = {};
 
                 $("#submit").addClass("loading").addClass("disabled")
                 function countdown(count) {
-                    console.log(count);
-
                     $("#submit .countdown").text(count);
 
                     setTimeout(function () {
                         if (count === 1) {
-                            $("#submit").removeClass("loading").removeClass("disabled")
+                            $("#submit").removeClass("loading").removeClass("disabled");
+                            canSubmit = true;
                         } else {
                             countdown(count - 1);
                         }
