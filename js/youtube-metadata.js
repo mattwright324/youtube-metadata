@@ -952,19 +952,16 @@
         $("#filmot").hide();
 
         if (parsedInput.type === "video_id") {
-            const filmotAppend = $("#filmot-append");
-
             // Note: Filmot has limited resources. Do not misuse, please contact about usage first.
             // https://filmot.com/contactus
             const hostname = window.location.hostname;
             if (hostname !== "localhost" && hostname !== "mattw.io") {
                 console.log("do not call filmot from other instances")
-                filmotAppend.append(getSuggestedHtml(null, null, null, null));
                 return;
             }
             if (!shared.isValidVideoId(parsedInput.value)) {
                 console.log("do not call filmot for invalid ids")
-                filmotAppend.append(getSuggestedHtml(null, null, null, null));
+                $("#reason-append").append("<p class='mb-15'>However, this is an <span class='orange'>invalid</span> video id and must follow pattern: <span class='orange'>[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]</span>.</p>");
                 return;
             }
             $.ajax({
@@ -979,6 +976,7 @@
                 timeout: 5000,
                 url: "https://filmot.com/api/getvideos",
             }).done(function (res) {
+                const filmotAppend = $("#filmot-append");
                 filmotAppend.empty();
 
                 const video = shared.idx([0], res);
@@ -1028,6 +1026,10 @@
             }).fail(function (err) {
                 console.warn(err);
             })
+        } else if (parsedInput.type === "channel_id") {
+            if (!shared.isValidChannelId(parsedInput.value)) {
+                $("#reason-append").append("<p class='mb-15'>However, this is an <span class='orange'>invalid</span> channel id and must follow pattern: <span class='orange'>[A-Za-z0-9_-]{21}[AQgw]</span>.</p>");
+            }
         }
     }
 

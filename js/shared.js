@@ -60,7 +60,13 @@ const shared = (function () {
 
         // https://wiki.archiveteam.org/index.php/YouTube/Technical_details
         isValidVideoId: function (videoId) {
-            return videoId !== undefined && videoId !== null && String(videoId).match(/[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]/);
+            return videoId !== undefined && videoId !== null &&
+                String(videoId).match(/[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]/);
+        },
+
+        isValidChannelId: function (channelId) {
+            return channelId !== undefined && channelId !== null &&
+                String(channelId).match(/[A-Za-z0-9_-]{21}[AQgw]/);
         },
 
         parseQuery: function (queryString) {

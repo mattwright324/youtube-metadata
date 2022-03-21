@@ -89,7 +89,7 @@ const bulk = (function () {
                 });
             } else if (p.type === "playlist_id" && playlistIds.indexOf(p.value) === -1) {
                 playlistIds.push(p.value);
-            } else if (p.type === "channel_id" && channelIds.indexOf(p.value) === -1) {
+            } else if (p.type === "channel_id" && channelIds.indexOf(p.value) === -1 && shared.isValidChannelId(p.value)) {
                 channelIds.push(p.value);
             } else if (p.type === "channel_custom" && channelCustoms.indexOf(p.value) === -1) {
                 channelCustoms.push(p.value);
@@ -199,7 +199,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelUsers.length) {
                     console.log("finished channelUsers");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -254,7 +254,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelCustoms.length) {
                     console.log("finished channelCustoms");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -312,7 +312,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= channelIds.length) {
                     console.log("finished channelIds");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -375,7 +375,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelIds.length) {
                     console.log("finished handleChannelIdsCreatedPlaylists");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -442,7 +442,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= notYetRetrieved.length) {
                     console.log("finished notYetRetrieved");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -495,7 +495,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= playlistIds.length) {
                     console.log("finished playlistIds");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -589,7 +589,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= videoIds.length) {
                     console.log("finished videoIds");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
@@ -655,7 +655,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= videoIds.length) {
                     console.log("finished videoIds");
-                    resolve();
+                    setTimeout(resolve, 250);
                     return;
                 }
 
