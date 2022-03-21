@@ -562,11 +562,22 @@ const bulk = (function () {
     function handleUnavailableVideos() {
         const videoIds = [];
         for (let videoId in unavailableData) {
-            videoIds.push(videoId);
+            if (shared.isValidVideoId(videoId)) {
+                videoIds.push(videoId);
+            } else {
+                unavailableData[videoId].title = "Invalid ID";
+            }
         }
 
         let processed = 0;
         return new Promise(function (resolve) {
+            const hostname = window.location.hostname;
+            if (hostname !== "localhost" && hostname !== "mattw.io") {
+                console.log("do not call filmot from other instances")
+                resolve();
+                return;
+            }
+
             if (videoIds.length === 0) {
                 console.log("no videoIds")
                 resolve();

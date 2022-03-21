@@ -58,6 +58,11 @@ const shared = (function () {
             return parsed;
         },
 
+        // https://wiki.archiveteam.org/index.php/YouTube/Technical_details
+        isValidVideoId: function (videoId) {
+            return videoId !== undefined && videoId !== null && String(videoId).match(/[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]/);
+        },
+
         parseQuery: function (queryString) {
             const query = {};
             const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
