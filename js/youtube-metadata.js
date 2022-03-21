@@ -952,8 +952,21 @@
         $("#filmot").hide();
 
         if (parsedInput.type === "video_id") {
+            const filmotAppend = $("#filmot-append");
+
             // Note: Filmot has limited resources. Do not misuse, please contact about usage first.
             // https://filmot.com/contactus
+            const hostname = window.location.hostname;
+            if (hostname !== "localhost" && hostname !== "mattw.io") {
+                console.log("do not call filmot from other instances")
+                filmotAppend.append(getSuggestedHtml(null, null, null, null));
+                return;
+            }
+            if (!shared.isValidVideoId(parsedInput.value)) {
+                console.log("do not call filmot for invalid ids")
+                filmotAppend.append(getSuggestedHtml(null, null, null, null));
+                return;
+            }
             $.ajax({
                 cache: false,
                 data: {
@@ -966,27 +979,26 @@
                 timeout: 5000,
                 url: "https://filmot.com/api/getvideos",
             }).done(function (res) {
-                const reasonAppend = $("#filmot-append");
-                reasonAppend.empty();
+                filmotAppend.empty();
 
                 const video = shared.idx([0], res);
                 if (!video) {
-                    reasonAppend.append("<p class='mb-15'>No archive about this video id.</p>");
+                    filmotAppend.append("<p class='mb-15'>No archive about this video id.</p>");
                     $("#filmot").show();
                     return;
                 }
 
                 exportData["filmot"] = video;
 
-                reasonAppend.append("<pre><code class='prettyprint language-json'></code></pre>");
-                const json = reasonAppend.find("code");
+                filmotAppend.append("<pre><code class='prettyprint language-json'></code></pre>");
+                const json = filmotAppend.find("code");
                 json.text(JSON.stringify(video, null, 4));
                 hljs.highlightElement(json[0]);
 
                 $("#filmot").show();
 
                 const titleHtml = "<p class='mb-15' style='font-size: 1.25em'>" + video.title + "</p>";
-                reasonAppend.append(titleHtml);
+                filmotAppend.append(titleHtml);
 
                 const authorHtml =
                     "<p class='mb-15'>Published by " +
@@ -994,7 +1006,7 @@
                     video.channelname +
                     "</a>" +
                     "</p>";
-                reasonAppend.append(authorHtml);
+                filmotAppend.append(authorHtml);
 
                 const published = new Date(video.uploaddate);
                 const dateHtml =
@@ -1002,17 +1014,17 @@
                     "<span class='orange'>" + moment(published).format("ddd, DD MMM YYYY") + "</span>" +
                     " (" + moment(published).utc().fromNow() + ")" +
                     "</p>";
-                reasonAppend.append(dateHtml);
+                filmotAppend.append(dateHtml);
 
                 const duration = moment.duration({"seconds": video.duration});
                 const format = shared.formatDuration(duration);
                 if (format === "0s") {
-                    reasonAppend.append("<p class='mb-15'>A video can't be 0 seconds. This must be a livestream.</p>");
+                    filmotAppend.append("<p class='mb-15'>A video can't be 0 seconds. This must be a livestream.</p>");
                 } else {
-                    reasonAppend.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
+                    filmotAppend.append("<p class='mb-15'>The video length was <span style='color:orange'>" + format + "</span></p>");
                 }
 
-                reasonAppend.append(getSuggestedHtml(null, null, null, video));
+                filmotAppend.append(getSuggestedHtml(null, null, null, video));
             }).fail(function (err) {
                 console.warn(err);
             })
