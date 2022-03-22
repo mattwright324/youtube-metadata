@@ -542,13 +542,19 @@ const bulk = (function () {
                         })
 
                         if (res.hasOwnProperty("nextPageToken")) {
-                            paginate(res.nextPageToken);
+                            setTimeout(function () {
+                                paginate(res.nextPageToken);
+                            }, 150);
                         } else {
-                            get(index + 1);
+                            setTimeout(function () {
+                                get(index + 1);
+                            }, 150);
                         }
                     }).fail(function (err) {
                         console.error(err);
-                        get(index + 1);
+                        setTimeout(function () {
+                            get(index + 1);
+                        }, 150);
                     });
                 }
 
@@ -689,7 +695,9 @@ const bulk = (function () {
                                 text: processed + " / " + videoIds.length
                             });
 
-                            get(index + slice, slice);
+                            setTimeout(function () {
+                                get(index + slice, slice);
+                            }, 150);
                         } catch (error) {
                             controls.progress.addClass('error');
                             console.error(error);
@@ -697,7 +705,9 @@ const bulk = (function () {
                             for (let i = 0; i < ids.length; i++) {
                                 failedData[ids[i]] = {reason: reason}
                             }
-                            get(index + slice, slice);
+                            setTimeout(function () {
+                                get(index + slice, slice);
+                            }, 150);
                         }
                     }).fail(function (err) {
                         controls.progress.addClass('error');
@@ -707,7 +717,9 @@ const bulk = (function () {
                         for (let i = 0; i < ids.length; i++) {
                             failedData[ids[i]] = {reason: reason}
                         }
-                        get(index + slice, slice);
+                        setTimeout(function () {
+                            get(index + slice, slice);
+                        }, 150);
                     });
                 } catch (error) {
                     controls.progress.addClass('error');
