@@ -627,12 +627,12 @@ const bulk = (function () {
 
                     setTimeout(function () {
                         get(index + slice, slice);
-                    }, 1000);
+                    }, 1500);
                 }).fail(function (err) {
                     console.error(err);
                     setTimeout(function () {
                         get(index + slice, slice);
-                    }, 1000);
+                    }, 1500);
                 });
             }
 
@@ -2185,11 +2185,34 @@ const bulk = (function () {
                     controls.btnSubmit.click();
                 }
             });
+
             const submitKey = 'last-submit-metadata-bulk-date';
+
+            function countdown(count) {
+                $("#submit").addClass("loading").addClass("disabled")
+                $("#submit .countdown").text(Math.trunc(count));
+
+                setTimeout(function () {
+                    if (count <= 1) {
+                        $("#submit").removeClass("loading").removeClass("disabled");
+                        canSubmit = true;
+                    } else {
+                        countdown(count - 1);
+                    }
+                }, 1000);
+            }
+
+            const lastSubmit = localStorage.getItem(submitKey);
+            if (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < 30000) {
+                countdown((30000 - moment().diff(lastSubmit)) / 1000);
+            } else {
+                $("#submit").removeClass("loading").removeClass("disabled");
+            }
+
             let canSubmit = true;
             controls.btnSubmit.on('click', function () {
                 const lastSubmit = localStorage.getItem(submitKey);
-                if (!canSubmit || (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < 5000)) {
+                if (!canSubmit || (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < 30000)) {
                     return;
                 }
                 canSubmit = false;
@@ -2197,20 +2220,7 @@ const bulk = (function () {
 
                 internal.reset();
 
-                $("#submit").addClass("loading").addClass("disabled")
-                function countdown(count) {
-                    $("#submit .countdown").text(count);
-
-                    setTimeout(function () {
-                        if (count === 1) {
-                            $("#submit").removeClass("loading").removeClass("disabled");
-                            canSubmit = true;
-                        } else {
-                            countdown(count - 1);
-                        }
-                    }, 1000);
-                }
-                countdown(5);
+                countdown(30);
 
                 const value = controls.inputValue.val();
 
