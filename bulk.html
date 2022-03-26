@@ -15,7 +15,7 @@ script: youtube-metadata-bulk
                aria-label="https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw" aria-describedby="submit"
                id="value" autocomplete="off">
         <button class="btn btn-primary loading disabled" type="button" id="submit">
-            <span id="text">Submit</span>
+            <span>Submit</span>
             <span class="countdown"></span>
         </button>
     </div>
@@ -178,8 +178,24 @@ script: youtube-metadata-bulk
         Videos that are unavailable from channels (created playlists on), playlists, or videos.
         They are either deleted or made private.
         Consider searching for user-made playlists to find more unavailable videos.
-        Filmot may also reveal unlisted and unavailable videos that can't be found in playlists.
     </p>
+    <div id="unavailable">
+        <div class="input-group mb-3" style="align-items: center;">
+            <button class="btn btn-secondary loading disabled" type="button" id="checkUnavailable" style="margin-right: 10px">
+                <span>Check Unavailable</span>
+                <span class="countdown"></span>
+            </button>
+            <span>Check Filmot for any archived metadata for unavailable videos.</span>
+        </div>
+        <div class="progress" style="margin-bottom:5px">
+            <div id="unavailableProgressBar" class="progress-bar" role="progressbar" style="" aria-valuenow="0" aria-valuemin="0"
+                 aria-valuemax="100">
+                <div class="label"></div>
+            </div>
+        </div>
+        <div id="unavailableProgressText" style="width: 100%;text-align: center;">Idle</div>
+        <br>
+    </div>
     <label for="unavailable-columns">Select column(s)</label>
     <select id="unavailable-columns" multiple="multiple" hidden></select>
 </div>
