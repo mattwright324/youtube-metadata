@@ -12,44 +12,6 @@ const bulk = (function () {
     const elements = {};
     const controls = {};
 
-    function handleSearch(searchParams, maxPages) {
-        new Promise(function (resolve) {
-            const results = [];
-
-            function doSearch(page, token) {
-                console.log("page " + page);
-
-                youtube.ajax("search", $.extend({pageToken: token}, searchParams)).done(function (res) {
-                    console.log(res);
-
-                    (res.items || []).forEach(function (item) {
-                        const id = shared.idx(["id"], item);
-                        if (id.hasOwnProperty("videoId")) {
-                            results.push({type: "video_id", value: id.videoId});
-                        }
-                        if (id.hasOwnProperty("channelId")) {
-                            results.push({type: "channel_id", value: id.channelId});
-                        }
-                        if (id.hasOwnProperty("playlistId")) {
-                            results.push({type: "playlist_id", value: id.playlistId});
-                        }
-                    });
-                    if (res.hasOwnProperty("nextPageToken") && page < maxPages) {
-                        doSearch(page + 1, res.nextPageToken);
-                    } else {
-                        resolve(results);
-                    }
-                }).fail(function (err) {
-                    console.log(err);
-                });
-            }
-
-            doSearch(1, "");
-        }).then(function (results) {
-            processFromParsed(results);
-        });
-    }
-
     function doneProgressMessage() {
         const about = [];
         if (rawVideoData.length) {
@@ -68,6 +30,33 @@ const bulk = (function () {
             about.push(Object.keys(rawPlaylistMap).length + " playlist(s)");
         }
         return about.join(", ")
+    }
+
+    function unavailableProgressMessage() {
+        const about = [];
+
+        if (Object.keys(unavailableData).length) {
+            about.push(Object.keys(unavailableData).length + " unavailable");
+
+            let noData = 0;
+            let filmot = 0;
+            for (let key in unavailableData) {
+                if (unavailableData[key].hasOwnProperty("filmot")) {
+                    filmot = filmot + 1;
+                } else {
+                    noData = noData + 1;
+                }
+            }
+
+            if (filmot > 0) {
+                about.push(filmot + " data");
+            }
+            if (noData > 0) {
+                about.push(filmot + " no-data");
+            }
+        }
+
+        return about.join(", ");
     }
 
     function processFromParsed(parsed) {
@@ -155,23 +144,13 @@ const bulk = (function () {
             videoIds.forEach(function (videoId) {
                 if (!unavailableData.hasOwnProperty(videoId) && !failedData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
                     unavailableData[videoId] = {
-                        title: "Did not come back in API.",
+                        title: "Did not come back in API",
                         source: ""
                     };
                 }
             });
 
             controls.videosTable.columns.adjust().draw(false);
-        }).then(function () {
-            controls.progress.update({
-                text: '0 / ' + Object.keys(unavailableData).length,
-                subtext: 'Processing unavailable ids',
-                value: 0,
-                max: Object.keys(unavailableData).length
-            });
-
-            // Retrieve unavailable video data if any
-            return handleUnavailableVideos();
         }).then(function () {
             controls.progress.update({
                 text: doneProgressMessage(),
@@ -181,6 +160,10 @@ const bulk = (function () {
             console.log(failedData)
 
             controls.unavailableTable.columns.adjust().draw(false);
+
+            if (Object.keys(unavailableData).length > 0) {
+                controls.checkUnavailable.removeClass("disabled");
+            }
 
             setTimeout(loadAggregateTables, 200);
         }).catch(function (err) {
@@ -271,17 +254,23 @@ const bulk = (function () {
                     const newParsed = shared.determineInput(ogUrl);
                     if (newParsed.type === "channel_id") {
                         channelIds.push(newParsed.value);
-                        setTimeout(function () {get(index + 1);}, 100);
+                        setTimeout(function () {
+                            get(index + 1);
+                        }, 100);
                     } else {
                         console.log('Could not resolve custom url');
                         console.warn(newParsed);
 
-                        setTimeout(function () {get(index + 1);}, 100);
+                        setTimeout(function () {
+                            get(index + 1);
+                        }, 100);
                     }
                 }).fail(function (err) {
                     console.warn(err);
 
-                    setTimeout(function () {get(index + 1);}, 100);
+                    setTimeout(function () {
+                        get(index + 1);
+                    }, 100);
                 });
             }
 
@@ -416,6 +405,7 @@ const bulk = (function () {
                         get(index + 1);
                     });
                 }
+
                 paginate("");
             }
 
@@ -625,7 +615,7 @@ const bulk = (function () {
 
                     processed = processed + ids.length;
 
-                    controls.progress.update({
+                    controls.unavailableProgress.update({
                         value: processed,
                         max: videoIds.length,
                         text: processed + " / " + videoIds.length
@@ -955,6 +945,14 @@ const bulk = (function () {
             ]);
         }
         sliceLoad(unavailableRows, controls.unavailableTable);
+
+        unavailableColumns.forEach(function (column) {
+            const button = document.querySelector("button[title='" + column.title + "']");
+            const input = document.querySelector("button[title='" + column.title + "'] input");
+            if (!$(button).hasClass("active") && input.indeterminate === true && column._visibleIf && column._visibleIf(value)) {
+                button.click();
+            }
+        })
 
         console.log(otherData)
         for (let key in otherData) {
@@ -1528,6 +1526,79 @@ const bulk = (function () {
         }
     ];
 
+    const unavailableColumns = [
+        {
+            title: "Video ID",
+            type: "html",
+            visible: true
+        },
+        {
+            title: "Status",
+            type: "html",
+            visible: true
+        },
+        {
+            title: "Research",
+            type: "html",
+            visible: true
+        },
+        {
+            title: "Source",
+            type: "html",
+            visible: true
+        },
+        {
+            title: "Title (Filmot)",
+            type: "html",
+            visible: false,
+            indeterminate: true,
+            _idx: ["filmot", "title"],
+            _visibleIf: function (value) {
+                return !$.isEmptyObject(value) && value !== "No data";
+            }
+        },
+        {
+            title: "Author (Filmot)",
+            type: "html",
+            visible: false,
+            indeterminate: true,
+            _idx: ["filmot", "channelname"],
+            _visibleIf: function (value) {
+                return !$.isEmptyObject(value);
+            }
+        },
+        {
+            title: "Published (Filmot)",
+            type: "html",
+            visible: false,
+            indeterminate: true,
+            _idx: ["filmot", "uploaddate"],
+            _visibleIf: function (value) {
+                return !$.isEmptyObject(value);
+            }
+        },
+        {
+            title: "Length (Filmot)",
+            type: "num",
+            visible: false,
+            indeterminate: true,
+            _idx: ["filmot", "duration"],
+            _visibleIf: function (value) {
+                return !$.isEmptyObject(value);
+            },
+            render: {
+                _: 'display',
+                sort: 'num'
+            },
+            className: "dt-nowrap"
+        },
+        {
+            title: "Description (Filmot)",
+            type: "html",
+            visible: false
+        }
+    ];
+
     const csvHeaderRow = [];
     for (let j = 0; j < columns.length; j++) {
         const column = columns[j];
@@ -1887,6 +1958,46 @@ const bulk = (function () {
                 const percent = 100 * ((data.value - data.min) / (data.max - data.min));
                 this.css('width', percent + "%");
             }
+            controls.unavailableProgress = $("#unavailableProgressBar");
+            elements.unavailableProgressText = $("#unavailableProgressText")
+            controls.unavailableProgress.progressData = {
+                min: 0,
+                value: 0,
+                max: 100
+            }
+            controls.unavailableProgress.update = function (options) {
+                console.log(options)
+                if (String(options["reset"]).toLowerCase() === "true") {
+                    console.log('reset')
+                    this.update({
+                        min: 0,
+                        value: 0,
+                        max: 100,
+                        text: "",
+                        subtext: 'Idle'
+                    });
+                    return;
+                }
+                if (options.hasOwnProperty("subtext")) {
+                    elements.unavailableProgressText.text(options.subtext);
+                }
+                if (options.hasOwnProperty("text")) {
+                    this.find('.label').text(options.text);
+                }
+                if (options.hasOwnProperty("min")) {
+                    this.progressData.min = options.min;
+                }
+                if (options.hasOwnProperty("value")) {
+                    this.progressData.value = options.value;
+                }
+                if (options.hasOwnProperty("max")) {
+                    this.progressData.max = options.max;
+                }
+
+                const data = this.progressData;
+                const percent = 100 * ((data.value - data.min) / (data.max - data.min));
+                this.css('width', percent + "%");
+            }
             controls.createdPlaylists = $("#createdPlaylists");
             controls.includeThumbs = $("#includeThumbs");
             elements.thumbProgress = $("#thumbProgress");
@@ -2045,58 +2156,8 @@ const bulk = (function () {
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
             controls.uploadFrequency.render();
-            const unavailableColumns = [
-                {
-                    title: "Video ID",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Status",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Research",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Source",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Title (Filmot)",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Author (Filmot)",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Published (Filmot)",
-                    type: "html",
-                    visible: true
-                },
-                {
-                    title: "Length (Filmot)",
-                    type: "num",
-                    visible: true,
-                    render: {
-                        _: 'display',
-                        sort: 'num'
-                    },
-                    className: "dt-nowrap"
-                },
-                {
-                    title: "Description (Filmot)",
-                    type: "html",
-                    visible: false
-                }
-            ];
+            controls.checkUnavailable = $("#checkUnavailable");
+
             const unavailableColumnsHtml = [];
             for (let i = 0; i < unavailableColumns.length; i++) {
                 const column = unavailableColumns[i];
@@ -2127,6 +2188,11 @@ const bulk = (function () {
                     external.toggleUnavailableColumn($(option).val())
                 }
             });
+            unavailableColumns.forEach(function (column) {
+                if (column.hasOwnProperty("_visibleIf")) {
+                    document.querySelector("button[title='" + column.title + "'] input").indeterminate = true;
+                }
+            })
 
             controls.otherTable = $("#otherTable").DataTable({
                 columns: [
@@ -2150,15 +2216,6 @@ const bulk = (function () {
             controls.btnExport = $("#export");
             controls.btnImport = $("#import");
             controls.importFileChooser = $("#importFileChooser");
-
-            elements.regularInput = $("#regularInput");
-            elements.searchInput = $("#searchInput");
-
-            controls.searchQuery = $("#searchQuery");
-            controls.searchType = $("#searchType");
-            controls.searchOrder = $("#searchOrder");
-            controls.searchPages = $("#searchPages");
-            controls.btnSubmitSearch = $("#submitSearch");
 
             new ClipboardJS(".clipboard");
 
@@ -2185,6 +2242,7 @@ const bulk = (function () {
                     });
                 }
             }
+
             controls.darkMode.change(function () {
                 checkTheme();
             });
@@ -2264,22 +2322,55 @@ const bulk = (function () {
 
                 processFromParsed(parsed);
             });
-            controls.btnSubmitSearch.on('click', function () {
-                internal.reset();
 
-                const searchParams = {
-                    part: 'id',
-                    q: controls.searchQuery.val(),
-                    type: controls.searchType.val(),
-                    order: controls.searchOrder.val(),
-                    maxResults: 50
+            controls.checkUnavailable.on('click', function () {
+                controls.checkUnavailable.addClass("disabled");
+
+                if (Object.keys(unavailableData).length <= 0) {
+                    return;
                 }
-                const maxPages = controls.searchPages.val();
 
-                console.log(searchParams);
-                console.log(maxPages + "pages");
+                controls.unavailableProgress.update({
+                    text: '0 / ' + Object.keys(unavailableData).length,
+                    subtext: 'Processing unavailable ids',
+                    value: 0,
+                    max: Object.keys(unavailableData).length
+                });
 
-                handleSearch(searchParams, maxPages)
+                handleUnavailableVideos().then(function () {
+                    controls.unavailableTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                        const data = this.data();
+
+                        const videoId = $(data[0]).text();
+                        const video = unavailableData[videoId];
+
+                        const filmotTitle = shared.idx(["filmot", "title"], video) || "<span style='color:gray'>No data</span>";
+                        const filmotDesc = shared.idx(["filmot", "description"], video) || "";
+                        const filmotAuthorName = shared.idx(["filmot", "channelname"], video);
+                        const filmotAuthor = filmotAuthorName ?
+                            "<a target='_blank' href='https://www.youtube.com/channel/" + shared.idx(["filmot", "channelid"], video) + "'>" + shared.idx(["filmot", "channelname"], video) + "</a>" : "";
+                        const filmotUploadDate = shared.idx(["filmot", "uploaddate"], video) || "";
+                        const duration = shared.idx(["filmot", "duration"], video) || -1;
+                        const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
+                        data[4] = filmotTitle;
+                        data[5] = filmotAuthor;
+                        data[6] = filmotUploadDate;
+                        data[7] = {"display": filmotDuration, "num": duration};
+                        data[8] = filmotDesc;
+
+                        this.data(data).draw();
+                    });
+
+                    const about = [];
+                    if (Object.keys(unavailableData).length) {
+                        about.push(Object.keys(unavailableData).length + " unavailable");
+                    }
+
+                    controls.unavailableProgress.update({
+                        text: unavailableProgressMessage(),
+                        subtext: 'Done'
+                    });
+                });
             });
 
             function getImageBinaryCorsProxy(fileName, imageUrl, zip, delay, imageStatuses) {
@@ -2578,7 +2669,7 @@ const bulk = (function () {
                             });
                         })
                     ]);
-                }).then(function() {
+                }).then(function () {
                     loadAggregateTables(function () {
                         controls.btnImport.removeClass("loading").removeClass("disabled");
                         controls.progress.update({
@@ -2592,6 +2683,13 @@ const bulk = (function () {
                         value: 5,
                         max: 5,
                         text: doneProgressMessage(),
+                        subtext: 'Import done'
+                    });
+
+                    controls.unavailableProgress.update({
+                        value: 5,
+                        max: 5,
+                        text: unavailableProgressMessage(),
                         subtext: 'Import done'
                     });
 
@@ -2626,6 +2724,7 @@ const bulk = (function () {
         reset: function () {
             controls.progress.update({reset: true});
             controls.progress.removeClass('error');
+            controls.checkUnavailable.addClass("disabled");
 
             rows = [];
             tableRows = [csvHeaderRow.join("\t")];
@@ -2645,7 +2744,7 @@ const bulk = (function () {
                 if (input.indeterminate === true && button.className.indexOf('active') !== -1) {
                     button.click();
                 }
-            })
+            });
 
             tagsData = {};
             controls.tagsTable.clear();
@@ -2663,6 +2762,16 @@ const bulk = (function () {
             playlistMap = {};
             controls.unavailableTable.clear();
             controls.unavailableTable.draw(false);
+
+            unavailableColumns.forEach(function (column) {
+                const button = document.querySelector("button[title='" + column.title + "']");
+                const input = document.querySelector("button[title='" + column.title + "'] input");
+
+                // Reset still-indeterminate columns
+                if (input.indeterminate === true && button.className.indexOf('active') !== -1) {
+                    button.click();
+                }
+            });
 
             controls.year.html("<option value='' selected>All years</option>")
 
