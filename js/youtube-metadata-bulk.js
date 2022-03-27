@@ -52,7 +52,7 @@ const bulk = (function () {
                 about.push(filmot + " data");
             }
             if (noData > 0) {
-                about.push(filmot + " no-data");
+                about.push(noData + " no-data");
             }
         }
 
@@ -1554,7 +1554,7 @@ const bulk = (function () {
             indeterminate: true,
             _idx: ["filmot", "title"],
             _visibleIf: function (value) {
-                return !$.isEmptyObject(value) && value !== "No data";
+                return !$.isEmptyObject(value);
             }
         },
         {
@@ -2172,7 +2172,7 @@ const bulk = (function () {
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[3, 'asc']],
+                order: [[6, 'desc'], [3, 'asc']],
                 lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
