@@ -952,7 +952,9 @@ const bulk = (function () {
             if (!$(button).hasClass("active") && input.indeterminate === true && column._visibleIf && column._visibleIf(value)) {
                 button.click();
             }
-        })
+        });
+
+        controls.unavailableTable.columns.adjust();
 
         console.log(otherData)
         for (let key in otherData) {
@@ -2361,10 +2363,7 @@ const bulk = (function () {
                         this.data(data).draw();
                     });
 
-                    const about = [];
-                    if (Object.keys(unavailableData).length) {
-                        about.push(Object.keys(unavailableData).length + " unavailable");
-                    }
+                    controls.unavailableTable.columns.adjust();
 
                     controls.unavailableProgress.update({
                         text: unavailableProgressMessage(),
@@ -2762,6 +2761,7 @@ const bulk = (function () {
             playlistMap = {};
             controls.unavailableTable.clear();
             controls.unavailableTable.draw(false);
+            controls.unavailableProgress.update({reset: true});
 
             unavailableColumns.forEach(function (column) {
                 const button = document.querySelector("button[title='" + column.title + "']");
