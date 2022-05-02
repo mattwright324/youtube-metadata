@@ -13,6 +13,11 @@
     const controls = {};
     let exportData = {};
 
+    if (typeof gtag === 'undefined') {
+        // prevent error if gtag removed
+        window['gtag'] = function() {}
+    }
+
     function getSuggestedHtml(parsedInput, fullJson, jsonType, filmot) {
         const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType, filmot);
         suggested.sort((a, b) => (a.text > b.text) ? 1 : -1)
@@ -964,6 +969,9 @@
                 $("#reason-append").append("<p class='mb-15'>However, this is an <span class='orange'>invalid</span> video id and must follow pattern: <span class='orange'>[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]</span>.</p>");
                 return;
             }
+
+            gtag('event', 'call', {'event_category': 'filmot', 'event_label': 'call filmot from normal'});
+
             $.ajax({
                 cache: false,
                 data: {
@@ -1144,6 +1152,8 @@
      */
     async function resolveCustomChannelCORS(parsedInput, callbackResubmit) {
         console.log('Attempting to resolve custom channel via CORS')
+
+        gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for custom channel(s)', 'value': 1});
 
         $.ajax({
             url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + parsedInput.value,
@@ -1430,6 +1440,7 @@
                     elements.hljsTheme.attr("href", "//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.3.1/build/styles/stackoverflow-light.min.css")
                 }
             }
+
             controls.darkMode.change(function () {
                 checkTheme();
             });
@@ -1447,9 +1458,12 @@
                 }
                 canSubmit = false;
 
+                gtag('event', 'click', {'event_category': 'button', 'event_label': 'submit normal'});
+
                 exportData = {};
 
                 $("#submit").addClass("loading").addClass("disabled")
+
                 function countdown(count) {
                     $("#submit .countdown").text(count);
 
@@ -1462,6 +1476,7 @@
                         }
                     }, 1000);
                 }
+
                 countdown(3);
 
                 const value = controls.inputValue.val();
@@ -1503,6 +1518,8 @@
             }
 
             controls.btnExport.on('click', async function () {
+                gtag('event', 'click', {'event_category': 'button', 'event_label': 'export normal'});
+
                 controls.btnExport.addClass("loading").addClass("disabled");
 
                 const zip = new JSZip();
@@ -1552,6 +1569,10 @@
                     optionalImages.push(getImageBinaryCorsProxy(fileName, thumbLinks[fileName], zip));
                 }
 
+                if (optionalImages.length) {
+                    gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for thumb urls', 'value': optionalImages.length});
+                }
+
                 Promise.all(optionalImages).then(function () {
                     let hint = '';
                     if (exportData.hasOwnProperty("video")) {
@@ -1581,7 +1602,9 @@
             });
 
             // Drag & Drop listener
-            document.addEventListener("dragover", function(event) {event.preventDefault();});
+            document.addEventListener("dragover", function (event) {
+                event.preventDefault();
+            });
             document.documentElement.addEventListener('drop', async function (e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -1608,6 +1631,8 @@
             });
 
             function importFile(file) {
+                gtag('event', 'click', {'event_category': 'button', 'event_label': 'import normal'});
+
                 console.log("Importing from file " + file.name);
 
                 controls.btnImport.addClass("loading").addClass("disabled");
