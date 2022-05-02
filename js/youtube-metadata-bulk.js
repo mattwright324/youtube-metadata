@@ -12,6 +12,11 @@ const bulk = (function () {
     const elements = {};
     const controls = {};
 
+    if (typeof gtag === 'undefined') {
+        // prevent error if gtag removed
+        window['gtag'] = function() {}
+    }
+
     function doneProgressMessage() {
         const about = [];
         if (rawVideoData.length) {
@@ -233,6 +238,8 @@ const bulk = (function () {
                 resolve();
                 return;
             }
+
+            gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for custom channel(s)', 'value': channelCustoms.length});
 
             function get(index) {
                 if (index >= channelCustoms.length) {
@@ -581,6 +588,8 @@ const bulk = (function () {
             }
 
             console.log("checking " + videoIds.length + " videoIds");
+
+            gtag('event', 'call', {'event_category': 'filmot', 'event_label': 'call filmot from bulk', 'value': Math.trunc(videoIds.length / 100 + 1)});
 
             function get(index, slice) {
                 if (index >= videoIds.length) {
@@ -2304,7 +2313,8 @@ const bulk = (function () {
                     return;
                 }
 
-                const optionalCreatedPlaylists = controls.createdPlaylists.is(":checked") ? "&createdPlaylists=true" : "";
+                const checkCreatedPlaylists = controls.createdPlaylists.is(":checked");
+                const optionalCreatedPlaylists = checkCreatedPlaylists ? "&createdPlaylists=true" : "";
                 const minifiedInput = [];
                 parsed.forEach(function (input) {
                     if (input.type === "video_id" || input.type === "playlist_id" || input.type === "channel_id") {
@@ -2320,7 +2330,9 @@ const bulk = (function () {
                     text: 'Indeterminate',
                     value: 100,
                     max: 100
-                })
+                });
+
+                gtag('event', 'click', {'event_category': 'button', 'event_label': 'submit bulk', 'value': checkCreatedPlaylists ? 1 : 0});
 
                 processFromParsed(parsed);
             });
@@ -2406,6 +2418,8 @@ const bulk = (function () {
                 const includeThumbs = controls.includeThumbs.is(":checked");
                 const dateFormat = "YYYY-MM-DD";
                 controls.btnExport.addClass("loading").addClass("disabled");
+
+                gtag('event', 'click', {'event_category': 'button', 'event_label': 'export bulk', 'value': includeThumbs ? 1 : 0});
 
                 const zip = new JSZip();
                 console.log("Creating about.txt...")
@@ -2529,6 +2543,10 @@ const bulk = (function () {
                     }
                 }
 
+                if (optionalImages.length) {
+                    gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for thumb urls', 'value': optionalImages.length});
+                }
+
                 Promise.all(optionalImages).then(function () {
                     const channelTitles = [];
                     rawVideoData.forEach(function (video) {
@@ -2597,6 +2615,8 @@ const bulk = (function () {
             });
 
             function importFile(file) {
+                gtag('event', 'click', {'event_category': 'button', 'event_label': 'import bulk'});
+
                 console.log("Importing from file " + file.name);
 
                 controls.btnImport.addClass("loading").addClass("disabled");
