@@ -1082,7 +1082,8 @@
                 }
             }
         } else {
-            errorState("Your input looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. It may have been deleted or made private.", function (append) {
+            errorState("Your input looked like a <span class='orange'>" + partMapType + "</span> but nothing came back. " +
+                "It may have been <a target='_blank' href='https://github.com/mattwright324/youtube-metadata/wiki/Deleted-and-Private-Videos'>deleted or made private</a>.", function (append) {
                 append.append("<p class='mb-15'>" +
                     "You may find more details by trying..." +
                     getSuggestedHtml(parsedInput) +
