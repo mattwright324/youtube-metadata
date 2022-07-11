@@ -2283,9 +2283,12 @@ const bulk = (function () {
                 }, 1000);
             }
 
+            const seconds = 15;
+            const millis = seconds * 1000;
+
             const lastSubmit = localStorage.getItem(submitKey);
-            if (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < 30000) {
-                countdown((30000 - moment().diff(lastSubmit)) / 1000);
+            if (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < millis) {
+                countdown((millis - moment().diff(lastSubmit)) / 1000);
             } else {
                 $("#submit").removeClass("loading").removeClass("disabled");
             }
@@ -2293,7 +2296,7 @@ const bulk = (function () {
             let canSubmit = true;
             controls.btnSubmit.on('click', function () {
                 const lastSubmit = localStorage.getItem(submitKey);
-                if (!canSubmit || (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < 30000)) {
+                if (!canSubmit || (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < millis)) {
                     return;
                 }
                 canSubmit = false;
@@ -2301,7 +2304,7 @@ const bulk = (function () {
 
                 internal.reset();
 
-                countdown(30);
+                countdown(seconds);
 
                 const value = controls.inputValue.val();
 
