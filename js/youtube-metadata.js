@@ -87,15 +87,19 @@
             });
             suggestions.push({
                 url: "https://web.archive.org/web/2/http://wayback-fakeurl.archive.org/yt/" + data.video_id,
-                text: "Archive.org (direct video 1) - " + data.video_id
+                text: "Archive.org (direct video wayback-header) - " + data.video_id
             });
             suggestions.push({
                 url: "https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/" + data.video_id,
-                text: "Archive.org (direct video 2) - " + data.video_id
+                text: "Archive.org (direct video raw) - " + data.video_id
             });
             suggestions.push({
                 url: "https://filmot.com/video/" + data.video_id,
                 text: "Filmot.com - https://filmot.com/video/" + data.video_id
+            });
+            suggestions.push({
+               url: "https://ghostarchive.org/varchive/" + data.video_id,
+               text: "GhostArchive.org - " + data.video_id
             });
         }
         if (data.hasOwnProperty("playlist_title")) {

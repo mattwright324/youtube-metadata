@@ -7,7 +7,7 @@ const shared = (function () {
     const patterns = {
         video_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:[\/&].*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video)\/([\w_-]+)(?:[\/&].*)?/i,
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video|watch)\/([\w_-]+)(?:[\/&].*)?/i,
             /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i,
             /(?:http[s]?:\/\/)?filmot.com\/video\/([\w_-]+)(?:\?.*)?/i,
             /^([\w-]{11})$/i
