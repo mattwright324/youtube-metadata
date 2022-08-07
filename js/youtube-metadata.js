@@ -311,6 +311,20 @@
                             "<span class='tag'>" + partJson.tags.join("</span><span class='comma'>, </span><span class='tag'>") + "</span>" +
                             "</p>";
                         partDiv.append(tagsHtml);
+
+                        $('.tag').tooltip({ title: "Copied!", trigger: "manual" })
+
+                        $(document).on("click", ".tag", (e) => {
+                            $(e.target).tooltip("show");
+                            setTimeout(() => { $(e.target).tooltip('hide') }, 500);
+                        })
+
+                        let clipboard = new ClipboardJS('.tag', {
+                            target: (trigger) => trigger
+                        });
+
+                        clipboard.on('success', e => e.clearSelection());
+
                     } else {
                         partDiv.append("<p class='mb-15'>There were no tags.</p>")
                     }

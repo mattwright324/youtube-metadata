@@ -113,6 +113,10 @@ button.loading .text {
     display: inline-block;
 }
 
+.tag:hover{
+    background-color: deepskyblue;
+}
+
 .comma {
     color: transparent;
     width: 0;
@@ -138,6 +142,10 @@ html.dark .progress-bar.error {
 /* Dark mode tweaks */
 html.dark .tag {
     background-color: royalblue;
+}
+
+html.dark .tag:hover{
+    background-color: blueviolet;
 }
 
 html.dark .btn-primary {
