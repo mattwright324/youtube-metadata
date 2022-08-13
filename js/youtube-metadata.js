@@ -312,19 +312,6 @@
                             "</p>";
                         partDiv.append(tagsHtml);
 
-                        $('.tag').tooltip({ title: "Copied!", trigger: "manual" })
-
-                        $(document).on("click", ".tag", (e) => {
-                            $(e.target).tooltip("show");
-                            setTimeout(() => { $(e.target).tooltip('hide') }, 500);
-                        })
-
-                        let clipboard = new ClipboardJS('.tag', {
-                            target: (trigger) => trigger
-                        });
-
-                        clipboard.on('success', e => e.clearSelection());
-
                     } else {
                         partDiv.append("<p class='mb-15'>There were no tags.</p>")
                     }
@@ -348,7 +335,7 @@
                     partDiv.append("<p class='mb-15'><a style='display:inline;vertical-align:middle' target='_blank' href='./bulk?submit=true&url=https://www.youtube.com/channel/" + partJson.channelId + "'>" +
                         "<img src='./img/metadata.png' style='margin-left:4px;width:20px;height:20px;;margin-right:5px;' alt='youtube metadata icon' >" +
                         "Inspect the metadata for the rest of this channel's videos" +
-                        "</a></p>");
+                        "</a></p>");                        
                 }
             },
             statistics: {
@@ -1405,6 +1392,13 @@
             controls.shareLink = $("#shareLink");
 
             new ClipboardJS(".clipboard");
+
+            $(document).on("click", ".tag", (e) => {
+                $(e.target).tooltip({ title: "Copied!", trigger: 'manual' })
+                $(e.target).tooltip("show");
+                setTimeout(() => { $(e.target).tooltip('hide') }, 500);
+            })
+            new ClipboardJS('.tag', {target: (trigger) => trigger}).on('success', e => e.clearSelection());
 
             controls.btnExport = $("#export");
             controls.btnImport = $("#import");
