@@ -68,6 +68,7 @@ const bulk = (function () {
         console.log(parsed);
 
         const channelUsers = [];
+        const channelHandles = [];
         const channelCustoms = [];
         const channelIds = [];
         const channelIdsCreatedPlaylists = [];
@@ -85,7 +86,9 @@ const bulk = (function () {
                 playlistIds.push(p.value);
             } else if (p.type === "channel_id" && channelIds.indexOf(p.value) === -1 && shared.isValidChannelId(p.value)) {
                 channelIds.push(p.value);
-            } else if (p.type === "channel_custom" && channelCustoms.indexOf(p.value) === -1) {
+            } else if (p.type === "channel_handle" && channelHandles.indexOf(p.value) === -1) {
+                channelHandles.push(p.value);
+            }else if (p.type === "channel_custom" && channelCustoms.indexOf(p.value) === -1) {
                 channelCustoms.push(p.value);
             } else if (p.type === "channel_user" && channelUsers.indexOf(p.value) === -1) {
                 channelUsers.push(p.value);
@@ -97,7 +100,8 @@ const bulk = (function () {
         });
 
         Promise.all([
-            handleChannelCustoms(channelCustoms, channelIds)
+            handleChannelCustoms(channelCustoms, channelIds),
+            handleChannelHandles(channelHandles, channelIds),
         ]).then(function () {
             return Promise.all([
                 // Channels condense to uploads playlist ids and channel ids
@@ -266,6 +270,59 @@ const bulk = (function () {
                         }, 100);
                     } else {
                         console.log('Could not resolve custom url');
+                        console.warn(newParsed);
+
+                        setTimeout(function () {
+                            get(index + 1);
+                        }, 100);
+                    }
+                }).fail(function (err) {
+                    console.warn(err);
+
+                    setTimeout(function () {
+                        get(index + 1);
+                    }, 100);
+                });
+            }
+
+            get(0);
+        });
+    }
+
+    function handleChannelHandles(channelHandles, channelIds) {
+        return new Promise(function (resolve) {
+            if (channelHandles.length === 0) {
+                console.log("no channelHandles")
+                resolve();
+                return;
+            }
+
+            gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for channel handle(s)', 'value': channelHandles.length});
+
+            function get(index) {
+                if (index >= channelHandles.length) {
+                    console.log("finished channelHandles");
+                    setTimeout(resolve, 250);
+                    return;
+                }
+
+                console.log("handleChannelHandles.get(" + index + ")")
+
+                $.ajax({
+                    url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/@" + channelHandles[index],
+                    dataType: 'html'
+                }).then(function (res) {
+                    const matches = (res || "").match(/\/channel\/[A-Za-z0-9_-]{23}[AQgw]/);
+                    const channelUrl = "https://www.youtube.com" + (matches || [])[0];
+
+                    const newParsed = shared.determineInput(channelUrl);
+                    if (newParsed.type === "channel_id") {
+                        channelIds.push(newParsed.value);
+                        setTimeout(function () {
+                            get(index + 1);
+                        }, 100);
+                    } else {
+                        console.log('Could not resolve handle');
                         console.warn(newParsed);
 
                         setTimeout(function () {

@@ -24,6 +24,9 @@ const shared = (function () {
         channel_user: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/user\/([\w_-]+)(?:\?.*)?/i
         ],
+        channel_handle: [
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/@([^\/?]+)(?:\?.*)?/i,
+        ],
         channel_custom: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/c\/([^\/?]+)(?:\?.*)?/i,
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/([^\/?]+)(?:\?.*)?/i
@@ -66,7 +69,7 @@ const shared = (function () {
 
         isValidChannelId: function (channelId) {
             return channelId !== undefined && channelId !== null &&
-                String(channelId).match(/[A-Za-z0-9_-]{21}[AQgw]/);
+                String(channelId).match(/[A-Za-z0-9_-]{23}[AQgw]/);
         },
 
         parseQuery: function (queryString) {

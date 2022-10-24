@@ -1206,74 +1206,46 @@
     }
 
     /**
-     * Attempt to resolve the custom URL via API. Using workaround as no direct method in API.
+     * Attempt to resolve the channel handle URL via CORS workaround. Grab webpage content and extract url pattern.
      */
-    async function resolveCustomChannelAPI(parsedInput, callbackResubmit, nextPageToken, page) {
-        console.log("Attempting to resolve custom channel URL. Search page #" + page);
+    async function resolveChannelHandleCORS(parsedInput, callbackResubmit) {
+        console.log('Attempting to resolve custom channel via CORS')
 
-        youtube.ajax("search", {
-            part: 'snippet',
-            q: parsedInput.value,
-            maxResults: 50,
-            type: 'channel',
-            order: 'relevance',
-            pageToken: nextPageToken
-        }).done(function (res) {
-            console.log(res);
+        gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for custom channel(s)', 'value': 1});
 
-            if (res.hasOwnProperty('nextPageToken') && !$.isEmptyObject(res.nextPageToken)) {
-                nextPageToken = res.nextPageToken;
+        $.ajax({
+            url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + parsedInput.value,
+            dataType: 'html'
+        }).then(function (res) {
+            const matches = (res || "").match(/\/channel\/[A-Za-z0-9_-]{23}[AQgw]/);
+            const channelUrl = "https://www.youtube.com" + (matches || [])[0];
+
+            console.log('Retrieved url ' + channelUrl);
+
+            const newParsed = shared.determineInput(channelUrl);
+            if (newParsed.type !== "unknown") {
+                callbackResubmit(newParsed);
             } else {
-                nextPageToken = '';
-            }
-
-            const channelIds = [];
-            (res.items || []).forEach(function (item) {
-                channelIds.push(item.id.channelId);
-            });
-
-            youtube.ajax('channels', {
-                part: 'snippet',
-                id: channelIds.join(","),
-                maxResults: 50
-            }).done(function (res) {
-                console.log(res);
-
-                let match;
-                (res.items || []).forEach(function (item) {
-                    const snippet = item.snippet;
-                    if (snippet.hasOwnProperty('customUrl') && parsedInput.value.toLowerCase() === snippet.customUrl.toLowerCase()) {
-                        match = {
-                            value: item.id,
-                            type: 'channel_id',
-                            original: 'https://www.youtube.com/channel/' + item.id,
-                            mayHideOthers: true
-                        }
-                    }
-                });
-
-                if (match) {
-                    callbackResubmit(match);
-                } else if (page < 3 && !$.isEmptyObject(nextPageToken)) {
-                    resolveCustomChannelAPI(parsedInput, callbackResubmit, nextPageToken, page + 1)
-                } else {
-                    resolveCustomChannelCORS(parsedInput, callbackResubmit);
-                }
-            }).fail(function (err) {
                 errorState("Could not resolve Custom Channel URL", function (append) {
                     append.append("<p class='mb-15'>" +
-                        "The custom channel URL resolver had an issue querying for the search channels. " +
+                        "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
+                        "</p>");
+                    append.append("<p class='mb-15'>" +
+                        "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
                         "</p>");
                     append.append("<p class='mb-15'>" +
                         "More detail about the issue and what you can do can be found here at " +
                         "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
                         "</p>");
                 })
-            });
+            }
         }).fail(function (err) {
             errorState("Could not resolve Custom Channel URL", function (append) {
                 append.append("<p class='mb-15'>" +
-                    "The custom channel URL resolver had an issue on the search query. " +
+                    "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
+                    "</p>");
+                append.append("<p class='mb-15'>" +
+                    "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
                     "</p>");
                 append.append("<p class='mb-15'>" +
                     "More detail about the issue and what you can do can be found here at " +
@@ -1303,6 +1275,8 @@
             errorState("Your link did not follow an accepted format.");
         } else if (parsedInput.type === 'channel_custom') {
             resolveCustomChannelCORS(parsedInput, submit);
+        }else if (parsedInput.type === 'channel_handle') {
+            resolveChannelHandleCORS(parsedInput, submit);
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 
