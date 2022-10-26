@@ -51,6 +51,10 @@ p.mb-15 {
     color: green;
 }
 
+.optional {
+    opacity: 0.75;
+}
+
 .section-header {
     font-size: 1.5em;
     margin: 0 0 0.3em;
