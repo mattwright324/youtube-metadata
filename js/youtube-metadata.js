@@ -161,10 +161,17 @@
                 url: "https://www.google.com/search?q=\"" + data.channel_custom + "\"",
                 text: "Google - \"" + data.channel_custom + "\""
             });
-            suggestions.push({
-                url: "https://web.archive.org/web/*/https://www.youtube.com/c/" + data.channel_custom,
-                text: "Archive.org - https://www.youtube.com/c/" + data.channel_custom
-            });
+            if (data.channel_custom.startsWith('@')) {
+                suggestions.push({
+                    url: "https://web.archive.org/web/*/https://www.youtube.com/" + data.channel_custom,
+                    text: "Archive.org - https://www.youtube.com/" + data.channel_custom
+                });
+            } else {
+                suggestions.push({
+                    url: "https://web.archive.org/web/*/https://www.youtube.com/c/" + data.channel_custom,
+                    text: "Archive.org - https://www.youtube.com/c/" + data.channel_custom
+                });
+            }
             suggestions.push({
                 url: "https://web.archive.org/web/*/https://www.youtube.com/" + data.channel_custom,
                 text: "Archive.org - https://www.youtube.com/" + data.channel_custom
@@ -658,7 +665,8 @@
                     }
 
                     if (partJson.hasOwnProperty("customUrl")) {
-                        const customUrl = "https://www.youtube.com/c/" + partJson.customUrl;
+                        const urlPart = partJson.customUrl.startsWith('@') ? '' : 'c/';
+                        const customUrl = "https://www.youtube.com/" + urlPart + partJson.customUrl;
 
                         partDiv.append("<p class='mb-15'>The channel has a custom url of value '<a target='_blank' href='" + customUrl + "'>" + partJson.customUrl + "</a>'</p>");
                     }

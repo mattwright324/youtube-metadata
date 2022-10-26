@@ -69,7 +69,7 @@ const shared = (function () {
 
         isValidChannelId: function (channelId) {
             return channelId !== undefined && channelId !== null &&
-                String(channelId).match(/[A-Za-z0-9_-]{23}[AQgw]/);
+                String(channelId).match(/[A-Za-z0-9_-]{21}[AQgw]/);
         },
 
         parseQuery: function (queryString) {
