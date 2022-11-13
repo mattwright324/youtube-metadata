@@ -312,10 +312,10 @@ const bulk = (function () {
                     url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/@" + channelHandles[index],
                     dataType: 'html'
                 }).then(function (res) {
-                    const matches = (res || "").match(/\/channel\/[A-Za-z0-9_-]{23}[AQgw]/);
-                    const channelUrl = "https://www.youtube.com" + (matches || [])[0];
+                    const pageHtml = $("<div>").html(res);
+                    const channelId = pageHtml.find("meta[itemprop='channelId']").attr('content');
 
-                    const newParsed = shared.determineInput(channelUrl);
+                    const newParsed = shared.determineInput(channelId);
                     if (newParsed.type === "channel_id") {
                         channelIds.push(newParsed.value);
                         setTimeout(function () {

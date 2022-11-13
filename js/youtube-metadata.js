@@ -29,6 +29,13 @@
         return "<ul>" + html.join("") + "</ul>";
     }
 
+    function getConvertTime(date) {
+        const momentTime = moment(date);
+
+        return " (<a target='_blank' href='https://www.timeanddate.com/worldclock/converter.html?iso=" +
+            momentTime.format("YYYYMMDDTHHmmss") + "'>convert</a>)"
+    }
+
     function getSuggestedLinks(parsedInput, fullJson, jsonType, filmot) {
         const data = {}
         if (parsedInput) {
@@ -308,7 +315,7 @@
                     const dateHtml =
                         "<p class='mb-15'>Published on " +
                         "<span class='orange'>" + published.toUTCString() + "</span>" +
-                        " (" + moment(published).utc().fromNow() + ")" +
+                        " (" + moment(published).utc().fromNow() + ") " + getConvertTime(published) +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -480,7 +487,33 @@
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #liveStreamingDetails");
 
+                    if (partJson.hasOwnProperty("actualStartTime")) {
+                        const start = new Date(partJson.actualStartTime);
+                        const dateHtml =
+                            "<p class='mb-15'>The stream started on " +
+                            "<span class='orange'>" + start.toUTCString() + "</span>" +
+                            " (" + moment(start).utc().fromNow() + ") " + getConvertTime(start) +
+                            "</p>";
+                        partDiv.append(dateHtml);
+                    }
+                    if (partJson.hasOwnProperty("actualEndTime")) {
+                        const end = new Date(partJson.actualEndTime);
+                        const dateHtml =
+                            "<p class='mb-15'>The stream ended on " +
+                            "<span class='orange'>" + end.toUTCString() + "</span>" +
+                            " (" + moment(end).utc().fromNow() + ") " + getConvertTime(end) +
+                            "</p>";
+                        partDiv.append(dateHtml);
+                    }
+
                     const now = moment(new Date()).utc();
+                    if (partJson.hasOwnProperty("scheduledStartTime") && partJson.hasOwnProperty("scheduledEndTime")) {
+                        const start = moment(partJson.scheduledStartTime).utc();
+                        const end = moment(partJson.scheduledEndTime).utc();
+                        const format = shared.formatDuration(getDuration(start, end));
+
+                        partDiv.append("<p class='mb-15'>The stream was scheduled to run for <span class='orange'>" + format + "</span></p>");
+                    }
                     if (partJson.hasOwnProperty("scheduledStartTime") && !partJson.hasOwnProperty("actualStartTime")) {
                         // Stream hasn't started
                         const start = moment(partJson.scheduledStartTime).utc();
@@ -651,7 +684,7 @@
                     const dateHtml =
                         "<p class='mb-15'>Channel created on " +
                         "<span class='orange'>" + published.toUTCString() + "</span>" +
-                        " (" + moment(published).utc().fromNow() + ")" +
+                        " (" + moment(published).utc().fromNow() + ")" + getConvertTime(published) +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -905,7 +938,7 @@
                     const dateHtml =
                         "<p class='mb-15'>Playlist created on " +
                         "<span class='orange'>" + published.toUTCString() + "</span>" +
-                        " (" + moment(published).utc().fromNow() + ")" +
+                        " (" + moment(published).utc().fromNow() + ")" + getConvertTime(published) +
                         "</p>";
                     partDiv.append(dateHtml);
 
@@ -1225,12 +1258,12 @@
             url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + parsedInput.value,
             dataType: 'html'
         }).then(function (res) {
-            const matches = (res || "").match(/\/channel\/[A-Za-z0-9_-]{23}[AQgw]/);
-            const channelUrl = "https://www.youtube.com" + (matches || [])[0];
+            const pageHtml = $("<div>").html(res);
+            const channelId = pageHtml.find("meta[itemprop='channelId']").attr('content');
 
-            console.log('Retrieved url ' + channelUrl);
+            console.log('Retrieved id ' + channelId);
 
-            const newParsed = shared.determineInput(channelUrl);
+            const newParsed = shared.determineInput(channelId);
             if (newParsed.type !== "unknown") {
                 callbackResubmit(newParsed);
             } else {
