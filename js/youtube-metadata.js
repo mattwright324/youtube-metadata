@@ -1158,7 +1158,7 @@
             const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + i + ".jpg";
             const html =
                 "<div class='column' style='margin-bottom: 1.5%!important;'>" +
-                "<a href='https://www.google.com/searchbyimage?image_url=" + thumbUrl + "' target='_blank'>" +
+                "<a href='https://lens.google.com/uploadbyurl?url=" + thumbUrl + "' target='_blank'>" +
                 "<img id='video-thumb-" + i + "' src='" + thumbUrl + "' alt='Thumb " + i + "' style='max-width: 200px;'>" +
                 "<p>Click to reverse image search</p>" +
                 "</a>" +
