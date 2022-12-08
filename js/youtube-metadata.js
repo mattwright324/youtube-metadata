@@ -1255,7 +1255,7 @@
         gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for custom channel(s)', 'value': 1});
 
         $.ajax({
-            url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + parsedInput.value,
+            url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/@" + parsedInput.value,
             dataType: 'html'
         }).then(function (res) {
             const pageHtml = $("<div>").html(res);

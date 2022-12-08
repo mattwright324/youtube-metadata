@@ -88,7 +88,7 @@ const bulk = (function () {
                 channelIds.push(p.value);
             } else if (p.type === "channel_handle" && channelHandles.indexOf(p.value) === -1) {
                 channelHandles.push(p.value);
-            }else if (p.type === "channel_custom" && channelCustoms.indexOf(p.value) === -1) {
+            } else if (p.type === "channel_custom" && channelCustoms.indexOf(p.value) === -1) {
                 channelCustoms.push(p.value);
             } else if (p.type === "channel_user" && channelUsers.indexOf(p.value) === -1) {
                 channelUsers.push(p.value);
