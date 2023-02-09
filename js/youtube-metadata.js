@@ -329,6 +329,16 @@
                         partDiv.append("<p class='mb-15'>There were no tags.</p>")
                     }
 
+                    if (partJson.categoryId) {
+                        const html =
+                            "<p class='mb-15'>Category id is " +
+                            "<span class='orange'>" + partJson.categoryId + "</span> which means " +
+                            "<span class='orange'>" + ytCategory.lookup(partJson.categoryId) + "</span>" +
+                            "</p>";
+
+                        partDiv.append(html);
+                    }
+
                     if (partJson.defaultLanguage) {
                         const code = partJson.defaultLanguage.toUpperCase();
                         const translated = bcp47.lookup(code);
