@@ -329,10 +329,6 @@ const ytCategory = (function () {
         }
     ];
 
-    for (let i = 0; i < categories.length; i++) {
-        console.log(categories[i].id + " ->" + categories[i].snippet.title);
-    }
-
     return {
         /**
          * @param code video categoryId
