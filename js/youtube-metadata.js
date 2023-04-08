@@ -30,7 +30,7 @@
     }
 
     function getConvertTime(date) {
-        const momentTime = moment(date);
+        const momentTime = moment(date).utc();
 
         return " (<a target='_blank' href='https://www.timeanddate.com/worldclock/converter.html?iso=" +
             momentTime.format("YYYYMMDDTHHmmss") + "'>convert</a>)"
@@ -107,6 +107,10 @@
             suggestions.push({
                url: "https://ghostarchive.org/varchive/" + data.video_id,
                text: "GhostArchive.org - " + data.video_id
+            });
+            suggestions.push({
+               url: "https://www.youtuberecover.com/watch?v=" + data.video_id,
+               text: "YouTube Recover - " + data.video_id
             });
         }
         if (data.hasOwnProperty("playlist_title")) {
@@ -212,6 +216,10 @@
             suggestions.push({
                 url: "https://filmot.com/channel/" + data.channel_id,
                 text: "Filmot.com - https://filmot.com/channel/" + data.channel_id
+            });
+            suggestions.push({
+                url: "https://www.youtuberecover.com/channel?id=" + data.channel_id,
+                text: "YouTube Recover - " + data.channel_id
             });
         }
 
@@ -417,7 +425,7 @@
                     const location = partJson.location;
                     if (location && location.latitude && location.longitude) {
                         const latlng = location.latitude + "," + location.longitude;
-                        const staticMap = "https://maps.googleapis.com/maps/api/staticmap?center=" + latlng + "&zoom=14&size=1000x300&key=AIzaSyCGWanOEMEgdHqsxNDaa_ZXTZ6hoYQrnAI&markers=color:red|" + latlng;
+                        const staticMap = "https://maps.googleapis.com/maps/api/staticmap?center=" + latlng + "&zoom=14&size=1000x300&key=AIzaSyAa-o55aIMt4YC0mhPyp8WfGql5DVg_fp4&markers=color:red|" + latlng;
 
                         const link = partJson.hasOwnProperty("locationDescription") ?
                             "https://maps.google.com/maps/search/" + encodeURI(partJson.locationDescription).replace(/'/g, "%27") + "/@" + latlng + ",14z" :
@@ -1208,55 +1216,6 @@
     }
 
     /**
-     * Attempt to resolve the custom URL via CORS workaround. Grab webpage content and extract og:url.
-     */
-    async function resolveCustomChannelCORS(parsedInput, callbackResubmit) {
-        console.log('Attempting to resolve custom channel via CORS')
-
-        gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for custom channel(s)', 'value': 1});
-
-        $.ajax({
-            url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/" + parsedInput.value,
-            dataType: 'html'
-        }).then(function (res) {
-            const pageHtml = $("<div>").html(res);
-            const ogUrl = pageHtml.find("meta[property='og:url']").attr('content');
-            console.log('Retrieved og:url ' + ogUrl);
-
-            const newParsed = shared.determineInput(ogUrl);
-            if (newParsed.type !== "unknown") {
-                callbackResubmit(newParsed);
-            } else {
-                errorState("Could not resolve Custom Channel URL", function (append) {
-                    append.append("<p class='mb-15'>" +
-                        "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
-                        "</p>");
-                    append.append("<p class='mb-15'>" +
-                        "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
-                        "</p>");
-                    append.append("<p class='mb-15'>" +
-                        "More detail about the issue and what you can do can be found here at " +
-                        "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
-                        "</p>");
-                })
-            }
-        }).fail(function (err) {
-            errorState("Could not resolve Custom Channel URL", function (append) {
-                append.append("<p class='mb-15'>" +
-                    "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
-                    "</p>");
-                append.append("<p class='mb-15'>" +
-                    "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
-                    "</p>");
-                append.append("<p class='mb-15'>" +
-                    "More detail about the issue and what you can do can be found here at " +
-                    "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
-                    "</p>");
-            })
-        });
-    }
-
-    /**
      * Attempt to resolve the channel handle URL via CORS workaround. Grab webpage content and extract url pattern.
      */
     async function resolveChannelHandleCORS(parsedInput, callbackResubmit) {
@@ -1324,9 +1283,7 @@
 
         if (parsedInput.type === 'unknown') {
             errorState("Your link did not follow an accepted format.");
-        } else if (parsedInput.type === 'channel_custom') {
-            resolveCustomChannelCORS(parsedInput, submit);
-        }else if (parsedInput.type === 'channel_handle') {
+        } else if (parsedInput.type === 'channel_handle' || parsedInput.type === 'channel_custom') {
             resolveChannelHandleCORS(parsedInput, submit);
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');

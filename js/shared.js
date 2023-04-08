@@ -7,9 +7,10 @@ const shared = (function () {
     const patterns = {
         video_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/watch\?v=([\w_-]+)(?:[\/&].*)?/i,
-            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video|watch)\/([\w_-]+)(?:[\/&].*)?/i,
+            /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video|watch|live)\/([\w_-]+)(?:[\/&].*)?/i,
             /(?:http[s]?:\/\/)?youtu.be\/([\w_-]+)(?:\?.*)?/i,
-            /(?:http[s]?:\/\/)?filmot.com\/video\/([\w_-]+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?filmot.com\/video\/([\w_-]+)(?:[?\/&].*)?/i,
+            /(?:http[s]?:\/\/)?filmot.com\/sidebyside\/([\w_-]+)(?:[?\/&].*)?/i,
             /^([\w-]{11})$/i
         ],
         playlist_id: [
@@ -18,7 +19,7 @@ const shared = (function () {
         ],
         channel_id: [
             /(?:http[s]?:\/\/)?(?:\w+\.)?youtube.com\/channel\/([\w_-]+)(?:\?.*)?/i,
-            /(?:http[s]?:\/\/)?filmot.com\/channel\/([\w_-]+)(?:\?.*)?/i,
+            /(?:http[s]?:\/\/)?filmot.com\/channel\/([\w_-]+)(?:[?\/&].*)?/i,
             /^((UC|SC)[\w-]{22})$/i
         ],
         channel_user: [

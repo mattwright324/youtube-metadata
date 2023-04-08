@@ -2328,12 +2328,12 @@ const bulk = (function () {
             const submitKey = 'last-submit-metadata-bulk-date';
 
             function countdown(count) {
-                $("#submit").addClass("loading").addClass("disabled")
+                controls.btnSubmit.addClass("loading").addClass("disabled")
                 $("#submit .countdown").text(Math.trunc(count));
 
                 setTimeout(function () {
                     if (count <= 1) {
-                        $("#submit").removeClass("loading").removeClass("disabled");
+                        controls.btnSubmit.removeClass("loading").removeClass("disabled");
                         canSubmit = true;
                     } else {
                         countdown(count - 1);
@@ -2348,7 +2348,7 @@ const bulk = (function () {
             if (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < millis) {
                 countdown((millis - moment().diff(lastSubmit)) / 1000);
             } else {
-                $("#submit").removeClass("loading").removeClass("disabled");
+                controls.btnSubmit.removeClass("loading").removeClass("disabled");
             }
 
             let canSubmit = true;
