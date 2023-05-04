@@ -13,6 +13,61 @@
     const controls = {};
     let exportData = {};
 
+    const delaySubmitKey = "delaySubmit";
+    const can = {
+        submit: true,
+    };
+
+    const delay15Sec = 15;
+    const delay15SecMs = delay15Sec * 1000;
+
+    function countdown(key, control, delay, flag) {
+        control.addClass("loading").addClass("disabled");
+        can[flag] = false;
+
+        let value = localStorage.getItem(key);
+        if (!moment(value).isValid()) {
+            console.warn('value for %s was not a valid date, resetting to now', key);
+            localStorage.setItem(key, new Date());
+            value = localStorage.getItem(key);
+        }
+        if (moment(value).isAfter(moment())) {
+            console.warn('value for %s was set in the future, resetting to now', key);
+            localStorage.setItem(key, new Date());
+            value = localStorage.getItem(key);
+        }
+        let count = (delay - moment().diff(value)) / 1000;
+        control.find(".countdown").text(Math.trunc(count));
+
+        function c(control, count) {
+            if (count <= 1) {
+                control.removeClass("loading").removeClass("disabled");
+                control.find(".countdown").text("");
+
+                can[flag] = true;
+            } else {
+                control.find(".countdown").text(Math.trunc(count));
+                setTimeout(function () {
+                    c(control, count - 1)
+                }, 1000);
+            }
+        }
+
+        setTimeout(function () {
+            c(control, count)
+        }, 1000);
+    }
+
+    function countdownCheck(key, control, delayMs, flag) {
+        const value = localStorage.getItem(key);
+        if (key in localStorage && moment(value).isValid() && moment().diff(value) < delayMs) {
+            countdown(key, control, delayMs, flag);
+        } else {
+            control.removeClass("loading").removeClass("disabled");
+            control.find(".countdown").text("");
+        }
+    }
+
     if (typeof gtag === 'undefined') {
         // prevent error if gtag removed
         window['gtag'] = function() {}
@@ -1442,33 +1497,19 @@
                     controls.btnSubmit.click();
                 }
             });
-            let canSubmit = true;
+
+            countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
+
             controls.btnSubmit.on('click', function () {
-                if (!canSubmit) {
+                if (!can.submit) {
                     return;
                 }
-                canSubmit = false;
+                localStorage.setItem(delaySubmitKey, new Date());
+                countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
 
                 gtag('event', 'click', {'event_category': 'button', 'event_label': 'submit normal'});
 
                 exportData = {};
-
-                $("#submit").addClass("loading").addClass("disabled")
-
-                function countdown(count) {
-                    $("#submit .countdown").text(count);
-
-                    setTimeout(function () {
-                        if (count === 1) {
-                            $("#submit").removeClass("loading").removeClass("disabled");
-                            canSubmit = true;
-                        } else {
-                            countdown(count - 1);
-                        }
-                    }, 1000);
-                }
-
-                countdown(3);
 
                 const value = controls.inputValue.val();
 

@@ -12,6 +12,61 @@ const bulk = (function () {
     const elements = {};
     const controls = {};
 
+    const delaySubmitKey = "delaySubmit";
+    const can = {
+        submit: true,
+    };
+
+    const delay15Sec = 15;
+    const delay15SecMs = delay15Sec * 1000;
+
+    function countdown(key, control, delay, flag) {
+        control.addClass("loading").addClass("disabled");
+        can[flag] = false;
+
+        let value = localStorage.getItem(key);
+        if (!moment(value).isValid()) {
+            console.warn('value for %s was not a valid date, resetting to now', key);
+            localStorage.setItem(key, new Date());
+            value = localStorage.getItem(key);
+        }
+        if (moment(value).isAfter(moment())) {
+            console.warn('value for %s was set in the future, resetting to now', key);
+            localStorage.setItem(key, new Date());
+            value = localStorage.getItem(key);
+        }
+        let count = (delay - moment().diff(value)) / 1000;
+        control.find(".countdown").text(Math.trunc(count));
+
+        function c(control, count) {
+            if (count <= 1) {
+                control.removeClass("loading").removeClass("disabled");
+                control.find(".countdown").text("");
+
+                can[flag] = true;
+            } else {
+                control.find(".countdown").text(Math.trunc(count));
+                setTimeout(function () {
+                    c(control, count - 1)
+                }, 1000);
+            }
+        }
+
+        setTimeout(function () {
+            c(control, count)
+        }, 1000);
+    }
+
+    function countdownCheck(key, control, delayMs, flag) {
+        const value = localStorage.getItem(key);
+        if (key in localStorage && moment(value).isValid() && moment().diff(value) < delayMs) {
+            countdown(key, control, delayMs, flag);
+        } else {
+            control.removeClass("loading").removeClass("disabled");
+            control.find(".countdown").text("");
+        }
+    }
+
     if (typeof gtag === 'undefined') {
         // prevent error if gtag removed
         window['gtag'] = function() {}
@@ -2325,40 +2380,14 @@ const bulk = (function () {
                 }
             });
 
-            const submitKey = 'last-submit-metadata-bulk-date';
+            countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
 
-            function countdown(count) {
-                controls.btnSubmit.addClass("loading").addClass("disabled")
-                $("#submit .countdown").text(Math.trunc(count));
-
-                setTimeout(function () {
-                    if (count <= 1) {
-                        controls.btnSubmit.removeClass("loading").removeClass("disabled");
-                        canSubmit = true;
-                    } else {
-                        countdown(count - 1);
-                    }
-                }, 1000);
-            }
-
-            const seconds = 15;
-            const millis = seconds * 1000;
-
-            const lastSubmit = localStorage.getItem(submitKey);
-            if (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < millis) {
-                countdown((millis - moment().diff(lastSubmit)) / 1000);
-            } else {
-                controls.btnSubmit.removeClass("loading").removeClass("disabled");
-            }
-
-            let canSubmit = true;
             controls.btnSubmit.on('click', function () {
-                const lastSubmit = localStorage.getItem(submitKey);
-                if (!canSubmit || (submitKey in localStorage && moment(lastSubmit).isValid() && moment().diff(lastSubmit) < millis)) {
+                if (!can.submit) {
                     return;
                 }
-                canSubmit = false;
-                localStorage.setItem(submitKey, moment())
+                localStorage.setItem(delaySubmitKey, new Date());
+                countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
 
                 internal.reset();
 
