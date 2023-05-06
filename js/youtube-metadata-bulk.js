@@ -2391,8 +2391,6 @@ const bulk = (function () {
 
                 internal.reset();
 
-                countdown(seconds);
-
                 const value = controls.inputValue.val();
 
                 const parsed = [];
