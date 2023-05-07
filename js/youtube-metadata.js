@@ -13,13 +13,13 @@
     const controls = {};
     let exportData = {};
 
-    const delaySubmitKey = "delaySubmit";
+    const delaySubmitKey = "delaySubmitNormal";
     const can = {
         submit: true,
     };
 
-    const delay15Sec = 15;
-    const delay15SecMs = delay15Sec * 1000;
+    const delay5Sec = 5;
+    const delay5SecMs = delay5Sec * 1000;
 
     function countdown(key, control, delay, flag) {
         control.addClass("loading").addClass("disabled");
@@ -1498,14 +1498,14 @@
                 }
             });
 
-            countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
+            countdownCheck(delaySubmitKey, controls.btnSubmit, delay5SecMs, "submit");
 
             controls.btnSubmit.on('click', function () {
                 if (!can.submit) {
                     return;
                 }
                 localStorage.setItem(delaySubmitKey, new Date());
-                countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
+                countdownCheck(delaySubmitKey, controls.btnSubmit, delay5SecMs, "submit");
 
                 gtag('event', 'click', {'event_category': 'button', 'event_label': 'submit normal'});
 

@@ -12,11 +12,12 @@ const bulk = (function () {
     const elements = {};
     const controls = {};
 
-    const delaySubmitKey = "delaySubmit";
+    const delaySubmitKey = "delaySubmitBulk";
     const can = {
         submit: true,
     };
 
+    const apiNextPageMs = 600;
     const delay15Sec = 15;
     const delay15SecMs = delay15Sec * 1000;
 
@@ -246,7 +247,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelUsers.length) {
                     console.log("finished channelUsers");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -303,7 +304,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelCustoms.length) {
                     console.log("finished channelCustoms");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -322,21 +323,21 @@ const bulk = (function () {
                         channelIds.push(newParsed.value);
                         setTimeout(function () {
                             get(index + 1);
-                        }, 100);
+                        }, apiNextPageMs);
                     } else {
                         console.log('Could not resolve custom url');
                         console.warn(newParsed);
 
                         setTimeout(function () {
                             get(index + 1);
-                        }, 100);
+                        }, apiNextPageMs);
                     }
                 }).fail(function (err) {
                     console.warn(err);
 
                     setTimeout(function () {
                         get(index + 1);
-                    }, 100);
+                    }, apiNextPageMs);
                 });
             }
 
@@ -357,7 +358,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelHandles.length) {
                     console.log("finished channelHandles");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -375,21 +376,21 @@ const bulk = (function () {
                         channelIds.push(newParsed.value);
                         setTimeout(function () {
                             get(index + 1);
-                        }, 100);
+                        }, apiNextPageMs);
                     } else {
                         console.log('Could not resolve handle');
                         console.warn(newParsed);
 
                         setTimeout(function () {
                             get(index + 1);
-                        }, 100);
+                        }, apiNextPageMs);
                     }
                 }).fail(function (err) {
                     console.warn(err);
 
                     setTimeout(function () {
                         get(index + 1);
-                    }, 100);
+                    }, apiNextPageMs);
                 });
             }
 
@@ -420,7 +421,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= channelIds.length) {
                     console.log("finished channelIds");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -483,7 +484,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= channelIds.length) {
                     console.log("finished handleChannelIdsCreatedPlaylists");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -551,7 +552,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= notYetRetrieved.length) {
                     console.log("finished notYetRetrieved");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -604,7 +605,7 @@ const bulk = (function () {
             function get(index) {
                 if (index >= playlistIds.length) {
                     console.log("finished playlistIds");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -653,11 +654,11 @@ const bulk = (function () {
                         if (res.hasOwnProperty("nextPageToken")) {
                             setTimeout(function () {
                                 paginate(res.nextPageToken);
-                            }, 150);
+                            }, apiNextPageMs);
                         } else {
                             setTimeout(function () {
                                 get(index + 1);
-                            }, 150);
+                            }, apiNextPageMs);
                         }
                     }).fail(function (err) {
                         console.error(err);
@@ -706,7 +707,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= videoIds.length) {
                     console.log("finished videoIds");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -772,7 +773,7 @@ const bulk = (function () {
             function get(index, slice) {
                 if (index >= videoIds.length) {
                     console.log("finished videoIds");
-                    setTimeout(resolve, 250);
+                    setTimeout(resolve, apiNextPageMs);
                     return;
                 }
 
@@ -808,7 +809,7 @@ const bulk = (function () {
 
                             setTimeout(function () {
                                 get(index + slice, slice);
-                            }, 150);
+                            }, apiNextPageMs);
                         } catch (error) {
                             controls.progress.addClass('error');
                             console.error(error);
@@ -818,7 +819,7 @@ const bulk = (function () {
                             }
                             setTimeout(function () {
                                 get(index + slice, slice);
-                            }, 150);
+                            }, apiNextPageMs);
                         }
                     }).fail(function (err) {
                         controls.progress.addClass('error');
@@ -830,7 +831,7 @@ const bulk = (function () {
                         }
                         setTimeout(function () {
                             get(index + slice, slice);
-                        }, 150);
+                        }, apiNextPageMs);
                     });
                 } catch (error) {
                     controls.progress.addClass('error');
