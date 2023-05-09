@@ -17,6 +17,21 @@
 const youtube = (function ($) {
     'use strict';
 
+    function makeStr(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            counter += 1;
+        }
+        return result;
+    }
+
+    const tempId = localStorage.getItem("tempId") || makeStr(40);
+    localStorage.setItem("tempId", tempId);
+
     let defaultKey = "";
     let currentKey = "";
 
@@ -43,7 +58,7 @@ const youtube = (function ($) {
             } else {
                 return $.ajax({
                     cache: false,
-                    data: $.extend({key: currentKey}, data),
+                    data: $.extend({key: currentKey, quotaUser: tempId}, data),
                     dataType: "json",
                     type: "GET",
                     timeout: 5000,
