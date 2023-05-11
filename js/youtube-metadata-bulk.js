@@ -579,11 +579,15 @@ const bulk = (function () {
                         if (res.hasOwnProperty("nextPageToken")) {
                             paginate(res.nextPageToken);
                         } else {
-                            get(index + 1);
+                            setTimeout(function () {
+                                get(index + 1);
+                            }, apiNextPageMs);
                         }
                     }).fail(function (err) {
                         console.error(err);
-                        get(index + 1);
+                        setTimeout(function () {
+                            get(index + 1);
+                        }, apiNextPageMs);
                     });
                 }
 
