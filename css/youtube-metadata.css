@@ -156,3 +156,7 @@ html.dark a {
 html.dark .progress-bar {
     color: #fff;
 }
+
+.export {
+    display: none;
+}

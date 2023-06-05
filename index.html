@@ -1,11 +1,11 @@
 ---
 layout: default
-title: YouTube Metadata
+title: MW Metadata
 script: youtube-metadata
 ---
 <div class="container">
     <p>
-        YouTube Metadata normal grabs singular details about a video and its uploader, playlist and its creator, or channel.
+        MW Metadata normal grabs singular details about a YouTube video and its uploader, playlist and its creator, or channel.
     </p>
     <p>
         Submit a link or id to a video, playlist, or channel
@@ -21,20 +21,20 @@ script: youtube-metadata
 </div>
 {% include format_share.html %}
 <div class="container mb-15">
-    <h2>Export & Share</h2>
-    <p>Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
-    <button class="btn btn-secondary" id="export">
+    <h2><span class="export">Export &</span> Share</h2>
+    <p class="export">Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
+    <button class="btn btn-secondary export" id="export">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-download"></i>&nbsp;&nbsp;Export</span>
-    </button>&nbsp;
-    <button class="btn btn-secondary" id="import" onclick="document.getElementById('importFileChooser').click()">
+    </button><span class="export">&nbsp;</span>
+    <button class="btn btn-secondary export" id="import" onclick="document.getElementById('importFileChooser').click()">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-upload"></i>&nbsp;&nbsp;Import</span>
         <input id="importFileChooser" type="file" hidden/>
     </button>
-    <p></p>
-    <p>Contains file(s)</p>
-    <ul>
+    <p class="export"></p>
+    <p class="export">Contains file(s)</p>
+    <ul class="export">
         <li>about.txt - Metadata about this result.</li>
         <li>video.json - Raw video data.</li>
         <li>playlist.json - Raw playlist data.</li>
@@ -42,7 +42,7 @@ script: youtube-metadata
         <li>filmot.json - Archive data if retrieved.</li>
         <li>✱-thumb.png - Thumbs if available.</li>
     </ul>
-    <p></p>
+    <p class="export"></p>
     <p>Share this result:</p>
     <div class="input-group" style="max-width: 226px;">
         <input type="text" class="form-control" aria-describedby="copy" id="shareLink" autocomplete="off">
