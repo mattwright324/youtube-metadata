@@ -1,11 +1,11 @@
 ---
 layout: default
-title: YouTube Metadata Bulk
+title: MW Metadata Bulk
 script: youtube-metadata-bulk
 ---
 <div class="container">
     <p>
-        YouTube Metadata bulk grabs details about multiple videos, a playlist's videos, or a channel's public videos.
+        MW Metadata bulk grabs details about multiple YouTube videos, a playlist's videos, or a channel's public videos.
     </p>
     <p>
         Submit a comma or whitespace separated list of multiple videos, playlists, or channels
@@ -28,26 +28,26 @@ script: youtube-metadata-bulk
 </div>
 {% include format_share.html %}
 <div class="container mb-15">
-    <h2>Export & Share</h2>
-    <p>Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
-    <button class="btn btn-secondary" id="export">
+    <h2><span class="export">Export &</span> Share</h2>
+    <p class="export">Save this result as a zip file or load from a previous export. Drag and drop supported.</p>
+    <button class="btn btn-secondary export" id="export">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-download"></i>&nbsp;&nbsp;Export</span>
-    </button>&nbsp;
-    <button class="btn btn-secondary" id="import" onclick="document.getElementById('importFileChooser').click()">
+    </button><span class="export">&nbsp;</span>
+    <button class="btn btn-secondary export" id="import" onclick="document.getElementById('importFileChooser').click()">
         <span class="spinner"><span class="spinner-border spinner-border-sm" role="status"></span></span>
         <span class="text"><i class="bi bi-upload"></i>&nbsp;&nbsp;Import</span>
         <input id="importFileChooser" type="file" hidden/>
     </button>
-    <div class="form-check" style="margin:10px 0">
+    <div class="form-check export" style="margin:10px 0">
         <input class="form-check-input" type="checkbox" value="" id="includeThumbs" autocomplete="off">
         <label class="form-check-label" for="includeThumbs">
             Include thumbnails on export (this may take a long time)
             <span id="thumbProgress" class="orange"></span>
         </label>
     </div>
-    <p>Contains file(s)</p>
-    <ul>
+    <p class="export">Contains file(s)</p>
+    <ul class="export">
         <li>about.txt - Metadata about this result.</li>
         <li>videos.json - Array of all raw video data.</li>
         <li>channels.json - Array of all raw channel data.</li>
@@ -56,7 +56,7 @@ script: youtube-metadata-bulk
         <li>✱.csv - Data from each table section below.</li>
         <li>thumbs/✱.png - Thumbs if available.</li>
     </ul>
-    <p></p>
+    <p class="export"></p>
     <p>Share this result:</p>
     <div class="input-group" style="max-width: 226px;">
         <input type="text" class="form-control" aria-describedby="copy" id="shareLink" autocomplete="off">

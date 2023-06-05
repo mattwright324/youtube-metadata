@@ -1,12 +1,20 @@
 # Privacy
 
-This application operates on the client side and so input, logging, and processing is done locally in the browser. 
-This application does not require any personal information to use.
+This application uses YouTube API Services and Google Maps Services.
 
-This application does make use of third party services that may track or log:
+- http://www.google.com/policies/privacy
 
-- [YouTube & Maps API](https://policies.google.com/privacy) Used to query YouTube for data displayed and static map images for geotagged videos
-- [Google Analytics](https://policies.google.com/privacy) Used to gauge traffic, potential misuse, and see when the app is shared
-- [Heroku](https://www.heroku.com/policy/security) My cors-anywhere proxy used to enable downloading thumbnails and resolving custom channel URLs
-- [Filmot](https://filmot.com/privacy) Used to query private and deleted video metadata with permission from creator
-- [Plausible](https://plausible.io/privacy) Analytics to gauge traffic
+Basic user data is stored/collected by Google Analytics and Plausible and is being used for monitoring traffic and referrals.
+Data collected by these services is not being shared with any other parties. 
+This application does not allow third parties to serve advertisements.
+
+- http://www.google.com/policies/privacy
+- https://plausible.io/privacy
+
+Additional external calls are made to Filmot for archived video metadata. 
+
+- https://filmot.com/privacy
+
+Additional external calls are made to my Heroku [cors-anywhere](https://github.com/Rob--W/cors-anywhere) proxy to resolve custom channel URLs to channel ids.
+
+- https://www.heroku.com/policy/security
