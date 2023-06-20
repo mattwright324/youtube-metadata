@@ -370,8 +370,12 @@ const bulk = (function () {
                 }).then(function (res) {
                     const pageHtml = $("<div>").html(res);
                     const channelId = pageHtml.find("meta[itemprop='channelId']").attr('content');
+                    const ogUrl = pageHtml.find("meta[property='og:url']").attr('content');
+                    const canonical = pageHtml.find("link[rel='canonical']").attr('href');
 
-                    const newParsed = shared.determineInput(channelId);
+                    console.log('Retrieved [channelId=%s, ogUrl=%s, canonical=%s]', channelId, ogUrl, canonical);
+
+                    const newParsed = shared.determineInput(channelId || ogUrl || canonical);
                     if (newParsed.type === "channel_id") {
                         channelIds.push(newParsed.value);
                         setTimeout(function () {

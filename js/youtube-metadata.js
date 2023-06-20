@@ -1284,10 +1284,12 @@
         }).then(function (res) {
             const pageHtml = $("<div>").html(res);
             const channelId = pageHtml.find("meta[itemprop='channelId']").attr('content');
+            const ogUrl = pageHtml.find("meta[property='og:url']").attr('content');
+            const canonical = pageHtml.find("link[rel='canonical']").attr('href');
 
-            console.log('Retrieved id ' + channelId);
+            console.log('Retrieved [channelId=%s, ogUrl=%s, canonical=%s]', channelId, ogUrl, canonical);
 
-            const newParsed = shared.determineInput(channelId);
+            const newParsed = shared.determineInput(channelId || ogUrl || canonical);
             if (newParsed.type !== "unknown") {
                 callbackResubmit(newParsed);
             } else {
