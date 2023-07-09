@@ -160,3 +160,14 @@ html.dark .progress-bar {
 .export {
     display: none;
 }
+
+/*
+Use Stylus extension!
+
+https://chrome.google.com/webstore/detail/stylus/clngdbkpkpeebahjckkjfobafhncgmne
+https://addons.mozilla.org/en-US/firefox/addon/styl-us/
+
+.export {
+    display: revert!important;
+}
+*/
