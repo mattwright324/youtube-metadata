@@ -67,12 +67,6 @@
             control.find(".countdown").text("");
         }
     }
-
-    if (typeof gtag === 'undefined') {
-        // prevent error if gtag removed
-        window['gtag'] = function() {}
-    }
-
     function getSuggestedHtml(parsedInput, fullJson, jsonType, filmot) {
         const suggested = getSuggestedLinks(parsedInput, fullJson, jsonType, filmot);
         suggested.sort((a, b) => (a.text > b.text) ? 1 : -1)
@@ -1092,8 +1086,6 @@
                 return;
             }
 
-            gtag('event', 'call', {'event_category': 'filmot', 'event_label': 'call filmot from normal'});
-
             $.ajax({
                 cache: false,
                 data: {
@@ -1275,8 +1267,6 @@
      */
     async function resolveChannelHandleCORS(parsedInput, callbackResubmit) {
         console.log('Attempting to resolve custom channel via CORS')
-
-        gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for custom channel(s)', 'value': 1});
 
         $.ajax({
             url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/@" + parsedInput.value,
@@ -1509,8 +1499,6 @@
                 localStorage.setItem(delaySubmitKey, new Date());
                 countdownCheck(delaySubmitKey, controls.btnSubmit, delay5SecMs, "submit");
 
-                gtag('event', 'click', {'event_category': 'button', 'event_label': 'submit normal'});
-
                 exportData = {};
 
                 const value = controls.inputValue.val();
@@ -1552,8 +1540,6 @@
             }
 
             controls.btnExport.on('click', async function () {
-                gtag('event', 'click', {'event_category': 'button', 'event_label': 'export normal'});
-
                 controls.btnExport.addClass("loading").addClass("disabled");
 
                 const zip = new JSZip();
@@ -1601,10 +1587,6 @@
                 const optionalImages = [];
                 for (let fileName in thumbLinks) {
                     optionalImages.push(getImageBinaryCorsProxy(fileName, thumbLinks[fileName], zip));
-                }
-
-                if (optionalImages.length) {
-                    gtag('event', 'call', {'event_category': 'cors_proxy', 'event_label': 'cors_proxy for thumb urls', 'value': optionalImages.length});
                 }
 
                 Promise.all(optionalImages).then(function () {
@@ -1665,8 +1647,6 @@
             });
 
             function importFile(file) {
-                gtag('event', 'click', {'event_category': 'button', 'event_label': 'import normal'});
-
                 console.log("Importing from file " + file.name);
 
                 controls.btnImport.addClass("loading").addClass("disabled");
