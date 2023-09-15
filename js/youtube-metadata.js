@@ -157,9 +157,13 @@
                url: "https://ghostarchive.org/varchive/" + data.video_id,
                text: "GhostArchive.org - " + data.video_id
             });
+            // suggestions.push({
+            //    url: "https://www.youtuberecover.com/watch?v=" + data.video_id,
+            //    text: "YouTube Recover - " + data.video_id
+            // });
             suggestions.push({
-               url: "https://www.youtuberecover.com/watch?v=" + data.video_id,
-               text: "YouTube Recover - " + data.video_id
+               url: "https://hobune.stream/videos/" + data.video_id,
+               text: "Hobune Archive - " + data.video_id
             });
         }
         if (data.hasOwnProperty("playlist_title")) {
@@ -266,9 +270,13 @@
                 url: "https://filmot.com/channel/" + data.channel_id,
                 text: "Filmot.com - https://filmot.com/channel/" + data.channel_id
             });
+            // suggestions.push({
+            //     url: "https://www.youtuberecover.com/channel?id=" + data.channel_id,
+            //     text: "YouTube Recover - " + data.channel_id
+            // });
             suggestions.push({
-                url: "https://www.youtuberecover.com/channel?id=" + data.channel_id,
-                text: "YouTube Recover - " + data.channel_id
+                url: "https://hobune.stream/channels/" + data.channel_id,
+                text: "Hobune Archive - " + data.channel_id
             });
         }
 
