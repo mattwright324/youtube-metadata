@@ -1164,8 +1164,6 @@
     }
 
     function attemptWaybackCDX(parsedInput) {
-        $("#wayback").hide();
-
         if (parsedInput.type === "video_id") {
             $("#wayback").show();
             $("#wayback-append").text("Checking...")
@@ -1177,28 +1175,38 @@
 
             const results = []
             const promises = []
+            const cdxUrls = []
+
+            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
+            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
+
             for (let i in subdomains) {
                 const subdomain = subdomains[i];
-                const cdxUrl = "https://cors-proxy-mw324.herokuapp.com/https://web.archive.org/cdx/search/cdx?url=" + subdomain + ".ytimg.com/sb/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json"
+                const cdxUrl = "https://web.archive.org/cdx/search/cdx?url=" + subdomain + ".ytimg.com/sb/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json"
+
+                cdxUrls.push(cdxUrl)
+            }
+
+            for (let i in cdxUrls) {
+                const url = cdxUrls[i]
 
                 promises.push(new Promise(function (resolve) {
                     setTimeout(function () {
                         $.ajax({
-                            url: cdxUrl
+                            url: "https://cors-proxy-mw324.herokuapp.com/" + url
                         }).done(function (res) {
-                            if (!res) {
-
-                            }
-                            console.log(cdxUrl)
-                            for (let i = 0; i < res.length; i++) {
-                                results.push(res[i])
+                            console.log(url)
+                            if (res) {
+                                for (let i = 0; i < res.length; i++) {
+                                    results.push(res[i])
+                                }
                             }
                             resolve()
                         }).fail(function (err) {
-                            console.error(cdxUrl)
+                            console.error(url)
                             resolve()
                         })
-                    }, i * 200)
+                    }, i * 300)
                 }))
             }
 
@@ -1230,7 +1238,6 @@
                 } else {
                     $("#wayback-append").text("No storyboard links were found.")
                 }
-
             })
         }
     }
@@ -1280,7 +1287,14 @@
                     "</p>");
             });
             attemptLoadFilmot(parsedInput);
-            attemptWaybackCDX(parsedInput);
+            $("#wayback,#wayback-check").show()
+            $("#wayback-append").html("")
+            $("#wayback-check").click(function () {
+                if ($("#wayback").is(":visible")) {
+                    $("#wayback-check").hide()
+                    attemptWaybackCDX(parsedInput);
+                }
+            })
         }
     }
 
@@ -1733,7 +1747,7 @@
                 controls.btnImport.addClass("loading").addClass("disabled");
 
                 $("#video,#playlist,#channel").show();
-                $("#unknown,#quota,#filmot").hide();
+                $("#unknown,#quota,#filmot,#wayback").hide();
                 internal.buildPage(false);
 
                 function loadFile(fileName, parseMethod, inputType) {
