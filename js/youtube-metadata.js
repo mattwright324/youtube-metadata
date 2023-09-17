@@ -1223,17 +1223,31 @@
                         continue
                     }
 
-                    links.push([result[2], `https://web.archive.org/web/${result[1]}/${result[2]}`])
+                    links.push([result[2], result[1], `https://web.archive.org/web/${result[1]}/${result[2]}`])
                 }
 
                 if (links.length) {
-                    links.sort(function (a,b) {return a[0] - b[0]})
+                    links.sort(function (a,b) {
+                        const urlA = new URL(a[0])
+                        const baseA = urlA.hostname + urlA.pathname
+                        const urlB = new URL(b[0])
+                        const baseB = urlB.hostname + urlB.pathname
+
+                        // url base
+                        if (baseA < baseB) return -1
+                        if (baseA > baseB) return 1
+
+                        // timestamp
+                        return a[1] - b[1]
+                    })
 
                     const linkHtml = []
                     for (let i in links) {
                         const link = links[i];
+                        const url = new URL(link[0])
+                        const base = url.hostname + url.pathname
 
-                        linkHtml.push(`<a target="_blank" href="${link[1]}">Archive.org - ${link[0]}</a>`)
+                        linkHtml.push(`<a target="_blank" href="${link[2]}">Archive.org - ${base}</a> <small class="text-muted">${link[1]}</small>`)
                     }
 
                     $("#wayback-append").html(`<ul><li>${linkHtml.join("</li><li>")}</li></ul>`)
