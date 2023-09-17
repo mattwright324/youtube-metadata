@@ -1163,6 +1163,77 @@
         }
     }
 
+    function attemptWaybackCDX(parsedInput) {
+        $("#wayback").hide();
+
+        if (parsedInput.type === "video_id") {
+            $("#wayback").show();
+
+            const subdomains = ["i"]
+            for (let i = 1; i <= 9; i++) {
+                subdomains.push("i" + i)
+            }
+
+            const results = []
+            const promises = []
+            for (let i in subdomains) {
+                const subdomain = subdomains[i];
+                const cdxUrl = "https://cors-proxy-mw324.herokuapp.com/https://web.archive.org/cdx/search/cdx?url=" + subdomain + ".ytimg.com/sb/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json"
+
+                promises.push(new Promise(function (resolve) {
+                    setTimeout(function () {
+                        $.ajax({
+                            url: cdxUrl
+                        }).done(function (res) {
+                            if (!res) {
+
+                            }
+                            console.log(cdxUrl)
+                            for (let i = 0; i < res.length; i++) {
+                                results.push(res[i])
+                            }
+                            resolve()
+                        }).fail(function (err) {
+                            console.error(cdxUrl)
+                            resolve()
+                        })
+                    }, i * 200)
+                }))
+            }
+
+            Promise.all(promises).then(function () {
+                console.log("Done!")
+                console.log(results)
+
+                const links = []
+                for (let i in results) {
+                    const result = results[i];
+                    if (result[0] === "urlkey") {
+                        continue
+                    }
+
+                    links.push([result[2], `https://web.archive.org/web/${result[1]}/${result[2]}`])
+                }
+
+                if (links.length) {
+                    const linkHtml = []
+                    for (let i in links) {
+                        const link = links[i];
+
+                        linkHtml.push(`<a target="_blank" href="${link[1]}">Archive.org - ${link[0]}</a>`)
+                    }
+
+                    linkHtml.sort()
+
+                    $("#wayback-append").html(`<ul><li>${linkHtml.join("</li><li>")}</li></ul>`)
+                } else {
+                    $("#wayback-append").text("No storyboard links were found.")
+                }
+
+            })
+        }
+    }
+
     function parseType(partMapType, sectionId, res, parsedInput) {
         if (res && res.items && res.items.length > 0) {
             const item = res.items[0];
@@ -1208,6 +1279,7 @@
                     "</p>");
             });
             attemptLoadFilmot(parsedInput);
+            attemptWaybackCDX(parsedInput);
         }
     }
 
