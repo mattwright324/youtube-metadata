@@ -1166,7 +1166,8 @@
     function attemptWaybackCDX(parsedInput) {
         if (parsedInput.type === "video_id") {
             $("#wayback").show();
-            $("#wayback-append").text("Checking...")
+            $("#wayback-show-older,#wayback-copy").hide();
+            $("#wayback-append").html("Checking... <span id='wayback-progress'></span>")
 
             const results = []
             const promises = []
@@ -1178,10 +1179,7 @@
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
 
             // Storyboard thumbs
-            const sbSub = ["i"]
-            for (let i = 1; i <= 9; i++) {
-                sbSub.push("i" + i)
-            }
+            const sbSub = ["i", "i9", "i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8"]
             for (let i in sbSub) {
                 const subdomain = sbSub[i];
                 const cdxUrl = "https://web.archive.org/cdx/search/cdx?url=" + subdomain + ".ytimg.com/sb/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json"
@@ -1189,13 +1187,28 @@
                 cdxUrls.push(cdxUrl)
             }
 
-            for (let i in cdxUrls) {
-                const url = cdxUrls[i]
+            let progress = 0
+            let failed = 0
+            $("#wayback-progress").html(`${progress+failed}/${cdxUrls.length} done; ${failed} failed`)
 
-                promises.push(new Promise(function (resolve) {
-                    setTimeout(function () {
+            promises.push(new Promise(function (resolve) {
+                function cdxCall(i) {
+                    if (i >= cdxUrls.length) {
+                        console.log("promise done")
+                        resolve()
+                        return
+                    }
+                    console.log("calling " + i)
+
+                    const url = cdxUrls[i]
+                    if (!url) {
+                        resolve()
+                        return
+                    }
+
+                    const promise = new Promise(function (resolve2) {
                         $.ajax({
-                            url: "https://cors-proxy-mw324.herokuapp.com/" + url
+                            url: "https://cors-proxy-mw324.herokuapp.com/" + url,
                         }).done(function (res) {
                             console.log(url)
                             if (res) {
@@ -1203,14 +1216,22 @@
                                     results.push(res[i])
                                 }
                             }
-                            resolve()
+                            progress += 1
+                            $("#wayback-progress").html(`${progress+failed}/${cdxUrls.length} done; ${failed} failed`)
+                            resolve2()
                         }).fail(function (err) {
                             console.error(url)
-                            resolve()
+                            failed += 1
+                            $("#wayback-progress").html(`${progress+failed}/${cdxUrls.length} done; ${failed} failed`)
+                            resolve2()
                         })
-                    }, i * 300)
-                }))
-            }
+                    })
+
+                    promises.push(promise)
+                    promise.then(function () {cdxCall(i + 1)})
+                }
+                cdxCall(0)
+            }))
 
             Promise.all(promises).then(function () {
                 console.log("Done!")
@@ -1223,34 +1244,41 @@
                         continue
                     }
 
-                    links.push([result[2], result[1], `https://web.archive.org/web/${result[1]}/${result[2]}`])
+                    const url = new URL(result[2])
+                    const base = url.hostname + url.pathname
+
+                    links.push([base, result[2], result[1], `https://web.archive.org/web/${result[1]}/${result[2]}`])
                 }
 
                 if (links.length) {
                     links.sort(function (a,b) {
-                        const urlA = new URL(a[0])
-                        const baseA = urlA.hostname + urlA.pathname
-                        const urlB = new URL(b[0])
-                        const baseB = urlB.hostname + urlB.pathname
-
                         // url base
-                        if (baseA < baseB) return -1
-                        if (baseA > baseB) return 1
+                        if (a[0] < b[0]) return -1
+                        if (a[0] > b[0]) return 1
 
                         // timestamp
-                        return a[1] - b[1]
+                        return b[2] - a[2]
                     })
 
+                    const hideOlder = $("#checkHideOlder").is(":checked")
+
+                    let currentBase = null;
                     const linkHtml = []
                     for (let i in links) {
                         const link = links[i];
-                        const url = new URL(link[0])
-                        const base = url.hostname + url.pathname
 
-                        linkHtml.push(`<a target="_blank" href="${link[2]}">Archive.org - ${base}</a> <small class="text-muted">${link[1]}</small>`)
+                        if (link[0] === currentBase) {
+                            linkHtml.push(`<li class="cdx-link wayback-cdx-older" ${hideOlder ? "style='display:none'" : ""}>
+                                <a target="_blank" href="${link[3]}">Archive.org - ${link[0]}</a> <small class="text-muted">${link[2]}</small></li>`)
+                            continue
+                        }
+
+                        currentBase = link[0]
+                        linkHtml.push(`<li class="cdx-link wayback-cdx-newest"><a target="_blank" href="${link[3]}">Archive.org - ${link[0]}</a> <small class="text-muted">${link[2]}</small></li>`)
                     }
-
-                    $("#wayback-append").html(`<ul><li>${linkHtml.join("</li><li>")}</li></ul>`)
+                    $("#wayback-append").html(`<ul>${linkHtml.join("")}</ul>`)
+                    $("#wayback-show-older,#wayback-copy").show();
+                    $("#wayback-show-older .older-count").text($(".wayback-cdx-older").length)
                 } else {
                     $("#wayback-append").text("No cdx records were found.")
                 }
@@ -1625,6 +1653,27 @@
                 if ($("#wayback").is(":visible")) {
                     $("#wayback-check").hide()
                     attemptWaybackCDX(window.parsed);
+                }
+            })
+
+            $("#checkHideOlder").change(function () {
+                if ($("#checkHideOlder").is(":checked")) {
+                    $(".wayback-cdx-older").hide()
+                } else {
+                    $(".wayback-cdx-older").show()
+                }
+            })
+
+            new ClipboardJS("#wayback-copy", {
+                text: function (trigger) {
+                    const links = []
+                    $(".cdx-link:visible").each(function (i, el) {
+                        const link = $(el).find("a").attr("href")
+                        if (link) {
+                            links.push(link)
+                        }
+                    })
+                    return links.join("\n")
                 }
             })
 

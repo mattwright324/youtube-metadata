@@ -130,6 +130,13 @@ script: youtube-metadata
     <p class="mb-15">
         Potential metadata returned from Wayback CDX API. Searches for video and video storyboard thumbnails.
     </p>
-    <button class="btn btn-secondary" id="wayback-check">Check CDX</button>
+    <button class="btn btn-secondary" id="wayback-check" style="margin-bottom:8px">Check CDX</button>
+    <div id="wayback-show-older" class="form-check" style="margin-bottom:8px;display:none">
+        <input class="form-check-input" type="checkbox" value="" id="checkHideOlder" checked>
+        <label class="form-check-label" for="checkHideOlder">
+            Hide older versions of the same link (<span class="older-count">0</span> older)
+        </label>
+    </div>
     <div id="wayback-append"></div>
+    <button class="btn btn-secondary" id="wayback-copy" style="margin-bottom:8px;display:none">Copy visible links</button>
 </div>
