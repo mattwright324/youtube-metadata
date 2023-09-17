@@ -1178,7 +1178,7 @@
             const cdxUrls = []
 
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
-            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
+            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
 
             for (let i in subdomains) {
                 const subdomain = subdomains[i];
@@ -1236,7 +1236,7 @@
 
                     $("#wayback-append").html(`<ul><li>${linkHtml.join("</li><li>")}</li></ul>`)
                 } else {
-                    $("#wayback-append").text("No storyboard links were found.")
+                    $("#wayback-append").text("No cdx records were found.")
                 }
             })
         }
@@ -1289,13 +1289,6 @@
             attemptLoadFilmot(parsedInput);
             $("#wayback,#wayback-check").show()
             $("#wayback-append").html("")
-            $("#wayback-check").off("click")
-            $("#wayback-check").click(function () {
-                if ($("#wayback").is(":visible")) {
-                    $("#wayback-check").hide()
-                    attemptWaybackCDX(parsedInput);
-                }
-            })
         }
     }
 
@@ -1604,12 +1597,20 @@
                 controls.shareLink.attr("disabled", false);
 
                 const parsed = shared.determineInput(value);
+                window["parsed"] = parsed
 
                 $("#video,#playlist,#channel").show();
-                $("#unknown,#quota,#filmot").hide();
+                $("#unknown,#quota,#filmot,#wayback").hide();
                 internal.buildPage(false);
                 submit(parsed);
             });
+
+            $("#wayback-check").click(function () {
+                if ($("#wayback").is(":visible")) {
+                    $("#wayback-check").hide()
+                    attemptWaybackCDX(window.parsed);
+                }
+            })
 
             function getImageBinaryCorsProxy(fileName, imageUrl, zip) {
                 return new Promise(function (resolve) {
