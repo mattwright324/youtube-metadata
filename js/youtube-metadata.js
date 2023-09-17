@@ -1352,12 +1352,14 @@
         const thumbsDiv = $("#thumbnails");
 
         thumbsDiv.empty();
-        for (let i = 0; i < 4; i++) {
-            const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + i + ".jpg";
+        const names = ["0", "hq1", "hq2", "hq3"]
+        for (let i in names) {
+            const name = names[i]
+            const thumbUrl = "https://img.youtube.com/vi/" + id + "/" + name + ".jpg";
             const html =
                 "<div class='column' style='margin-bottom: 1.5%!important;'>" +
                 "<a href='https://lens.google.com/uploadbyurl?url=" + thumbUrl + "' target='_blank'>" +
-                "<img id='video-thumb-" + i + "' src='" + thumbUrl + "' alt='Thumb " + i + "' style='max-width: 200px;'>" +
+                "<img id='video-thumb-" + name + "' src='" + thumbUrl + "' alt='Thumb " + name + "' style='max-width: 200px;'>" +
                 "<p>Click to reverse image search</p>" +
                 "</a>" +
                 "</div>";
