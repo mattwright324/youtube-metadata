@@ -1719,11 +1719,12 @@
                     console.log("Creating video.json...");
                     zip.file("video.json", JSON.stringify(exportData.video, null, 4));
 
-                    thumbLinks["video-thumb.png"] = document.getElementById('video-thumb').src;
-                    thumbLinks["video-thumb1.png"] = document.getElementById('video-thumb-0').src;
-                    thumbLinks["video-thumb2.png"] = document.getElementById('video-thumb-1').src;
-                    thumbLinks["video-thumb3.png"] = document.getElementById('video-thumb-2').src;
-                    thumbLinks["video-thumb4.png"] = document.getElementById('video-thumb-3').src;
+                    const names = ["0", "hq1", "hq2", "hq3"]
+                    for (let i in names) {
+                        const name = names[i];
+
+                        thumbLinks[`video-thumb-${name}.png`] = document.getElementById(`video-thumb-${name}`).src;
+                    }
                 }
 
                 if (exportData.hasOwnProperty("playlist")) {
