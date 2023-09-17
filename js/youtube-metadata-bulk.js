@@ -1048,6 +1048,9 @@ const bulk = (function () {
             const duration = shared.idx(["filmot", "duration"], video) || -1;
             const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
             unavailableRows.push([
+                "<a target='_blank' href='./?submit=true&url=https://youtu.be/" + videoId + "'>" +
+                "<img src='../img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
+                "</a>",
                 "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
                 String(video.title),
                 "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
@@ -1649,6 +1652,11 @@ const bulk = (function () {
     ];
 
     const unavailableColumns = [
+        {
+            title: " ",
+            type: "html",
+            visible: true
+        },
         {
             title: "Video ID",
             type: "html",
@@ -2450,11 +2458,11 @@ const bulk = (function () {
                         const filmotUploadDate = shared.idx(["filmot", "uploaddate"], video) || "";
                         const duration = shared.idx(["filmot", "duration"], video) || -1;
                         const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
-                        data[4] = filmotTitle;
-                        data[5] = filmotAuthor;
-                        data[6] = filmotUploadDate;
-                        data[7] = {"display": filmotDuration, "num": duration};
-                        data[8] = filmotDesc;
+                        data[5] = filmotTitle;
+                        data[6] = filmotAuthor;
+                        data[7] = filmotUploadDate;
+                        data[8] = {"display": filmotDuration, "num": duration};
+                        data[9] = filmotDesc;
 
                         this.data(data).draw();
                     });
