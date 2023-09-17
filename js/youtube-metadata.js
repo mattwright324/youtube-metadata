@@ -1172,10 +1172,12 @@
             const promises = []
             const cdxUrls = []
 
+            // Video thumbs
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=s.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
 
+            // Storyboard thumbs
             const sbSub = ["i"]
             for (let i = 1; i <= 9; i++) {
                 sbSub.push("i" + i)
