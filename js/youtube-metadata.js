@@ -1168,20 +1168,20 @@
             $("#wayback").show();
             $("#wayback-append").text("Checking...")
 
-            const subdomains = ["i"]
-            for (let i = 1; i <= 9; i++) {
-                subdomains.push("i" + i)
-            }
-
             const results = []
             const promises = []
             const cdxUrls = []
 
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
+            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=s.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
             cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
 
-            for (let i in subdomains) {
-                const subdomain = subdomains[i];
+            const sbSub = ["i"]
+            for (let i = 1; i <= 9; i++) {
+                sbSub.push("i" + i)
+            }
+            for (let i in sbSub) {
+                const subdomain = sbSub[i];
                 const cdxUrl = "https://web.archive.org/cdx/search/cdx?url=" + subdomain + ".ytimg.com/sb/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json"
 
                 cdxUrls.push(cdxUrl)
