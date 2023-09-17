@@ -1289,6 +1289,7 @@
             attemptLoadFilmot(parsedInput);
             $("#wayback,#wayback-check").show()
             $("#wayback-append").html("")
+            $("#wayback-check").off("click")
             $("#wayback-check").click(function () {
                 if ($("#wayback").is(":visible")) {
                     $("#wayback-check").hide()
