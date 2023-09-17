@@ -1049,7 +1049,7 @@ const bulk = (function () {
             const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
             unavailableRows.push([
                 "<a target='_blank' href='./?submit=true&url=https://youtu.be/" + videoId + "'>" +
-                "<img src='../img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
+                "<img src='./img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
                 "</a>",
                 "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
                 String(video.title),
@@ -2302,7 +2302,7 @@ const bulk = (function () {
                     "defaultContent": "",
                     "targets": "_all"
                 }],
-                order: [[6, 'desc'], [3, 'asc']],
+                order: [[7, 'desc'], [4, 'asc']],
                 lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
                 deferRender: true,
                 bDeferRender: true
@@ -2447,7 +2447,7 @@ const bulk = (function () {
                     controls.unavailableTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
                         const data = this.data();
 
-                        const videoId = $(data[0]).text();
+                        const videoId = $(data[1]).text();
                         const video = unavailableData[videoId];
 
                         const filmotTitle = shared.idx(["filmot", "title"], video) || "<span style='color:gray'>No data</span>";
