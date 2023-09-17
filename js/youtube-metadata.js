@@ -1168,6 +1168,7 @@
 
         if (parsedInput.type === "video_id") {
             $("#wayback").show();
+            $("#wayback-append").text("Checking...")
 
             const subdomains = ["i"]
             for (let i = 1; i <= 9; i++) {
@@ -1216,14 +1217,14 @@
                 }
 
                 if (links.length) {
+                    links.sort(function (a,b) {return a[0] - b[0]})
+
                     const linkHtml = []
                     for (let i in links) {
                         const link = links[i];
 
                         linkHtml.push(`<a target="_blank" href="${link[1]}">Archive.org - ${link[0]}</a>`)
                     }
-
-                    linkHtml.sort()
 
                     $("#wayback-append").html(`<ul><li>${linkHtml.join("</li><li>")}</li></ul>`)
                 } else {
