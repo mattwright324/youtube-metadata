@@ -1262,6 +1262,10 @@
 
                     const hideOlder = $("#checkHideOlder").is(":checked")
 
+                    function formatTime(waybackTime) {
+                        return waybackTime.replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3 $4:$5:$6")
+                    }
+
                     let currentBase = null;
                     const linkHtml = []
                     for (let i in links) {
@@ -1269,12 +1273,12 @@
 
                         if (link[0] === currentBase) {
                             linkHtml.push(`<li class="cdx-link wayback-cdx-older" ${hideOlder ? "style='display:none'" : ""}>
-                                <a target="_blank" href="${link[3]}">Archive.org - ${link[0]}</a> <small class="text-muted">${link[2]}</small></li>`)
+                                <a target="_blank" href="${link[3]}">Archive.org - ${link[0]}</a> <small class="text-muted">${formatTime(link[2])}</small></li>`)
                             continue
                         }
 
                         currentBase = link[0]
-                        linkHtml.push(`<li class="cdx-link wayback-cdx-newest"><a target="_blank" href="${link[3]}">Archive.org - ${link[0]}</a> <small class="text-muted">${link[2]}</small></li>`)
+                        linkHtml.push(`<li class="cdx-link wayback-cdx-newest"><a target="_blank" href="${link[3]}">Archive.org - ${link[0]}</a> <small class="text-muted">${formatTime(link[2])}</small></li>`)
                     }
                     $("#wayback-append").html(`<ul>${linkHtml.join("")}</ul>`)
                     $("#wayback-show-older,#wayback-copy").show();
