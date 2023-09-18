@@ -157,6 +157,10 @@ html.dark .progress-bar {
     color: #fff;
 }
 
+.wayback-cdx-older {
+    filter: brightness(0.75);
+}
+
 .export {
     display: none;
 }
