@@ -864,6 +864,10 @@
                         partDiv.append("<img id='channel-banner' src='" + bannerImage + "' class='mb-15'>");
                     }
 
+                    if (!partJson.hasOwnProperty("channel")) {
+                        return;
+                    }
+
                     if (partJson.channel.hasOwnProperty("trackingAnalyticsAccountId")) {
                         partDiv.append("<p class='mb-15'>This channel is tracking and measuring traffic with Google Analytics <span class='orange'>" + partJson.channel.trackingAnalyticsAccountId + "</span></p>")
                     }
