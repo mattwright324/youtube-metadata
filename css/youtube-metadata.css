@@ -148,6 +148,13 @@ html[data-bs-theme='dark'] a {
     color: lightskyblue;
 }
 
+html[data-bs-theme='dark'] .nav-link {
+    color: rgba(250,250,250,.55);
+}
+html[data-bs-theme='dark'] .nav-link:hover {
+    color: rgba(250,250,250,.7);
+}
+
 html[data-bs-theme='dark'] .progress-bar {
     color: #fff;
 }
