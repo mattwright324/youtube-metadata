@@ -28,12 +28,12 @@
         let value = localStorage.getItem(key);
         if (!moment(value).isValid()) {
             console.warn('value for %s was not a valid date, resetting to now', key);
-            localStorage.setItem(key, new Date());
+            localStorage.setItem(key, moment().format());
             value = localStorage.getItem(key);
         }
         if (moment(value).isAfter(moment())) {
             console.warn('value for %s was set in the future, resetting to now', key);
-            localStorage.setItem(key, new Date());
+            localStorage.setItem(key, moment().format());
             value = localStorage.getItem(key);
         }
         let count = (delay - moment().diff(value)) / 1000;
@@ -1615,13 +1615,12 @@
         },
         setupControls: function () {
             function checkTheme() {
-                if (DarkMode.getColorScheme() === "dark") {
+                if (controls.darkMode.is(":checked")) {
                     elements.hljsTheme.attr("href", "//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.3.1/build/styles/stackoverflow-dark.min.css");
                 } else {
                     elements.hljsTheme.attr("href", "//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.3.1/build/styles/stackoverflow-light.min.css")
                 }
             }
-
             controls.darkMode.change(function () {
                 checkTheme();
             });
@@ -1639,7 +1638,7 @@
                 if (!can.submit) {
                     return;
                 }
-                localStorage.setItem(delaySubmitKey, new Date());
+                localStorage.setItem(delaySubmitKey, moment().format());
                 countdownCheck(delaySubmitKey, controls.btnSubmit, delay5SecMs, "submit");
 
                 exportData = {};

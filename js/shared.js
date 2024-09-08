@@ -135,11 +135,7 @@ const shared = (function () {
         },
 
         randomFromList(list) {
-            let index = 0;
-            for (let i = 0; i < 5; i++) {
-                index = rando(0, list.length - 1);
-            }
-            return list[index];
+            return list[Math.floor(Math.random() * list.length)];
         }
     }
 })();
