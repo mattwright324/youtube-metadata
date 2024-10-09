@@ -28,12 +28,12 @@ const bulk = (function () {
         let value = localStorage.getItem(key);
         if (!moment(value).isValid()) {
             console.warn('value for %s was not a valid date, resetting to now', key);
-            localStorage.setItem(key, new Date());
+            localStorage.setItem(key, moment().format());
             value = localStorage.getItem(key);
         }
         if (moment(value).isAfter(moment())) {
             console.warn('value for %s was set in the future, resetting to now', key);
-            localStorage.setItem(key, new Date());
+            localStorage.setItem(key, moment().format());
             value = localStorage.getItem(key);
         }
         let count = (delay - moment().diff(value)) / 1000;
@@ -1105,7 +1105,7 @@ const bulk = (function () {
         days.forEach(function (dayName) {
             rawChartData[dayName] = {
                 name: dayName,
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                data: [0, null, null, null, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             }
         });
 
@@ -2020,7 +2020,7 @@ const bulk = (function () {
             controls.inputValue.val(shared.randomFromList(EXAMPLE_BULK));
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
-            controls.videosTable = $('#videosTable').DataTable({
+            controls.videosTable = new DataTable("#videosTable", {
                 columns: columns,
                 columnDefs: [{
                     "defaultContent": "",
@@ -2132,7 +2132,7 @@ const bulk = (function () {
             controls.includeThumbs = $("#includeThumbs");
             elements.thumbProgress = $("#thumbProgress");
 
-            controls.tagsTable = $("#tagsTable").DataTable({
+            controls.tagsTable = new DataTable("#tagsTable", {
                 columns: [
                     {title: "Tag"},
                     {
@@ -2163,7 +2163,7 @@ const bulk = (function () {
                 deferRender: true,
                 bDeferRender: true
             });
-            controls.geotagsTable = $("#geotagsTable").DataTable({
+            controls.geotagsTable = new DataTable("#geotagsTable", {
                 columns: [
                     {title: "Coords"},
                     {title: "Name(s)"},
@@ -2182,7 +2182,7 @@ const bulk = (function () {
                 deferRender: true,
                 bDeferRender: true
             });
-            controls.linksTable = $("#linksTable").DataTable({
+            controls.linksTable = new DataTable("#linksTable", {
                 columns: [
                     {
                         title: "Link",
@@ -2269,6 +2269,7 @@ const bulk = (function () {
                 chart: {
                     height: 350,
                     type: 'heatmap',
+                    background: "transparent"
                 },
                 dataLabels: {
                     enabled: false
@@ -2296,7 +2297,7 @@ const bulk = (function () {
                     column.title +
                     "</option>")
             }
-            controls.unavailableTable = $("#unavailableTable").DataTable({
+            controls.unavailableTable = new DataTable("#unavailableTable", {
                 columns: unavailableColumns,
                 columnDefs: [{
                     "defaultContent": "",
@@ -2358,7 +2359,7 @@ const bulk = (function () {
         },
         setupControls: function () {
             function checkTheme() {
-                if (DarkMode.getColorScheme() === "dark") {
+                if (controls.darkMode.is(":checked")) {
                     controls.uploadFrequency.updateOptions({
                         theme: {
                             mode: 'dark'
@@ -2372,7 +2373,6 @@ const bulk = (function () {
                     });
                 }
             }
-
             controls.darkMode.change(function () {
                 checkTheme();
             });
@@ -2392,7 +2392,7 @@ const bulk = (function () {
                 if (!can.submit) {
                     return;
                 }
-                localStorage.setItem(delaySubmitKey, new Date());
+                localStorage.setItem(delaySubmitKey, moment().format());
                 countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
 
                 internal.reset();

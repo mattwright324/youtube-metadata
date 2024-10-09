@@ -135,25 +135,27 @@ button.loading .countdown, button.loading .spinner {
     background-color:  #e67e22;
 }
 
-html.dark .progress-bar.error {
+html[data-bs-theme='dark'] .progress-bar.error {
     background-color:  #ca6f1e;
 }
 
 /* Dark mode tweaks */
-html.dark .tag {
+html[data-bs-theme='dark'] .tag {
     background-color: royalblue;
 }
 
-html.dark .btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-html.dark a {
+html[data-bs-theme='dark'] a {
     color: lightskyblue;
 }
 
-html.dark .progress-bar {
+html[data-bs-theme='dark'] .nav-link {
+    color: rgba(250,250,250,.55);
+}
+html[data-bs-theme='dark'] .nav-link:hover {
+    color: rgba(250,250,250,.7);
+}
+
+html[data-bs-theme='dark'] .progress-bar {
     color: #fff;
 }
 
@@ -175,3 +177,7 @@ https://addons.mozilla.org/en-US/firefox/addon/styl-us/
     display: revert!important;
 }
 */
+
+.apexcharts-heatmap-rect[val="0"], .apexcharts-heatmap-rect:not([val]) {
+    display: none;
+}
