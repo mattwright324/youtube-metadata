@@ -1212,7 +1212,7 @@
 
                     const promise = new Promise(function (resolve2) {
                         $.ajax({
-                            url: "https://cors-proxy-mw324.herokuapp.com/" + url,
+                            url: "https://cors.apps.mattw.io/" + url,
                         }).done(function (res) {
                             console.log(url)
                             if (res) {
@@ -1412,7 +1412,7 @@
         console.log('Attempting to resolve custom channel via CORS')
 
         $.ajax({
-            url: "https://cors-proxy-mw324.herokuapp.com/https://www.youtube.com/@" + parsedInput.value,
+            url: "https://cors.apps.mattw.io/https://www.youtube.com/@" + parsedInput.value,
             dataType: 'html'
         }).then(function (res) {
             const pageHtml = $("<div>").html(res);
@@ -1692,7 +1692,7 @@
                     // https://github.com/Rob--W/cors-anywhere/issues/301#issuecomment-962623118
                     console.log('Attempting to download image over CORS proxy: ' + imageUrl);
                     const start = new Date();
-                    JSZipUtils.getBinaryContent("https://cors-proxy-mw324.herokuapp.com/" + imageUrl, function (err, data) {
+                    JSZipUtils.getBinaryContent("https://cors.apps.mattw.io/" + imageUrl, function (err, data) {
                         const ms = new Date() - start;
 
                         if (err) {
