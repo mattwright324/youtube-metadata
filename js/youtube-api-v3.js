@@ -32,10 +32,17 @@ const youtube = (function ($) {
     const tempId = localStorage.getItem("tempId") || makeStr(40);
     localStorage.setItem("tempId", tempId);
 
+    let baseUrl = "https://www.googleapis.com/youtube/v3/"
     let defaultKey = "";
     let currentKey = "";
 
     return {
+        setBaseUrl: function (url) {
+            baseUrl = url;
+        },
+        getBaseUrl: function () {
+            return baseUrl;
+        },
         setDefaultKey: function (key) {
             defaultKey = key;
             this.setKey(key);
@@ -62,10 +69,11 @@ const youtube = (function ($) {
                     dataType: "json",
                     type: "GET",
                     timeout: 5000,
-                    url: "https://www.googleapis.com/youtube/v3/" + type
+                    url: baseUrl + type
                 });
             }
         }
     };
 }($));
-youtube.setDefaultKey(atob('QUl6YVN5QVNUTVFjay1qdHRGOHF5OXJ0RW50MUh5RVl3NUFtaEU4'));
+youtube.setBaseUrl("https://ytapi.apps.mattw.io/v3/")
+youtube.setDefaultKey("foo");

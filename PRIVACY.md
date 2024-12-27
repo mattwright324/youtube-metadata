@@ -5,6 +5,12 @@ The application does not access any API data relating to users and does not stor
 
 - http://www.google.com/policies/privacy
 
+API calls are made to my external service that does the actual YouTube API calls.
+This service also does not store any data.
+This helps with preventing misuse of the API with my key.
+
+- https://github.com/mattwright324/youtube-api-proxy
+
 Basic user data is stored/collected by Plausible and is being used for monitoring traffic and referrals.
 Data collected by these services is not being shared with any other parties.
 This application does not allow third parties to serve advertisements.
@@ -15,8 +21,3 @@ Plausible does not use cookies and complies with GDPR, CCPA, and PECR, more info
 Additional external calls may be made to Filmot for videos that no longer exist to check for archived data.
 
 - https://filmot.com/privacy
-
-Additional external calls are made to my Heroku [cors-anywhere](https://github.com/Rob--W/cors-anywhere) proxy to resolve custom channel URLs to channel ids.
-Calls to these services do not store any data.
-
-- https://www.heroku.com/policy/security
