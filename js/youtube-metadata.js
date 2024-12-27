@@ -1406,52 +1406,24 @@
     }
 
     /**
-     * Attempt to resolve the channel handle URL via CORS workaround. Grab webpage content and extract url pattern.
+     * More reliable method to resolve vanity urls
      */
-    async function resolveChannelHandleCORS(parsedInput, callbackResubmit) {
-        console.log('Attempting to resolve custom channel via CORS')
+    async function resolveChannelVanityUrl(vanityUrl, callbackResubmit) {
+        console.log("Attempting to resolve vanity channel url");
 
         $.ajax({
-            url: "https://cors.apps.mattw.io/https://www.youtube.com/@" + parsedInput.value,
-            dataType: 'html'
-        }).then(function (res) {
-            const pageHtml = $("<div>").html(res);
-            const channelId = pageHtml.find("meta[itemprop='channelId']").attr('content');
-            const ogUrl = pageHtml.find("meta[property='og:url']").attr('content');
-            const canonical = pageHtml.find("link[rel='canonical']").attr('href');
-
-            console.log('Retrieved [channelId=%s, ogUrl=%s, canonical=%s]', channelId, ogUrl, canonical);
-
-            const newParsed = shared.determineInput(channelId || ogUrl || canonical);
+            url: "https://ytapi.apps.mattw.io/v1/resolve_url",
+            dataType: "json",
+            data: {url: vanityUrl}
+        }).then(function(res) {
+            const newParsed = shared.determineInput(res.channelId);
             if (newParsed.type !== "unknown") {
                 callbackResubmit(newParsed);
             } else {
-                errorState("Could not resolve Custom Channel URL", function (append) {
-                    append.append("<p class='mb-15'>" +
-                        "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
-                        "</p>");
-                    append.append("<p class='mb-15'>" +
-                        "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
-                        "</p>");
-                    append.append("<p class='mb-15'>" +
-                        "More detail about the issue and what you can do can be found here at " +
-                        "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
-                        "</p>");
-                })
+                errorState("Could not resolve Custom Channel URL.")
             }
         }).fail(function (err) {
-            errorState("Could not resolve Custom Channel URL", function (append) {
-                append.append("<p class='mb-15'>" +
-                    "Custom channel URLs have no direct API method, an indirect resolving method was unable to find it. " +
-                    "</p>");
-                append.append("<p class='mb-15'>" +
-                    "Verify that the custom URL actually exists, if it does than you may try manually resolving it. " +
-                    "</p>");
-                append.append("<p class='mb-15'>" +
-                    "More detail about the issue and what you can do can be found here at " +
-                    "<a target='_blank' href='https://github.com/mattwright324/youtube-metadata/issues/1'>#1 - Channel custom url unsupported</a>." +
-                    "</p>");
-            })
+            errorState("Could not resolve Custom Channel URL.");
         });
     }
 
@@ -1473,8 +1445,12 @@
 
         if (parsedInput.type === 'unknown') {
             errorState("Your link did not follow an accepted format.");
-        } else if (parsedInput.type === 'channel_handle' || parsedInput.type === 'channel_custom') {
-            resolveChannelHandleCORS(parsedInput, submit);
+        } else if (parsedInput.type === 'channel_handle') {
+            resolveChannelVanityUrl(parsedInput.original, submit)
+        } else if (parsedInput.type === 'channel_custom') {
+            resolveChannelVanityUrl(parsedInput.original, submit);
+        } else if (parsedInput.type === 'channel_user') {
+            resolveChannelVanityUrl(parsedInput.original, submit);
         } else if (parsedInput.type === 'video_id') {
             console.log('grabbing video');
 
@@ -1504,25 +1480,6 @@
             youtube.ajax('channels', {
                 part: "id," + Object.keys(partMap.channel).join(','),
                 id: parsedInput.value
-            }).done(function (res) {
-                console.log(res);
-
-                parseChannel(res, parsedInput);
-            }).fail(function (err) {
-                console.error(err);
-
-                errorState("There was a problem querying for the channel.", null, err);
-            });
-        } else if (parsedInput.type === 'channel_user') {
-            console.log('grabbing channel user');
-
-            if (parsedInput.mayHideOthers) {
-                $("#video,#playlist").hide();
-            }
-
-            youtube.ajax('channels', {
-                part: Object.keys(partMap.channel).join(','),
-                forUsername: parsedInput.value
             }).done(function (res) {
                 console.log(res);
 
