@@ -18,8 +18,8 @@
         submit: true,
     };
 
-    const delay5Sec = 5;
-    const delay5SecMs = delay5Sec * 1000;
+    const delay3Sec = 3;
+    const delay3SecMs = delay3Sec * 1000;
 
     function countdown(key, control, delay, flag) {
         control.addClass("loading").addClass("disabled");
@@ -350,7 +350,7 @@
     const partMap = {
         /**
          * Can't access part(s): fileDetails, processingDetails, suggestions
-         * Useless part(s): player, id
+         * Useless part(s): id
          * Every other part below:
          */
         video: {
@@ -718,6 +718,30 @@
                         });
 
                         partDiv.append("<p class='mb-15'>This video has a content rating of <span class='orange'>" + pairs.join(", ") + "</span></p>")
+                    }
+                }
+            },
+            paidProductPlacementDetails: {
+                title: "Paid Product Details",
+                postProcess: function (partJson) {
+                    const partDiv = $("#video-section #paidProductPlacementDetails");
+
+                    if (partJson.hasOwnProperty("hasPaidProductPlacement")) {
+                        if (partJson.hasPaidProductPlacement) {
+                            partDiv.append("<p class='mb-15'>This video <span class='orange'>does contain paid product placement</span></p>")
+                        } else {
+                            partDiv.append("<p class='mb-15'>This video does not contain paid product placement</p>")
+                        }
+                    }
+                }
+            },
+            player: {
+                title: "Player Embed",
+                postProcess: function (partJson) {
+                    const partDiv = $("#video-section #player");
+
+                    if (partJson.hasOwnProperty("embedHtml")) {
+                        partDiv.append(partJson.embedHtml)
                     }
                 }
             },
@@ -1589,14 +1613,14 @@
                 }
             });
 
-            countdownCheck(delaySubmitKey, controls.btnSubmit, delay5SecMs, "submit");
+            countdownCheck(delaySubmitKey, controls.btnSubmit, delay3SecMs, "submit");
 
             controls.btnSubmit.on('click', function () {
                 if (!can.submit) {
                     return;
                 }
                 localStorage.setItem(delaySubmitKey, moment().format());
-                countdownCheck(delaySubmitKey, controls.btnSubmit, delay5SecMs, "submit");
+                countdownCheck(delaySubmitKey, controls.btnSubmit, delay3SecMs, "submit");
 
                 exportData = {};
 
