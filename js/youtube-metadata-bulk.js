@@ -671,7 +671,7 @@ const bulk = (function () {
                     youtube.ajax("videos", {
                         part: "snippet,statistics,recordingDetails," +
                             "status,liveStreamingDetails,localizations," +
-                            "contentDetails,topicDetails",
+                            "contentDetails,topicDetails,paidProductPlacementDetails",
                         maxResults: 50,
                         id: ids.join(",")
                     }).done(function (res) {
@@ -1340,6 +1340,14 @@ const bulk = (function () {
             _idx: ["status", "privacyStatus"]
         },
         {
+            title: "Has Paid Product",
+            visible: false,
+            _visibleIf: function (value) {
+                return value;
+            },
+            _idx: ["paidProductPlacementDetails", "hasPaidProductPlacement"]
+        },
+        {
             title: "Content Rating",
             visible: false,
             _idx: ["contentDetails", "contentRating"],
@@ -1853,6 +1861,16 @@ const bulk = (function () {
             value: 0,
             check: function (video) {
                 const stat = shared.idx(["status", "madeForKids"], video);
+                if (stat === true) {
+                    this.value = this.value + 1;
+                }
+            }
+        },
+        isPaidProductPlacement: {
+            text: "Videos with hasPaidProductPlacement=true",
+            value: 0,
+            check: function (video) {
+                const stat = shared.idx(["paidProductPlacementDetails", "hasPaidProductPlacement"], video);
                 if (stat === true) {
                     this.value = this.value + 1;
                 }
