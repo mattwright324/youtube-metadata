@@ -1340,7 +1340,7 @@ const bulk = (function () {
             _idx: ["status", "privacyStatus"]
         },
         {
-            title: "Has Paid Product",
+            title: "Paid Promotion",
             visible: false,
             _visibleIf: function (value) {
                 return value;

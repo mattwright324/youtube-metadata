@@ -1,0 +1,13 @@
+/* ==UserStyle==
+@name         mattw.io - Fix Export
+@namespace    github.com/openstyles/stylus
+@version      1.0.0
+@preprocessor default
+@var color link-color "Link Color" red
+==/UserStyle== */
+
+@-moz-document domain("mattw.io") {
+    .export {
+        display: revert;
+    }
+}
