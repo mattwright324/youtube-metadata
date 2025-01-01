@@ -722,16 +722,17 @@
                 }
             },
             paidProductPlacementDetails: {
-                title: "Paid Product Details",
+                title: "Paid Promotion Details",
                 postProcess: function (partJson) {
                     const partDiv = $("#video-section #paidProductPlacementDetails");
 
                     if (partJson.hasOwnProperty("hasPaidProductPlacement")) {
                         if (partJson.hasPaidProductPlacement) {
-                            partDiv.append("<p class='mb-15'>This video <span class='orange'>does contain paid product placement</span></p>")
+                            partDiv.append("<p class='mb-15'>This video does contain <span class='orange'>paid promotion(s)</span>.</p>")
                         } else {
-                            partDiv.append("<p class='mb-15'>This video does not contain paid product placement</p>")
+                            partDiv.append("<p class='mb-15'>This video does not contain paid promotion(s).</p>")
                         }
+                        partDiv.append("<p>Paid promotion is a flag set by the creator, <a target='_blank' href='https://support.google.com/youtube/answer/154235?hl=en'>learn more here</a>.</p>")
                     }
                 }
             },
@@ -741,7 +742,7 @@
                     const partDiv = $("#video-section #player");
 
                     if (partJson.hasOwnProperty("embedHtml")) {
-                        partDiv.append(partJson.embedHtml)
+                        partDiv.append("<p style='max-height: 270px'>" + partJson.embedHtml + "</p>");
                     }
                 }
             },

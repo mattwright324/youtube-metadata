@@ -173,9 +173,8 @@ Use Stylus extension!
 https://chrome.google.com/webstore/detail/stylus/clngdbkpkpeebahjckkjfobafhncgmne
 https://addons.mozilla.org/en-US/firefox/addon/styl-us/
 
-.export {
-    display: revert!important;
-}
+Install fix
+https://mattw.io/youtube-metadata/css/export.user.css
 */
 
 .apexcharts-heatmap-rect[val="0"], .apexcharts-heatmap-rect:not([val]) {
