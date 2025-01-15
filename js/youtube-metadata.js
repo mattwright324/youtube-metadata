@@ -150,6 +150,10 @@
                 text: "Archive.org (direct video raw) - " + data.video_id
             });
             suggestions.push({
+                url: "https://archive.org/search.php?query=" + data.video_id,
+                text: "Archive.org (search) - " + data.video_id
+            });
+            suggestions.push({
                 url: "https://filmot.com/video/" + data.video_id,
                 text: "Filmot.com - https://filmot.com/video/" + data.video_id
             });
@@ -1202,19 +1206,40 @@
             const promises = []
             const cdxUrls = []
 
-            // Video thumbs
-            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
-            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=s.ytimg.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
-            cdxUrls.push("https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json")
+            const videoId = parsedInput.value;
+            const baseUrl = "https://web.archive.org/cdx/search/cdx"
+            const params = new URLSearchParams({
+                collapse: 'digest',
+                filter: 'statuscode:200',
+                mimetype: 'mimetype:image/jpeg',
+                output: 'json',
+            })
+            const thumbSearchUrls = [
+                // Main thumbnails
+                'i.ytimg.com/vi/{id}*',
+                'i.ytimg.com/vi_webp/{id}*',
+                's.ytimg.com/vi/{id}*',
+                's.ytimg.com/vi_webp/{id}*',
+                'img.ytimg.com/vi/{id}*',
+                'img.ytimg.com/vi_webp/{id}*',
+                'img.youtube.com/vi/{id}*',
+                'img.youtube.com/vi_webp/{id}*',
+                // Storyboard thumbs
+                'i.ytimg.com/sb/{id}*',
+                'i9.ytimg.com/sb/{id}*',
+                'i1.ytimg.com/sb/{id}*',
+                'i2.ytimg.com/sb/{id}*',
+                'i3.ytimg.com/sb/{id}*',
+                'i4.ytimg.com/sb/{id}*',
+            ]
 
-            // Storyboard thumbs
-            const sbSub = ["i", "i9", "i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8"]
-            for (let i in sbSub) {
-                const subdomain = sbSub[i];
-                const cdxUrl = "https://web.archive.org/cdx/search/cdx?url=" + subdomain + ".ytimg.com/sb/" + parsedInput.value + "*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json"
+            for (let i = 0; i < thumbSearchUrls.length; i++) {
+                params.set('url', thumbSearchUrls[i].replace("{id}", videoId))
 
-                cdxUrls.push(cdxUrl)
+                cdxUrls.push(baseUrl + '?' + params.toString())
             }
+
+            console.log(cdxUrls)
 
             let progress = 0
             let failed = 0
