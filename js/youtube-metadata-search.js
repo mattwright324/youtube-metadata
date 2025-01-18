@@ -12,14 +12,35 @@ const bulk = (function () {
     const elements = {};
     const controls = {};
 
-    const delaySubmitKey = "delaySubmitBulk";
+    const hourMs = 60 * 60 * 1000;
+    const dayMs = hourMs * 24;
+    const timeMs = {
+        "hour-1": hourMs,
+        "hour-3": hourMs * 3,
+        "hour-6": hourMs * 6,
+        "hour-12": hourMs * 12,
+        "hour-24": dayMs,
+        "day-7": dayMs * 7,
+        "day-30": dayMs * 30,
+        "day-90": dayMs * 90,
+        "day-180": dayMs * 180,
+        "day-365": dayMs * 365,
+        "year": dayMs * 365
+    };
+
+    const delaySubmitKey = "delaySubmitSearch";
     const can = {
         submit: true,
     };
 
+    const RFC_3339 = 'YYYY-MM-DDTHH:mm:ss';
+
     const apiNextPageMs = 600;
-    const delay15Sec = 15;
+    const delay15Sec = 3;
     const delay15SecMs = delay15Sec * 1000;
+
+    let shareUrls = [];
+    let absoluteShareUrls = [];
 
     function countdown(key, control, delay, flag) {
         control.addClass("loading").addClass("disabled");
@@ -73,9 +94,6 @@ const bulk = (function () {
         if (rawVideoData.length) {
             about.push(rawVideoData.length + " video(s)");
         }
-        if (Object.keys(unavailableData).length) {
-            about.push(Object.keys(unavailableData).length + " unavailable");
-        }
         if (Object.keys(failedData).length) {
             about.push(Object.keys(failedData).length + " failed");
         }
@@ -88,77 +106,81 @@ const bulk = (function () {
         return about.join(", ")
     }
 
-    function unavailableProgressMessage() {
-        const about = [];
-
-        if (Object.keys(unavailableData).length) {
-            about.push(Object.keys(unavailableData).length + " unavailable");
-
-            let noData = 0;
-            let filmot = 0;
-            for (let key in unavailableData) {
-                if (unavailableData[key].hasOwnProperty("filmot")) {
-                    filmot = filmot + 1;
-                } else {
-                    noData = noData + 1;
-                }
-            }
-
-            if (filmot > 0) {
-                about.push(filmot + " data");
-            }
-            if (noData > 0) {
-                about.push(noData + " no-data");
-            }
-        }
-
-        return about.join(", ");
-    }
-
-    function processFromParsed(parsed) {
-        console.log(parsed);
-
-        const channelVanities = [];
-        const channelIds = [];
-        const channelIdsCreatedPlaylists = [];
-        const playlistIds = [];
+    function processSearch() {
         const videoIds = [];
 
-        parsed.forEach(function (p) {
-            if (p.type === 'video_id' && videoIds.indexOf(p.value) === -1) {
-                videoIds.push(p.value);
+        console.log('Submit');
 
-                controls.progress.update({
-                    text: videoIds.length
-                });
-            } else if (p.type === "playlist_id" && playlistIds.indexOf(p.value) === -1) {
-                playlistIds.push(p.value);
-            } else if (p.type === "channel_id" && channelIds.indexOf(p.value) === -1 && shared.isValidChannelId(p.value)) {
-                channelIds.push(p.value);
-            } else if (p.type === "channel_handle" && channelVanities.indexOf(p.original) === -1) {
-                channelVanities.push(p.original);
-            } else if (p.type === "channel_custom" && channelVanities.indexOf(p.original) === -1) {
-                channelVanities.push(p.original);
-            } else if (p.type === "channel_user" && channelVanities.indexOf(p.original) === -1) {
-                channelVanities.push(p.original);
+        // if (controls.checkClearResults.is(":checked")) {
+        //     clearResults();
+        // }
+        // updateSearchShareLink(true);
+
+        const params = {
+            part: "id",
+            maxResults: 50,
+            type: "video",
+            q: controls.keywordsInput.val(),
+            timeframe: controls.comboTimeframe.find(":selected").val(),
+            safeSearch: controls.comboSafeSearch.find(":selected").val(),
+            order: controls.comboSortBy.find(":selected").val(),
+            videoDuration: controls.comboDuration.find(":selected").val(),
+        };
+        if (params.timeframe !== 'any') {
+            let dateFrom = new Date();
+            let dateTo = new Date();
+
+            if (params.timeframe === "custom") {
+                dateFrom = new Date(controls.dateFromInput.val());
+                dateTo = new Date(controls.dateToInput.val());
+            } else {
+                dateFrom.setTime(dateTo.getTime() - timeMs[params.timeframe]);
             }
-        });
+
+            params.publishedAfter = dateFrom.toISOString();
+            params.publishedBefore = dateTo.toISOString();
+
+            delete params.timeframe;
+        }
+        const lang = controls.comboRelevanceLang.find(":selected").val();
+        if (lang !== 'any') {
+            params.relevanceLanguage = lang;
+        }
+        if (controls.checkLive.is(":checked")) {
+            params.eventType = "live";
+        }
+        if (controls.checkCC.is(":checked")) {
+            params.videoLicense = "creativecommon";
+        }
+        if (controls.checkHQ.is(":checked")) {
+            params.videoDefinition = "high";
+        }
+        if (controls.checkDimension3d.is(":checked")) {
+            params.videoDimension = "3d";
+        }
+        if (controls.checkPaidProduct.is(":checked")) {
+            params.videoPaidProductPlacement = "true";
+        }
+
+        let maxPages = Number(controls.comboPageLimit.find(":selected").val());
+        if (!Number.isInteger(maxPages) || maxPages < 1) {
+            maxPages = 1;
+        }
+        if (maxPages > 5) {
+            maxPages = 5;
+        }
+
+        console.log("maxPages=%s params=%s", maxPages, JSON.stringify(params));
 
         controls.progress.update({
-            subtext: 'Grabbing unique video ids'
+            value: 1,
+            max: 1,
+            text: '0',
+            subtext: 'Searching'
         });
 
-        handleChannelVanities(channelVanities, channelIds).then(function () {
-            return handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists);
-        }).then(function () {
-            // Created playlists condense to playlist ids (when option checked)
-            return handleChannelIdsCreatedPlaylists(channelIdsCreatedPlaylists, playlistIds);
-        }).then(function () {
-            // Grab playlist names
-            return handlePlaylistNames(playlistIds);
-        }).then(function () {
-            // Playlists condense to video ids
-            return handlePlaylistIds(playlistIds, videoIds);
+        handleSearch(maxPages, params).then(function (videoIds) {
+            return handleVideoIds(videoIds);
         }).then(function () {
             controls.progress.update({
                 subtext: 'Processing video ids'
@@ -192,14 +214,6 @@ const bulk = (function () {
             rawVideoData.forEach(function (video) {
                 resultIds.push(video.id);
             });
-            videoIds.forEach(function (videoId) {
-                if (!unavailableData.hasOwnProperty(videoId) && !failedData.hasOwnProperty(videoId) && resultIds.indexOf(videoId) === -1) {
-                    unavailableData[videoId] = {
-                        title: "Did not come back in API",
-                        source: ""
-                    };
-                }
-            });
 
             controls.videosTable.columns.adjust().draw(false);
         }).then(function () {
@@ -210,65 +224,10 @@ const bulk = (function () {
 
             console.log(failedData)
 
-            controls.unavailableTable.columns.adjust().draw(false);
-
-            if (Object.keys(unavailableData).length > 0) {
-                controls.checkUnavailable.removeClass("disabled");
-            }
-
             setTimeout(loadAggregateTables, 200);
         }).catch(function (err) {
             console.error(err);
         });
-    }
-
-    function handleChannelVanities(channelVanities, channelIds) {
-        return new Promise(function(resolve) {
-            if (channelVanities.length === 0) {
-                console.log("no channelVanities")
-                resolve();
-                return;
-            }
-
-            function get(index) {
-                if (index >= channelVanities.length) {
-                    console.log("finished channelVanities");
-                    setTimeout(resolve, apiNextPageMs);
-                    return;
-                }
-
-                console.log("handleChannelVanities.get(" + index + ")")
-
-                $.ajax({
-                    url: "https://ytapi.apps.mattw.io/v1/resolve_url",
-                    dataType: "json",
-                    data: {url: channelVanities[index]}
-                }).then(function(res) {
-                    const newParsed = shared.determineInput(res.channelId);
-                    if (newParsed.type === "channel_id") {
-                        channelIds.push(newParsed.value);
-                        setTimeout(function () {
-                            get(index + 1);
-                        }, apiNextPageMs);
-                    } else {
-                        console.log('Could not resolve custom url');
-                        console.warn(newParsed);
-
-                        setTimeout(function () {
-                            get(index + 1);
-                        }, apiNextPageMs);
-                    }
-                }).fail(function (err) {
-                    console.warn(err);
-
-                    setTimeout(function () {
-                        get(index + 1);
-                    }, apiNextPageMs);
-                });
-            }
-
-            setTimeout(function () {get(0);}, apiNextPageMs);
-        })
     }
 
     function handleChannelIds(channelIds, playlistIds, channelIdsCreatedPlaylists) {
@@ -343,303 +302,150 @@ const bulk = (function () {
         });
     }
 
-    function handleChannelIdsCreatedPlaylists(channelIds, playlistIds) {
-        return new Promise(function (resolve) {
-            if (channelIds.length === 0) {
-                console.log("no handleChannelIdsCreatedPlaylists")
-                resolve();
-                return;
-            }
 
-            if (controls.createdPlaylists.is(":checked") === false) {
-                console.log("createdPlaylists not checked, skipping")
-                resolve();
-                return;
-            }
-
-
-            function get(index) {
-                if (index >= channelIds.length) {
-                    console.log("finished handleChannelIdsCreatedPlaylists");
-                    setTimeout(resolve, apiNextPageMs);
-                    return;
-                }
-
-                console.log("handleChannelIdsCreatedPlaylists.get(" + index + ")")
-
-                const id = channelIds[index];
-                console.log(id);
-
-                function paginate(pageToken) {
-                    youtube.ajax("playlists", {
-                        part: "snippet,status,localizations,contentDetails",
-                        channelId: id,
-                        maxResults: 50,
-                        pageToken: pageToken
-                    }).done(function (res) {
-                        console.log(res);
-
-                        (res.items || []).forEach(function (playlist) {
-                            const createdPlaylistId = shared.idx(["id"], playlist);
-                            console.log(createdPlaylistId);
-
-                            rawPlaylistMap[createdPlaylistId] = playlist;
-
-                            playlistMap[createdPlaylistId] = shared.idx(["snippet", "title"], playlist);
-
-                            if (playlistIds.indexOf(createdPlaylistId) === -1) {
-                                playlistIds.push(createdPlaylistId);
-                            }
-                        });
-
-                        if (res.hasOwnProperty("nextPageToken")) {
-                            paginate(res.nextPageToken);
-                        } else {
-                            setTimeout(function () {
-                                get(index + 1);
-                            }, apiNextPageMs);
-                        }
-                    }).fail(function (err) {
-                        console.error(err);
-                        setTimeout(function () {
-                            get(index + 1);
-                        }, apiNextPageMs);
-                    });
-                }
-
-                paginate("");
-            }
-
-            setTimeout(function () {get(0);}, apiNextPageMs);
-        });
+    const defaultParams = {
+        radius: 25,
+        pages: 3,
+        keywords: '',
+        timeframe: 'any',
+        duration: 'any',
+        safeSearch: 'moderate',
+        relevanceLanguage: 'any',
+        sort: 'date',
+        live: false,
+        creativeCommons: false,
+        hq: false,
+        "3d": false
     }
+    function buildShareLink(absolute) {
+        const params = {};
+        params["keywords"] = controls.keywordsInput.val();
+        params["timeframe"] = controls.comboTimeframe.find(":selected").val();
+        if (params.timeframe !== "any") {
+            let dateFrom = new Date();
+            let dateTo = new Date();
 
-    function handlePlaylistNames(playlistIds) {
-        return new Promise(function (resolve) {
-            if (playlistIds.length === 0) {
-                console.log("no playlistIds")
-                resolve();
-                return;
-            }
-
-            const notYetRetrieved = [];
-            playlistIds.forEach(function (id) {
-                if (!playlistMap.hasOwnProperty(id)) {
-                    notYetRetrieved.push(id);
-                }
-            });
-            console.log(notYetRetrieved);
-
-            function get(index) {
-                if (index >= notYetRetrieved.length) {
-                    console.log("finished notYetRetrieved");
-                    setTimeout(resolve, apiNextPageMs);
-                    return;
-                }
-
-                console.log("handlePlaylistNames.get(" + index + ")")
-
-                function paginate(pageToken) {
-                    console.log(pageToken);
-                    youtube.ajax("playlists", {
-                        part: "snippet,status,localizations,contentDetails",
-                        maxResults: 50,
-                        id: notYetRetrieved[index],
-                        pageToken: pageToken
-                    }).done(function (res) {
-                        console.log(res);
-
-                        (res.items || []).forEach(function (playlist) {
-                            const playlistId = shared.idx(["id"], playlist);
-                            console.log(playlistId);
-
-                            rawPlaylistMap[playlistId] = playlist;
-                            playlistMap[playlistId] = shared.idx(["snippet", "title"], playlist);
-                        });
-
-                        if (res.hasOwnProperty("nextPageToken")) {
-                            paginate(res.nextPageToken);
-                        } else {
-                            setTimeout(function () {
-                                get(index + 1);
-                            }, apiNextPageMs);
-                        }
-                    }).fail(function (err) {
-                        console.error(err);
-                        setTimeout(function () {
-                            get(index + 1);
-                        }, apiNextPageMs);
-                    });
-                }
-
-                paginate("");
-            }
-
-            setTimeout(function () {get(0);}, apiNextPageMs);
-        });
-    }
-
-    function handlePlaylistIds(playlistIds, videoIds) {
-        return new Promise(function (resolve) {
-            if (playlistIds.length === 0) {
-                console.log("no playlistIds")
-                resolve();
-                return;
-            }
-
-            function get(index) {
-                if (index >= playlistIds.length) {
-                    console.log("finished playlistIds");
-                    setTimeout(resolve, apiNextPageMs);
-                    return;
-                }
-
-                function paginate(pageToken) {
-                    console.log("handlePlaylistIds.get(" + index + ")")
-
-                    youtube.ajax("playlistItems", {
-                        part: "snippet",
-                        maxResults: 50,
-                        playlistId: playlistIds[index],
-                        pageToken: pageToken
-                    }).done(function (res) {
-                        console.log(res);
-
-                        (res.items || []).forEach(function (video) {
-                            const videoId = shared.idx(["snippet", "resourceId", "videoId"], video);
-                            const videoOwnerChannelId = shared.idx(["snippet", "videoOwnerChannelId"], video);
-                            const dateFormat = "YYYY-MM-DD";
-                            const dateAdded = shared.idx(["snippet", "publishedAt"], video);
-
-                            if (videoIds.indexOf(videoId) === -1) {
-                                videoIds.push(videoId);
-
-                                availableData[videoId] = {
-                                    source: "Playlist: " +
-                                        "<a target='_blank' href='https://www.youtube.com/playlist?list=" + playlistIds[index] + "'>" +
-                                        playlistMap[playlistIds[index]] +
-                                        "</a> (added " + moment(dateAdded).format(dateFormat) + ")"
-                                }
-                            }
-                            if (!videoOwnerChannelId) {
-                                unavailableData[videoId] = {
-                                    title: shared.idx(["snippet", "title"], video),
-                                    source: "Playlist: " +
-                                        "<a target='_blank' href='https://www.youtube.com/playlist?list=" + playlistIds[index] + "'>" +
-                                        playlistMap[playlistIds[index]] +
-                                        "</a> (added " + moment(dateAdded).format(dateFormat) + ")"
-                                }
-                            }
-                        });
-
-                        controls.progress.update({
-                            text: videoIds.length
-                        })
-
-                        if (res.hasOwnProperty("nextPageToken")) {
-                            setTimeout(function () {
-                                paginate(res.nextPageToken);
-                            }, apiNextPageMs);
-                        } else {
-                            setTimeout(function () {
-                                get(index + 1);
-                            }, apiNextPageMs);
-                        }
-                    }).fail(function (err) {
-                        console.error(err);
-                        setTimeout(function () {
-                            get(index + 1);
-                        }, apiNextPageMs);
-                    });
-                }
-
-                paginate("");
-            }
-
-            setTimeout(function () {get(0);}, apiNextPageMs);
-        });
-    }
-
-    function handleUnavailableVideos() {
-        const videoIds = [];
-        for (let videoId in unavailableData) {
-            if (shared.isValidVideoId(videoId)) {
-                videoIds.push(videoId);
+            if (params.timeframe === "custom") {
+                dateFrom = new Date(controls.dateFromInput.val());
+                dateTo = new Date(controls.dateToInput.val());
             } else {
-                unavailableData[videoId].title = "Invalid ID";
+                dateFrom.setTime(dateTo.getTime() - timeMs[params.timeframe]);
+            }
+
+            params["start"] = dateFrom.toISOString();
+            params["end"] = dateTo.toISOString();
+        }
+        const lang = controls.comboRelevanceLang.find(":selected").val();
+        if (lang !== 'any') {
+            params["relevanceLanguage"] = lang;
+        }
+        params["safeSearch"] = controls.comboSafeSearch.find(":selected").val();
+        params["sort"] = controls.comboSortBy.find(":selected").val();
+        params["duration"] = controls.comboDuration.find(":selected").val();
+        let pages = Number(controls.comboPageLimit.find(":selected").val());
+        if (!Number.isInteger(pages) || pages < 1) {
+            pages = 1;
+        }
+        if (pages > 5) {
+            pages = 5;
+        }
+        params["pages"] = pages;
+        if (controls.checkLive.is(":checked")) {
+            params["live"] = true;
+        }
+        if (controls.checkCC.is(":checked")) {
+            params["creativeCommons"] = true;
+        }
+        if (controls.checkHQ.is(":checked")) {
+            params["hq"] = true;
+        }
+        if (controls.checkDimension3d.is(":checked")) {
+            params["3d"] = true;
+        }
+        if (controls.checkPaidProduct.is(":checked")) {
+            params["paidProduct"] = true;
+        }
+
+        if (params.hasOwnProperty("timeframe")) {
+            if (!absolute && params.timeframe !== 'custom') {
+                // relative time should not show calculated timestamps
+                delete params["start"];
+                delete params["end"];
+            } else if (absolute && params.timeframe !== 'any' && params.timeframe !== 'custom') {
+                params["timeframeWas"] = params.timeframe;
+                params.timeframe = "custom";
             }
         }
 
-        let processed = 0;
+        const linkParams = [];
+        for (let key in params) {
+            if (defaultParams.hasOwnProperty(key) && defaultParams[key] === params[key]) {
+                continue;
+            }
+            linkParams.push(key + "=" + encodeURIComponent(params[key]));
+        }
+        linkParams.push("submit=true");
+
+        return location.origin + location.pathname + "?" + linkParams.join("&").replace("%2C", ",");
+    }
+
+    function updateSearchShareLink(pushLinks) {
+        const absolute = controls.checkAbsoluteTimeframe.is(":checked");
+
+        if (pushLinks) {
+            const share = buildShareLink(false);
+            shareUrls.push(share);
+            const shareAbsolute = buildShareLink(true);
+            if (share !== shareAbsolute) {
+                absoluteShareUrls.push(shareAbsolute);
+            }
+        }
+
+        controls.shareLink.val(buildShareLink(absolute));
+        controls.shareLink.attr("disabled", false);
+    }
+
+    function handleSearch(maxPages, queryParams) {
         return new Promise(function (resolve) {
-            const hostname = window.location.hostname;
-            if (hostname !== "localhost" && hostname !== "mattw.io") {
-                console.log("do not call filmot from other instances")
-                resolve();
-                return;
-            }
+            const results = [];
 
-            if (videoIds.length === 0) {
-                console.log("no videoIds")
-                resolve();
-                return;
-            }
+            function doSearch(page, token) {
+                console.log("page " + page);
 
-            console.log("checking " + videoIds.length + " videoIds");
-
-            function get(index, slice) {
-                if (index >= videoIds.length) {
-                    console.log("finished videoIds");
-                    setTimeout(resolve, apiNextPageMs);
-                    return;
-                }
-
-                console.log("handleUnavailableVideos.get(" + index + ", " + (index + slice) + ")")
-
-                const ids = videoIds.slice(index, index + slice);
-
-                // Note: Filmot has limited resources. Do not misuse, please contact about usage first.
-                // https://filmot.com/contactus
-                $.ajax({
-                    cache: false,
-                    data: {
-                        key: "md5paNgdbaeudounjp39",
-                        id: ids.join(","),
-                        flags: 1 // Get channel and description too,
-                    },
-                    dataType: "json",
-                    type: "GET",
-                    timeout: 5000,
-                    url: "https://filmot.com/api/getvideos",
-                }).done(function (res) {
+                youtube.ajax("search", $.extend({pageToken: token}, queryParams)).done(function (res) {
                     console.log(res);
 
-                    res.forEach(function (video) {
-                        unavailableData[video.id]["filmot"] = video;
+                    (res.items || []).forEach(function (item) {
+                        const videoId = item?.id?.videoId;
+                        if (videoId && results.indexOf(videoId) === -1) {
+                            results.push(videoId);
+                        }
                     });
 
-                    processed = processed + ids.length;
+                    controls.progress.update({
+                        value: 1,
+                        max: 1,
+                        text: results.length,
+                        subtext: 'Searching'
+                    });
 
-                    controls.unavailableProgress.update({
-                        value: processed,
-                        max: videoIds.length,
-                        text: processed + " / " + videoIds.length
-                    })
-
-                    setTimeout(function () {
-                        get(index + slice, slice);
-                    }, 1500);
+                    if (res.hasOwnProperty("nextPageToken") && page < maxPages) {
+                        setTimeout(function () {
+                            doSearch(page + 1, res.nextPageToken);
+                        }, apiNextPageMs);
+                    } else {
+                        resolve(results);
+                    }
                 }).fail(function (err) {
-                    console.error(err);
-                    setTimeout(function () {
-                        get(index + slice, slice);
-                    }, 1500);
+                    console.log(err);
+                    resolve(results);
                 });
             }
 
-            setTimeout(function () {get(0, 100);}, apiNextPageMs);
+            doSearch(1, "");
         });
     }
+
 
     function handleVideoIds(videoIds) {
         let processed = 0;
@@ -920,50 +726,6 @@ const bulk = (function () {
             controls.year.append("<option value='" + year + "'>" + year + "  (" + yearCount[year] + " videos)</option>");
         });
         loadChartData(timezoneOffset);
-
-        console.log(unavailableData);
-        const unavailableRows = [];
-        for (let videoId in unavailableData) {
-            const video = unavailableData[videoId];
-            const filmotTitle = shared.idx(["filmot", "title"], video) || "<span style='color:gray'>No data</span>";
-            const filmotDesc = shared.idx(["filmot", "description"], video) || "";
-            const filmotAuthorName = shared.idx(["filmot", "channelname"], video);
-            const filmotAuthor = filmotAuthorName ?
-                "<a target='_blank' href='https://www.youtube.com/channel/" + shared.idx(["filmot", "channelid"], video) + "'>" + shared.idx(["filmot", "channelname"], video) + "</a>" : "";
-            const filmotUploadDate = shared.idx(["filmot", "uploaddate"], video) || "";
-            const duration = shared.idx(["filmot", "duration"], video) || -1;
-            const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
-            unavailableRows.push([
-                "<a target='_blank' href='./?submit=true&url=https://youtu.be/" + videoId + "'>" +
-                "<img src='./img/metadata.png' style='margin-left:4px;width:24px;' alt='youtube metadata icon' >" +
-                "</a>",
-                "<a target='_blank' href='https://youtu.be/" + videoId + "'>" + videoId + "</a>",
-                String(video.title),
-                "<a target='_blank' href='https://filmot.com/video/" + videoId + "'>Filmot</a> · " +
-                "<a target='_blank' href='https://web.archive.org/web/*/https://www.youtube.com/watch?v=" + videoId + "'>Archive Web</a> · " +
-                "<a target='_blank' href='https://archive.org/details/youtube-" + videoId + "'>Archive Details</a> · " +
-                "<a target='_blank' href='https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/" + videoId + "'>Archive Video</a> · " +
-                "<a target='_blank' href='https://ghostarchive.org/varchive/" + videoId + "'>GhostArchive</a> · " +
-                "<a target='_blank' href='https://www.google.com/search?q=\"" + videoId + "\"'>Google</a>",
-                video.source,
-                filmotTitle,
-                filmotAuthor,
-                filmotUploadDate,
-                {"display": filmotDuration, "num": duration},
-                filmotDesc
-            ]);
-        }
-        sliceLoad(unavailableRows, controls.unavailableTable);
-
-        unavailableColumns.forEach(function (column) {
-            const button = document.querySelector("button[title='" + column.title + "']");
-            const input = document.querySelector("button[title='" + column.title + "'] input");
-            if (!$(button).hasClass("active") && input.indeterminate === true && column._visibleIf && column._visibleIf(value)) {
-                button.click();
-            }
-        });
-
-        controls.unavailableTable.columns.adjust();
 
         console.log(otherData)
         for (let key in otherData) {
@@ -1556,84 +1318,6 @@ const bulk = (function () {
         }
     ];
 
-    const unavailableColumns = [
-        {
-            title: " ",
-            type: "html",
-            visible: true
-        },
-        {
-            title: "Video ID",
-            type: "html",
-            visible: true
-        },
-        {
-            title: "Status",
-            type: "html",
-            visible: true
-        },
-        {
-            title: "Research",
-            type: "html",
-            visible: true
-        },
-        {
-            title: "Source",
-            type: "html",
-            visible: true
-        },
-        {
-            title: "Title (Filmot)",
-            type: "html",
-            visible: false,
-            indeterminate: true,
-            _idx: ["filmot", "title"],
-            _visibleIf: function (value) {
-                return !$.isEmptyObject(value);
-            }
-        },
-        {
-            title: "Author (Filmot)",
-            type: "html",
-            visible: false,
-            indeterminate: true,
-            _idx: ["filmot", "channelname"],
-            _visibleIf: function (value) {
-                return !$.isEmptyObject(value);
-            }
-        },
-        {
-            title: "Published (Filmot)",
-            type: "html",
-            visible: false,
-            indeterminate: true,
-            _idx: ["filmot", "uploaddate"],
-            _visibleIf: function (value) {
-                return !$.isEmptyObject(value);
-            }
-        },
-        {
-            title: "Length (Filmot)",
-            type: "num",
-            visible: false,
-            indeterminate: true,
-            _idx: ["filmot", "duration"],
-            _visibleIf: function (value) {
-                return !$.isEmptyObject(value);
-            },
-            render: {
-                _: 'display',
-                sort: 'num'
-            },
-            className: "dt-nowrap"
-        },
-        {
-            title: "Description (Filmot)",
-            type: "html",
-            visible: false
-        }
-    ];
-
     const csvHeaderRow = [];
     for (let j = 0; j < columns.length; j++) {
         const column = columns[j];
@@ -1649,8 +1333,6 @@ const bulk = (function () {
     let availableData = {};
     let rawChannelMap = {};
     let rawPlaylistMap = {};
-    let playlistMap = {};
-    let unavailableData = {};
     let failedData = {}; // google requests failed, don't send to filmot
     let tagsData = {};
     let geotagsData = {};
@@ -1935,6 +1617,7 @@ const bulk = (function () {
             controls.inputValue.val(shared.randomFromList(EXAMPLE_BULK));
             controls.btnSubmit = $("#submit");
             controls.shareLink = $("#shareLink");
+
             controls.videosTable = new DataTable("#videosTable", {
                 columns: columns,
                 columnDefs: [{
@@ -2003,46 +1686,7 @@ const bulk = (function () {
                 const percent = 100 * ((data.value - data.min) / (data.max - data.min));
                 this.css('width', percent + "%");
             }
-            controls.unavailableProgress = $("#unavailableProgressBar");
-            elements.unavailableProgressText = $("#unavailableProgressText")
-            controls.unavailableProgress.progressData = {
-                min: 0,
-                value: 0,
-                max: 100
-            }
-            controls.unavailableProgress.update = function (options) {
-                console.log(options)
-                if (String(options["reset"]).toLowerCase() === "true") {
-                    console.log('reset')
-                    this.update({
-                        min: 0,
-                        value: 0,
-                        max: 100,
-                        text: "",
-                        subtext: 'Idle'
-                    });
-                    return;
-                }
-                if (options.hasOwnProperty("subtext")) {
-                    elements.unavailableProgressText.text(options.subtext);
-                }
-                if (options.hasOwnProperty("text")) {
-                    this.find('.label').text(options.text);
-                }
-                if (options.hasOwnProperty("min")) {
-                    this.progressData.min = options.min;
-                }
-                if (options.hasOwnProperty("value")) {
-                    this.progressData.value = options.value;
-                }
-                if (options.hasOwnProperty("max")) {
-                    this.progressData.max = options.max;
-                }
 
-                const data = this.progressData;
-                const percent = 100 * ((data.value - data.min) / (data.max - data.min));
-                this.css('width', percent + "%");
-            }
             controls.createdPlaylists = $("#createdPlaylists");
             controls.includeThumbs = $("#includeThumbs");
             elements.thumbProgress = $("#thumbProgress");
@@ -2202,50 +1846,13 @@ const bulk = (function () {
             };
             controls.uploadFrequency = new ApexCharts(document.querySelector("#uploadFrequency"), options);
             controls.uploadFrequency.render();
-            controls.checkUnavailable = $("#checkUnavailable");
-
-            const unavailableColumnsHtml = [];
-            for (let i = 0; i < unavailableColumns.length; i++) {
-                const column = unavailableColumns[i];
-
-                unavailableColumnsHtml.push("<option value='" + i + "'" + (column.visible ? " selected" : "") + ">" +
-                    column.title +
-                    "</option>")
-            }
-            controls.unavailableTable = new DataTable("#unavailableTable", {
-                columns: unavailableColumns,
-                columnDefs: [{
-                    "defaultContent": "",
-                    "targets": "_all"
-                }],
-                order: [[7, 'desc'], [4, 'asc']],
-                lengthMenu: [[10, 25, 50, 100, 250, -1], [10, 25, 50, 100, 250, "All"]],
-                deferRender: true,
-                bDeferRender: true
-            });
-            controls.unavailableColumns = $("#unavailable-columns");
-            controls.unavailableColumns.html(unavailableColumnsHtml.join(""));
-            controls.unavailableColumns.multiselect({
-                buttonClass: 'form-select',
-                templates: {
-                    button: '<button type="button" class="multiselect dropdown-toggle" data-bs-toggle="dropdown"><span class="multiselect-selected-text"></span></button>',
-                },
-                onChange: function (option, checked, select) {
-                    external.toggleUnavailableColumn($(option).val())
-                }
-            });
-            unavailableColumns.forEach(function (column) {
-                if (column.hasOwnProperty("_visibleIf")) {
-                    document.querySelector("button[title='" + column.title + "'] input").indeterminate = true;
-                }
-            })
 
             controls.otherTable = $("#otherTable").DataTable({
                 columns: [
                     {title: "Statistic"},
                     {
                         title: "Value",
-                        className: "text-right dt-nowrap"
+                        className: "dt-left dt-nowrap"
                     }
                 ],
                 columnDefs: [{
@@ -2259,9 +1866,51 @@ const bulk = (function () {
                 pageLength: -1
             });
 
+            controls.channelInput = $("#channels");
+            controls.keywordsInput = $("#keywords");
+            controls.btnRandomKeywords = $("#randomTopic");
+            controls.comboTimeframe = $("#timeframe");
+            elements.customRangeDiv = $(".customRange");
+            controls.dateFromInput = $("#dateFrom");
+            controls.dateToInput = $("#dateTo");
+            controls.comboSortBy = $("#sortBy");
+            controls.comboRelevanceLang = $("#relevanceLanguage");
+            controls.comboSafeSearch = $("#safeSearch");
+            controls.comboDuration = $("#videoDuration");
+            controls.comboPageLimit = $("#pageLimit");
+            controls.checkLive = $("#liveOnly");
+            controls.checkCC = $("#creativeCommons");
+            controls.checkHQ = $("#highQuality");
+            controls.checkDimension3d = $("#dimension3d");
+            controls.checkPaidProduct = $("#paidProduct");
+            controls.checkClearResults = $("#clearOnSearch");
+            controls.checkAbsoluteTimeframe = $("#absoluteTimeframe");
+
             controls.btnExport = $("#export");
             controls.btnImport = $("#import");
             controls.importFileChooser = $("#importFileChooser");
+
+            controls.comboTimeframe.change(function () {
+                const value = controls.comboTimeframe.find(":selected").val();
+
+                if (value === "custom") {
+                    elements.customRangeDiv.show();
+                } else {
+                    elements.customRangeDiv.hide();
+                }
+            });
+            controls.dateToInput.val(moment().format('yyyy-MM-DDT23:59'));
+
+            controls.checkAbsoluteTimeframe.change(function () {
+                if (controls.shareLink.val().length) {
+                    updateSearchShareLink(false);
+                }
+            });
+
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
 
             new ClipboardJS(".clipboard");
 
@@ -2303,6 +1952,10 @@ const bulk = (function () {
 
             countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
 
+            controls.btnRandomKeywords.click(function () {
+                controls.keywordsInput.val(shared.randomFromList(TOPICS));
+            });
+
             controls.btnSubmit.on('click', function () {
                 if (!can.submit) {
                     return;
@@ -2310,30 +1963,10 @@ const bulk = (function () {
                 localStorage.setItem(delaySubmitKey, moment().format());
                 countdownCheck(delaySubmitKey, controls.btnSubmit, delay15SecMs, "submit");
 
-                internal.reset();
-
-                const value = controls.inputValue.val();
-
-                const parsed = [];
-                value.split(/[,\s]+/g).forEach(function (valuePart) {
-                    parsed.push(shared.determineInput(valuePart.trim()));
-                });
-                if (parsed.length === 0) {
-                    return;
+                if (controls.checkClearResults.is(":checked")) {
+                    internal.reset();
                 }
-
-                const checkCreatedPlaylists = controls.createdPlaylists.is(":checked");
-                const optionalCreatedPlaylists = checkCreatedPlaylists ? "&createdPlaylists=true" : "";
-                const minifiedInput = [];
-                parsed.forEach(function (input) {
-                    if (input.type === "video_id" || input.type === "playlist_id" || input.type === "channel_id") {
-                        minifiedInput.push(input.original);
-                    } else {
-                        minifiedInput.push(input.original);
-                    }
-                });
-                controls.shareLink.val(location.origin + location.pathname + "?url=" + encodeURIComponent(minifiedInput.join(",")) + optionalCreatedPlaylists + "&submit=true");
-                controls.shareLink.attr("disabled", false);
+                updateSearchShareLink(true);
 
                 controls.progress.update({
                     text: 'Indeterminate',
@@ -2341,54 +1974,7 @@ const bulk = (function () {
                     max: 100
                 });
 
-                processFromParsed(parsed);
-            });
-
-            controls.checkUnavailable.on('click', function () {
-                controls.checkUnavailable.addClass("disabled");
-
-                if (Object.keys(unavailableData).length <= 0) {
-                    return;
-                }
-
-                controls.unavailableProgress.update({
-                    text: '0 / ' + Object.keys(unavailableData).length,
-                    subtext: 'Processing unavailable ids',
-                    value: 0,
-                    max: Object.keys(unavailableData).length
-                });
-
-                handleUnavailableVideos().then(function () {
-                    controls.unavailableTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
-                        const data = this.data();
-
-                        const videoId = $(data[1]).text();
-                        const video = unavailableData[videoId];
-
-                        const filmotTitle = shared.idx(["filmot", "title"], video) || "<span style='color:gray'>No data</span>";
-                        const filmotDesc = shared.idx(["filmot", "description"], video) || "";
-                        const filmotAuthorName = shared.idx(["filmot", "channelname"], video);
-                        const filmotAuthor = filmotAuthorName ?
-                            "<a target='_blank' href='https://www.youtube.com/channel/" + shared.idx(["filmot", "channelid"], video) + "'>" + shared.idx(["filmot", "channelname"], video) + "</a>" : "";
-                        const filmotUploadDate = shared.idx(["filmot", "uploaddate"], video) || "";
-                        const duration = shared.idx(["filmot", "duration"], video) || -1;
-                        const filmotDuration = duration === -1 ? "" : shared.formatDuration(moment.duration({seconds: duration}));
-                        data[5] = filmotTitle;
-                        data[6] = filmotAuthor;
-                        data[7] = filmotUploadDate;
-                        data[8] = {"display": filmotDuration, "num": duration};
-                        data[9] = filmotDesc;
-
-                        this.data(data).draw();
-                    });
-
-                    controls.unavailableTable.columns.adjust();
-
-                    controls.unavailableProgress.update({
-                        text: unavailableProgressMessage(),
-                        subtext: 'Done'
-                    });
-                });
+                processSearch();
             });
 
             function getImageBinaryCorsProxy(fileName, imageUrl, zip, delay, imageStatuses) {
@@ -2431,8 +2017,11 @@ const bulk = (function () {
                 zip.file("about.txt",
                     "Downloaded by YouTube Metadata " + new Date().toLocaleString() + "\n\n" +
                     "URL: " + window.location + "\n\n" +
-                    "Input: " + controls.inputValue.val() + "\n\n" +
-                    "Created Playlists: " + controls.createdPlaylists.is(":checked")
+                    (shareUrls.length > 0 ? "Share url(s): " + JSON.stringify(shareUrls, null, 4) + "\n\n"
+                        : "") +
+                    (absoluteShareUrls.length > 0 ?
+                        "Share url(s) absolute timeframe: " + JSON.stringify(absoluteShareUrls, null, 4)
+                        : "")
                 );
 
                 console.log("Creating videos.json...")
@@ -2454,9 +2043,6 @@ const bulk = (function () {
                     rawPlaylistData.push(rawPlaylistMap[id]);
                 }
                 zip.file("playlists.json", JSON.stringify(rawPlaylistData));
-
-                console.log("Creating unavailable.json...")
-                zip.file("unavailable.json", JSON.stringify(unavailableData));
 
                 console.log("Creating videos.csv...")
                 zip.file("videos.csv", tableRows.join("\r\n"));
@@ -2567,7 +2153,7 @@ const bulk = (function () {
                         hint = ' (' + channelTitles[0].substr(0, 15) + " and " + (channelTitles.length - 1) + " others)"
                     }
 
-                    const fileName = shared.safeFileName("bulk_metadata" + hint + ".zip");
+                    const fileName = shared.safeFileName("search_metadata" + hint + ".zip");
 
                     console.log("Saving as " + fileName);
                     zip.generateAsync({
@@ -2656,9 +2242,6 @@ const bulk = (function () {
                     availableData = JSON.parse(text);
                 }).then(function () {
                     return Promise.all([
-                        loadZipFile('unavailable.json', function (text) {
-                            unavailableData = JSON.parse(text);
-                        }),
                         loadZipFile('playlists.json', function (text) {
                             rawPlaylistMap = JSON.parse(text);
                         }),
@@ -2704,36 +2287,64 @@ const bulk = (function () {
                         subtext: 'Import done'
                     });
 
-                    controls.unavailableProgress.update({
-                        value: 5,
-                        max: 5,
-                        text: unavailableProgressMessage(),
-                        subtext: 'Import done'
-                    });
-
                     controls.btnImport.removeClass("loading").removeClass("disabled");
                 }).catch(function () {
                     controls.btnImport.removeClass("loading").removeClass("disabled");
                 })
             }
 
-            const query = shared.parseQuery(window.location.search);
-            console.log(query);
-            if (String(query["searchMode"]).toLowerCase() === "true") {
-                elements.regularInput.attr("hidden", true);
-                elements.searchInput.attr("hidden", false);
-                $("#formatShare").hide();
+            const parsedQuery = shared.parseQuery(window.location.search);
+            if (parsedQuery.keywords && controls.keywordsInput.length) {
+                controls.keywordsInput.val(parsedQuery.keywords);
             }
-            const input = query.url || query.id;
-            if (input) {
-                controls.inputValue.val(decodeURIComponent(input));
+            if (parsedQuery.safeSearch && controls.comboSafeSearch.length) {
+                controls.comboSafeSearch.val(parsedQuery.safeSearch);
+                controls.comboSafeSearch.trigger('change');
             }
-            if (String(query["createdPlaylists"]).toLowerCase() === "true") {
-                controls.createdPlaylists.prop("checked", true);
-            } else {
-                controls.createdPlaylists.prop("checked", false);
+            if (parsedQuery.relevanceLanguage && controls.comboRelevanceLang.length) {
+                controls.comboRelevanceLang.val(parsedQuery.relevanceLanguage);
+                controls.comboRelevanceLang.trigger('change');
             }
-            if (String(query["submit"]).toLowerCase() === "true") {
+            if (parsedQuery.sort && controls.comboSortBy.length) {
+                controls.comboSortBy.val(parsedQuery.sort);
+                controls.comboSortBy.trigger('change');
+            }
+            if (parsedQuery.duration && controls.comboDuration.length) {
+                controls.comboDuration.val(parsedQuery.duration);
+                controls.comboDuration.trigger('change');
+            }
+            if (parsedQuery.timeframe && $("#timeframe option[value='" + parsedQuery.timeframe + "']").length) {
+                controls.comboTimeframe.val(parsedQuery.timeframe);
+                controls.comboTimeframe.trigger('change');
+            }
+            const rfcStart = moment(parsedQuery.start).utcOffset(0, true).format(RFC_3339);
+            if (parsedQuery.start && controls.comboTimeframe.length) {
+                controls.dateFromInput.val(rfcStart);
+            }
+            const rfcEnd = moment(parsedQuery.end).utcOffset(0, true).format(RFC_3339);
+            if (parsedQuery.end && controls.comboTimeframe.length) {
+                controls.dateToInput.val(rfcEnd);
+            }
+            if (parsedQuery.live && controls.checkLive.length) {
+                controls.checkLive.prop("checked", parsedQuery.live === "true");
+            }
+            if (parsedQuery.creativeCommons && controls.checkCC.length) {
+                controls.checkCC.prop("checked", parsedQuery.creativeCommons === "true");
+            }
+            if (parsedQuery.hq && controls.checkHQ.length) {
+                controls.checkHQ.prop("checked", parsedQuery.hq === "true");
+            }
+            if (parsedQuery["3d"] && controls.checkDimension3d.length) {
+                controls.checkDimension3d.prop("checked", parsedQuery["3d"] === "true");
+            }
+            if (parsedQuery["paidProduct"] && controls.checkPaidProduct.length) {
+                controls.checkPaidProduct.prop("checked", parsedQuery["paidProduct"] === "true");
+            }
+            if (parsedQuery.pages && controls.comboPageLimit.length) {
+                controls.comboPageLimit.val(parsedQuery.pages);
+                controls.comboPageLimit.trigger('change');
+            }
+            if (String(parsedQuery["submit"]).toLowerCase() === "true") {
                 setTimeout(function () {
                     controls.btnSubmit.click();
                 }, 500);
@@ -2742,7 +2353,6 @@ const bulk = (function () {
         reset: function () {
             controls.progress.update({reset: true});
             controls.progress.removeClass('error');
-            controls.checkUnavailable.addClass("disabled");
 
             rows = [];
             tableRows = [csvHeaderRow.join("\t")];
@@ -2776,22 +2386,6 @@ const bulk = (function () {
             controls.linksTable.clear();
             controls.linksTable.draw(false);
 
-            unavailableData = {};
-            playlistMap = {};
-            controls.unavailableTable.clear();
-            controls.unavailableTable.draw(false);
-            controls.unavailableProgress.update({reset: true});
-
-            unavailableColumns.forEach(function (column) {
-                const button = document.querySelector("button[title='" + column.title + "']");
-                const input = document.querySelector("button[title='" + column.title + "'] input");
-
-                // Reset still-indeterminate columns
-                if (input.indeterminate === true && button.className.indexOf('active') !== -1) {
-                    button.click();
-                }
-            });
-
             controls.year.html("<option value='' selected>All years</option>")
 
             for (let key in otherData) {
@@ -2818,11 +2412,6 @@ const bulk = (function () {
         toggleLinksColumn(index) {
             console.log('toggle links ' + index)
             const column = controls.linksTable.column(index);
-
-            column.visible(!column.visible());
-        },
-        toggleUnavailableColumn(index) {
-            const column = controls.unavailableTable.column(index);
 
             column.visible(!column.visible());
         }
