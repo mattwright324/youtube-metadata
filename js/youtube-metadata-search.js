@@ -36,7 +36,7 @@ const bulk = (function () {
     const RFC_3339 = 'YYYY-MM-DDTHH:mm:ss';
 
     const apiNextPageMs = 600;
-    const delay15Sec = 3;
+    const delay15Sec = 15;
     const delay15SecMs = delay15Sec * 1000;
 
     let shareUrls = [];
