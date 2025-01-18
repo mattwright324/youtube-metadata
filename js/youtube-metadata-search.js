@@ -2017,8 +2017,11 @@ const bulk = (function () {
                 zip.file("about.txt",
                     "Downloaded by YouTube Metadata " + new Date().toLocaleString() + "\n\n" +
                     "URL: " + window.location + "\n\n" +
-                    "Input: " + controls.inputValue.val() + "\n\n" +
-                    "Created Playlists: " + controls.createdPlaylists.is(":checked")
+                    (shareUrls.length > 0 ? "Share url(s): " + JSON.stringify(shareUrls, null, 4) + "\n\n"
+                        : "") +
+                    (absoluteShareUrls.length > 0 ?
+                        "Share url(s) absolute timeframe: " + JSON.stringify(absoluteShareUrls, null, 4)
+                        : "")
                 );
 
                 console.log("Creating videos.json...")
