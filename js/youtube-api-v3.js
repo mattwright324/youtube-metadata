@@ -76,4 +76,4 @@ const youtube = (function ($) {
     };
 }($));
 youtube.setBaseUrl("https://ytapi.apps.mattw.io/v3/")
-youtube.setDefaultKey("foo");
+youtube.setDefaultKey("foo1");
