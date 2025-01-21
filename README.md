@@ -4,6 +4,7 @@ A quick way to gather all the metadata about a video, playlist, or channel from 
 
 - https://mattw.io/youtube-metadata/
 - https://mattw.io/youtube-metadata/bulk
+- https://mattw.io/youtube-metadata/search
 
 ![img.png](img/readme.png)
 
