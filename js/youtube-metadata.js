@@ -150,6 +150,10 @@
                 text: "Archive.org (direct video raw) - " + data.video_id
             });
             suggestions.push({
+                url: "https://web.archive.org/__wb/videoinfo?vtype=youtube&vid=" + data.video_id,
+                text: "Archive.org (videoinfo) - " + data.video_id
+            });
+            suggestions.push({
                 url: "https://archive.org/search.php?query=" + data.video_id,
                 text: "Archive.org (search) - " + data.video_id
             });
